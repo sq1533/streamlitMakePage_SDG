@@ -1,7 +1,41 @@
-import streamlit
+import os
 import requests
-import json
+from fastapi import FastAPI,Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
+app = FastAPI()
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__),"templates"))
+
+#homePage
+@app.get("/",response_class=HTMLResponse)
+async def home(request:Request):
+    return templates.TemplateResponse("samples.html",{"request":request})
+
+@app.post("/chatID")
+async def getChatID(request:Request):
+    result = await request.form()
+    botAPI = result['botAPI']
+    url=f'https://api.telegram.org/bot{botAPI}/getUpdates?offset=-1'
+    response = requests.get(url)
+    chatID = response.json()['result'][-1]['message']['chat']['id']
+    return HTMLResponse(content=f"<div>{chatID}</div>")
+
+@app.post("/sendText")
+async def getChatID(request:Request):
+    result = await request.form()
+    botAPI = result['botAPI']
+    chatID = result['chatID']
+    sendText = result['sendText']
+    url=f'https://api.telegram.org/bot{botAPI}/sendMessage?chat_id={chatID}&text={sendText}'
+    requests.get(url)
+    return HTMLResponse(content="<div>전송 완료</div>")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app,host="0.0.0.0",port=8501)
+"""
 streamlit.set_page_config(
                         page_title='howToUsed_telegramBot-API',
                         page_icon='',
@@ -155,3 +189,4 @@ with textOption.container():
             streamlit.write('전송 성공')
         else:
             streamlit.write(f'전송 실패, {response}')
+"""

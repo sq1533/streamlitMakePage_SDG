@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>telegramBot API</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <main>
+        <form hx-post="/chatID" hx-target="#chatIDresult" hx-swap="innerHTML" hx-boost="true">
+            <label for="input">텔레그램 봇 토큰</label>
+            <input type="text" name="botAPI">
+            <button type="submit">ChatID 확인</button>
+        </form>
+        <div id="chatIDresult"></div>
+        <form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="innerHTML" hx-boost="true">
+            <input type="text" name="botAPI">
+            <input type="text" name="chatID">
+            <input type="text" name="sendText">
+            <button type="submit">text 전송</button>
+        </form>
+        <div id="sendTextResult"></div>
+    </main>
+</body>
+</html>
