@@ -7,20 +7,35 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
-    <main>
-        <form hx-post="/chatID" hx-target="#chatIDresult" hx-swap="innerHTML" hx-boost="true">
-            <label for="input">텔레그램 봇 토큰</label>
-            <input type="text" name="botAPI">
+    <main class="grid grid-cols-4 gap-0 p-2 max-w-xl mx-auto font-mono bg-white">
+        <form hx-post="/chatID" hx-target="#chatIDresult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-5 font-bold text-xl tracking-wide bg-green-300">
+            <input type="text" name="botAPI" class="font-bold text-xl bg-red-300">
             <button type="submit">ChatID 확인</button>
         </form>
-        <div id="chatIDresult"></div>
-        <form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="innerHTML" hx-boost="true">
-            <input type="text" name="botAPI">
-            <input type="text" name="chatID">
-            <input type="text" name="sendText">
+        <div id="chatIDresult">--</div>
+        <form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-5 font-bold text-xl tracking-wide bg-green-300">
+            <input type="text" name="botAPI" class="font-bold text-xl bg-red-300">
+            <input type="text" name="chatID" class="font-bold text-xl bg-red-300">
+            <input type="text" name="sendText" class="font-bold text-xl bg-red-300">
             <button type="submit">text 전송</button>
         </form>
-        <div id="sendTextResult"></div>
+        <div id="sendTextResult">--</div>
+        <form hx-post="/sendTextOption" hx-target="#sendTextOptionResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-5 font-bold text-xl tracking-wide bg-green-300">
+            <input type="text" name="botAPI">
+            <input type="text" name="chatID">
+            <input type="text" name="mainText">
+            <input type="text" name="buttonText">
+            <input type="text" name="callback">
+            <button type="submit">text 전송</button>
+        </form>
+        <div id="sendTextOptionResult">--</div>
+        <form hx-post="/sendImage" hx-target="#sendImageResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-5 font-bold text-xl tracking-wide bg-green-300">
+            <input type="text" name="botAPI">
+            <input type="text" name="chatID">
+            <input type="file" name="sendImage" accept=".jpg, .jpeg, .png">
+            <button type="submit">text 전송</button>
+        </form>
+        <div id="sendImageResult">--</div>
     </main>
 </body>
 </html>
