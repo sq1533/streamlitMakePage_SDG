@@ -1,0 +1,29 @@
+<!--텍스트 전송-->
+<form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-7 tracking-wide">
+    <input type="text" name="botAPI" value="{{botAPI}}" class="rounded-lg outline outline-amber-600 w-96">
+    <input type="text" name="chatID" value="{{chatID}}" class="rounded-lg outline outline-amber-600 w-30">
+    <input type="text" name="sendText" class="rounded-lg outline outline-amber-600 w-96">
+    <button type="submit" class="rounded-lg w-36 bg-red-300">전송</button>
+</form>
+<div id="sendTextResult" class="col-start-1 col-end-7">--</div>
+
+<!--텍스트 전송 및 하단 버튼 추가-->
+<form hx-post="/sendTextOption" hx-target="#sendTextOptionResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-7 tracking-wide">
+    <input type="text" name="botAPI" value="{{botAPI}}" class="rounded-lg outline outline-amber-600 w-96">
+    <input type="text" name="chatID" value="{{chatID}}" class="rounded-lg outline outline-amber-600 w-30">
+    <input type="text" name="mainText" class="rounded-lg outline outline-amber-600 w-96">
+    <input type="text" name="buttonText" class="rounded-lg outline outline-amber-600 w-96">
+    <input type="text" name="callback" class="rounded-lg outline outline-amber-600 w-96">
+    <button type="submit" class="rounded-lg w-36 bg-red-300">전송</button>
+</form>
+<div id="sendTextOptionResult" class="col-start-1 col-end-7">--</div>
+
+<!--422 오류, 추후 재시도
+<form hx-post="/sendImage" hx-target="#sendImageResult" hx-swap="innerHTML" hx-boost="true" class="col-start-1 col-end-7 tracking-wide">
+    <input type="text" name="botAPI" value="{{botAPI}}" class="rounded-lg outline outline-amber-600 w-96">
+    <input type="text" name="chatID" value="{{chatID}}" class="rounded-lg outline outline-amber-600 w-30">
+    <input type="file" name="sendImage" accept="image/*" class="rounded-lg outline outline-amber-600 w-30">
+    <button type="submit" class="rounded-lg w-36 bg-red-300">전송</button>
+</form>
+<div id="sendImageResult" class="col-start-1 col-end-7">--</div>
+-->
