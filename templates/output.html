@@ -1,56 +1,29 @@
 <!--텍스트 전송-->
-<form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="outerHTML" hx-indicator="#loadingSendText"
-class="grid grid-cols-6 gap-1 tracking-wide">
-    <label for="sendTextBotAPI"
-    class=" col-start-1 col-end-5 rounded-lg">봇 API</label>
-    <label for="sendTextchatID"
-    class="col-start-5 col-end-7 rounded-lg">챗 ID</label>
-    <input id="sendTextBotAPI" type="text" name="botAPI" value="{{botAPI}}"
-    class=" col-start-1 col-end-5 rounded-lg">
-    <input id="sendTextchatID" type="text" name="chatID" value="{{chatID}}"
-    class="col-start-5 col-end-7 rounded-lg">
-    <label for="sendTextText"
-    class="col-start-1 col-end-7 rounded-lg">메세지 내용</label>
-    <textarea id="sendTextText" name="text"rows="4"
-    class="col-start-1 col-end-7 rounded-lg"></textarea>
-    <button type="submit"
-    class="col-start-5 col-end-7 rounded-lg bg-red-300">전송</button>
+<form hx-post="/sendText" hx-target="#sendTextResult" hx-swap="outerHTML" hx-indicator="#loadingSendText">
+    <label for="sendTextBotAPI">봇 API</label>
+    <label for="sendTextchatID">챗 ID</label>
+    <input id="sendTextBotAPI" type="text" name="botAPI" value="{{botAPI}}">
+    <input id="sendTextchatID" type="text" name="chatID" value="{{chatID}}">
+    <label for="sendTextText">메세지 내용</label>
+    <textarea id="sendTextText" name="text"rows="4"></textarea>
+    <button type="submit">전송</button>
 </form>
 <div id="sendTextResult"></div>
-<div id="loadingSendText" class="htmx-indicator">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-4 border-blue-500"></div>
-</div>
 
 <!--텍스트_inline 전송-->
-<form hx-post="/sendTextWithInline" hx-target="#sendTextWithLinlineResult" hx-swap="outerHTML" hx-indicator="#loadingSendTextWithInline"
-class="grid grid-cols-6 gap-1 tracking-wide">
-    <label for="sendTextWithInlineBotAPI"
-    class=" col-start-1 col-end-5 rounded-lg">봇 API</label>
-    <label for="sendTextWithInlinechatID"
-    class="col-start-5 col-end-7 rounded-lg">챗 ID</label>
-    <input id="sendTextWithInlineBotAPI" type="text" name="botAPI" value="{{botAPI}}"
-    class=" col-start-1 col-end-5 rounded-lg">
-    <input id="sendTextWithInlinechatID" type="text" name="chatID" value="{{chatID}}"
-    class="col-start-5 col-end-7 rounded-lg">
-    <label for="sendTextWithInlineText"
-    class="col-start-1 col-end-7 rounded-lg">메세지 내용</label>
-    <textarea id="sendTextWithInlineText" name="text"rows="4"
-    class="col-start-1 col-end-7 rounded-lg"></textarea>
-    <label for="sendTextWithInlineButtonText"
-    class="col-start-1 col-end-4 rounded-lg">버튼 텍스트</label>
-    <label for="sendTextWithInlineCallback"
-    class="col-start-4 col-end-7 rounded-lg">전송 URL</label>
-    <input id="sendTextWithInlineButtonText" type="text" name="buttonText"
-    class=" col-start-1 col-end-4 rounded-lg">
-    <input id="sendTextWithInlineCallback" type="text" name="callback"
-    class=" col-start-4 col-end-7 rounded-lg">
-    <button type="submit"
-    class="col-start-5 col-end-7 rounded-lg bg-red-300">전송</button>
+<form hx-post="/sendTextWithInline" hx-target="#sendTextWithLinlineResult" hx-swap="outerHTML" hx-indicator="#loadingSendTextWithInline">
+    <label for="sendTextWithInlineBotAPI">봇 API</label>
+    <label for="sendTextWithInlinechatID">챗 ID</label>
+    <input id="sendTextWithInlineBotAPI" type="text" name="botAPI" value="{{botAPI}}">
+    <input id="sendTextWithInlinechatID" type="text" name="chatID" value="{{chatID}}">
+    <label for="sendTextWithInlineText">메세지 내용</label>
+    <textarea id="sendTextWithInlineText" name="text"rows="4"></textarea>
+    <label for="sendTextWithInlineButtonText">버튼 텍스트</label>
+    <label for="sendTextWithInlineCallback">전송 URL</label>
+    <input id="sendTextWithInlineButtonText" type="text" name="buttonText">
+    <input id="sendTextWithInlineCallback" type="text" name="callback">
+    <button type="submit">전송</button>
 </form>
-<div id="sendTextWithLinlineResult"></div>
-<div id="loadingSendTextWithInline" class="htmx-indicator">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-4 border-blue-500"></div>
-</div>
 
 <!--422 오류, 추후 재시도
 <form hx-post="/sendImage" hx-target="#sendImageResult" hx-swap="innerHTML" hx-boost="true">
