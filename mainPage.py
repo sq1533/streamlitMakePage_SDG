@@ -12,3 +12,6 @@ st.set_page_config(
 st.title(
     body="shop_demo"
 )
+
+product_1, product_2, product_3 = st.columns(3, gap="small", border=True, vertical_alignment="center")
+product_1.write("test")
