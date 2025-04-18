@@ -27,24 +27,68 @@ st.logo(
 )
 
 # 쿼리, 및 세션 관리
-if "item" not in st.query_params:
-    st.query_params.item = None
 if "user" not in st.session_state:
     st.session_state.user = None
-
 
 # sidebar 설정
 with st.sidebar:
     if st.session_state.user == None:
+        ID = st.text_input(
+            label="아이디",
+            value=None,
+            max_chars=40,
+            key="textID",
+            type="default",
+            placeholder="id@email.com"
+        )
+        PW = st.text_input(
+            label="비밀번호",
+            value=None,
+            max_chars=20,
+            key="textPW",
+            type="password",
+            placeholder="********"
+        )
         st.button(
             label="log-IN",
             on_click=None,
             type="primary",
             use_container_width=True
         )
-
+        st.button(
+            label="회원가입",
+            on_click=None,
+            type="secondary",
+            use_container_width=True
+        )
+    else:
+        st.button(
+            label="log-OUT",
+            on_click=None,
+            type="primary",
+            use_container_width=True
+        )
 
 # MainPage
+# 상품 구매 dialog
+@st.dialog("itemPage")
+def itemInfo(item):
+    st.image(
+            image=products["item"][item]["src"],
+            caption=None,
+            use_container_width=True,
+            clamp=False,
+            output_format="auto"
+            )
+    st.write(products["item"][item]["name"])
+    price, buyBTN = st.columns(spec=2, gap="small", vertical_alignment="center")
+    price.write(products["item"][item]["price"])
+    if buyBTN.button(label="buy", key="buyItem"):
+        if st.session_state.user == None:
+            st.write("로그인 해주세요.")
+        else:
+            st.session_state.buyItem = item
+
 # grid 설정
 cards_1 = st.columns(spec=3, gap="small", vertical_alignment="center")
 cards_2 = st.columns(spec=3, gap="small", vertical_alignment="center")
@@ -66,24 +110,7 @@ for i in cards_1+cards_2+cards_3+cards_4:
         st.write(f"product_{itemCounts[count]}")
         if st.button(label="구매", key=itemCounts[count]):
             st.query_params["item"] = itemCounts[count]
+            itemInfo(item=itemCounts[count])
         count += 1
         if count >= itemCounts.__len__():
             break
-
-def productPage(key):
-    st.write("test")
-    st.image(
-            image=products["item"][key]["src"],
-            caption=None,
-            use_container_width=True,
-            clamp=False,
-            output_format="auto"
-            )
-
-if st.query_params.item == None:
-    st.write("test")
-else:
-    st.Page(
-        page=productPage(key=st.query_params.item),
-        title=f"{products["item"][st.query_params.item]["name"]}"
-        )
