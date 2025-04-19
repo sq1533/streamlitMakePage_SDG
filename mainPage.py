@@ -1,10 +1,23 @@
-import streamlit as st
-# json 연동은 cloud DB연동 전까지 사용
+import os
 import json
+import streamlit as st
+import firebase_admin
+from firebase_admin import credentials, auth
+# json 연동은 cloud DB연동 전까지 사용
 with open(file="storage/data/products.json", mode="r", encoding="utf-8") as f:
     products = json.load(fp=f)
 itemID = products["item"].keys()
 itemCounts = list(itemID)
+
+# FireBase secret_keys
+secretKeyPath = os.path.join(os.path.dirname(__file__),"storage","secrets","firebaseKey.json")
+# FireBase 연결
+try:
+    path = credentials.Certificate(cert=secretKeyPath)
+    firebase_admin.initialize_app(credential=path)
+    print("FireBase 앱 초기화 완료")
+except Exception as e:
+    print(f"false : {e}")
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -31,6 +44,27 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # sidebar 설정
+# 회원가입 버튼 dialog
+@st.dialog("signUp")
+def signUp():
+    ID = st.text_input(
+        label="아이디",
+        value=None,
+        max_chars=40,
+        key="createID",
+        type="default",
+        help=None,
+        placeholder="id@email.com"
+    )
+    PW = st.text_input(
+        label="비밀번호",
+        value=None,
+        max_chars=20,
+        key="createPW",
+        type="password",
+        help=None,
+        placeholder="********"
+    )
 with st.sidebar:
     if st.session_state.user == None:
         ID = st.text_input(
@@ -73,6 +107,7 @@ with st.sidebar:
 # 상품 구매 dialog
 @st.dialog("itemPage")
 def itemInfo(item):
+    # 아이템 이미지 리스트 노출
     st.image(
             image=products["item"][item]["src"],
             caption=None,
@@ -80,12 +115,16 @@ def itemInfo(item):
             clamp=False,
             output_format="auto"
             )
+    # 상품 이름
     st.write(products["item"][item]["name"])
+    # 상품 가격 및 구매 버튼
     price, buyBTN = st.columns(spec=2, gap="small", vertical_alignment="center")
     price.write(products["item"][item]["price"])
     if buyBTN.button(label="buy", key="buyItem"):
+        # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if st.session_state.user == None:
             st.write("로그인 해주세요.")
+        # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
             st.session_state.buyItem = item
 
