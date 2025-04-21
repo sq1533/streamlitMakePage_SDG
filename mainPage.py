@@ -2,7 +2,7 @@ import os
 import json
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials, auth
+from firebase_admin import credentials
 # json 연동은 cloud DB연동 전까지 사용
 with open(file="storage/data/products.json", mode="r", encoding="utf-8") as f:
     products = json.load(fp=f)
