@@ -70,7 +70,6 @@ else:
     elif st.session_state.signup_step == 2:
         st.write("비밀번호 설정")
         st.button(label="다음", key="step2next", type="primary", use_container_width=True, on_click=nextStep)
-        st.button(label="이전", key="step2prev", type="primary", use_container_width=True, on_click=prevStep)
     # signup_step_4 기타 정보 입력 > fierbase 저장
     elif st.session_state.signup_step == 3:
         st.write("사용자 정보 입력")
