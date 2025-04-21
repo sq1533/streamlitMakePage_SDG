@@ -9,16 +9,6 @@ with open(file="storage/data/products.json", mode="r", encoding="utf-8") as f:
 itemID = products["item"].keys()
 itemCounts = list(itemID)
 
-# FireBase secret_keys
-secretKeyPath = os.path.join(os.path.dirname(__file__),"storage","secrets","firebaseKey.json")
-# FireBase 연결
-try:
-    path = credentials.Certificate(cert=secretKeyPath)
-    firebase_admin.initialize_app(credential=path)
-    print("FireBase 앱 초기화 완료")
-except Exception as e:
-    print(f"false : {e}")
-
 # 페이지 기본 설정
 st.set_page_config(
     page_title="shop_demo",
@@ -26,6 +16,29 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded"
 )
+
+# sidebar Nav 기능 비활성화
+st.markdown(
+    """
+    <style>
+        [data-testid="stSidebarNav"] {
+            display: none;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# FireBase secret_keys
+secretKeyPath = os.path.join(os.path.dirname(__file__),"storage","secrets","firebaseKey.json")
+if not firebase_admin._apps:  # Firebase 앱이 이미 초기화되었는지 확인
+    # FireBase 연결
+    try:
+        path = credentials.Certificate(cert=secretKeyPath)
+        firebase_admin.initialize_app(credential=path)
+        print("FireBase 앱 초기화 완료")
+    except Exception as e:
+        print(f"false : {e}")
 
 # 페이지 제목
 st.title(
@@ -43,28 +56,7 @@ st.logo(
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# sidebar 설정
-# 회원가입 버튼 dialog
-@st.dialog("signUp")
-def signUp():
-    ID = st.text_input(
-        label="아이디",
-        value=None,
-        max_chars=40,
-        key="createID",
-        type="default",
-        help=None,
-        placeholder="id@email.com"
-    )
-    PW = st.text_input(
-        label="비밀번호",
-        value=None,
-        max_chars=20,
-        key="createPW",
-        type="password",
-        help=None,
-        placeholder="********"
-    )
+# siderbar 정의
 with st.sidebar:
     if st.session_state.user == None:
         ID = st.text_input(
@@ -89,12 +81,11 @@ with st.sidebar:
             type="primary",
             use_container_width=True
         )
-        st.button(
-            label="회원가입",
-            on_click=None,
-            type="secondary",
-            use_container_width=True
-        )
+        signup = st.button(label="회원가입", type="secondary", use_container_width=True)
+        if signup:
+            # 회원가입 초기 화면 로드
+            st.session_state.signup_step = 0
+            st.switch_page(page="pages/signup.py")
     else:
         st.button(
             label="log-OUT",
