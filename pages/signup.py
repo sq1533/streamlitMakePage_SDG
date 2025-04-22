@@ -1,4 +1,5 @@
 import streamlit as st
+import secrets
 from firebase_admin import auth
 
 # sidebar Nav 기능 비활성화
@@ -24,21 +25,31 @@ goHome = st.button(
 if goHome:
     st.switch_page(page="mainPage.py")
 
-"""
-# 비밀번호
-solt = secrets.token_urlsafe(nbytes=16)
-# 이메일 인증 커스텀 설정
-auth.ActionCodeSettings(
 
-)
-"""
+# 이메일 인증 커스텀 설정
+def sendEmail(user:str, solt:str):
+    try:
+        settingCode = auth.ActionCodeSettings(
+            url=f"https://localhost:8502/signupAccess?signupStep={user}%solt={solt}",
+            handle_code_in_app=True
+        )
+        auth.generate_email_verification_link(
+            email=user,
+            action_code_settings=settingCode
+        )
+    except Exception as e:
+        print(e)
+
+# 세션 처리
+if "signup_step" not in st.session_state:
+    st.session_state.signup_step = False
 
 # 세션 정보 검증
 if st.session_state.signup_step:
     if "signupStep" not in st.query_params:
         st.progress(
             value=0,
-            text=["이메일 입력 입력"]
+            text="이메일 입력 입력"
         )
         email = st.text_input(
             label="아이디",
@@ -69,6 +80,8 @@ if st.session_state.signup_step:
                     )
                     st.warning(body="회원가입을 시도하셨군요!, 회원가입을 이어하시겠습니까?")
                     if alreadyN:
+                        solt = secrets.token_hex(nbytes=6)
+                        sendEmail(user=email, solt=solt)
                         st.session_state.signup_email = email
                         st.query_params.signupStep = "emailAccess"
             except auth.UserNotFoundError:
@@ -80,13 +93,17 @@ if st.session_state.signup_step:
                     photo_url=None,
                     disabled=False,
                     )
+                solt = secrets.token_hex(nbytes=6)
+                sendEmail(user=email, solt=solt)
                 st.session_state.signup_email = email
                 st.query_params.signupStep = "emailAccess"
     elif st.query_params.signupStep == "emailAccess":
         st.progress(
             value=25,
-            text=["이메일 인증"]
+            text="이메일 인증"
         )
         st.write("이메일을 확인해 주세요.")
+    else:
+        st.error("올바른 접근이 아닙니다.")
 else:
     st.error("올바른 접근이 아닙니다.")

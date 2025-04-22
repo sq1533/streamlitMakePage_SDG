@@ -1,6 +1,8 @@
 import streamlit as st
 from firebase_admin import auth
 
+from signup import solt
+
 # sidebar Nav 기능 비활성화
 st.markdown(
     """
@@ -24,4 +26,9 @@ goHome = st.button(
 if goHome:
     st.switch_page(page="mainPage.py")
 
-st.query_params.signupStep
+if st.query_params.signupStep == st.session_state.signup_email and st.query_params.solt == solt:
+    st.write("올바른 접근")
+elif st.query_params.signupStep == st.session_state.signup_email and st.query_params.solt != solt:
+    st.write("솔트 정보 오류")
+else:
+    st.write("오류")
