@@ -84,7 +84,7 @@ with st.sidebar:
         signup = st.button(label="회원가입", type="secondary", use_container_width=True)
         if signup:
             # 회원가입 초기 화면 로드
-            st.session_state.signup_step = 0
+            st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
     else:
         st.button(
