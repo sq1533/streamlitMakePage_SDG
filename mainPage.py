@@ -1,4 +1,3 @@
-import os
 import json
 import streamlit as st
 import firebase_admin
@@ -30,7 +29,20 @@ st.markdown(
 )
 
 # FireBase secret_keys
-secretKeyPath = os.path.join(os.path.dirname(__file__),"storage","secrets","firebaseKey.json")
+secretKeyPath = {
+    "type" : st.secrets["firebaseKey"]["type"],
+    "project_id" : st.secrets["firebaseKey"]["project_id"],
+    "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
+    "private_key" : st.secrets["firebaseKey"]["private_key"],
+    "client_email" : st.secrets["firebaseKey"]["client_email"],
+    "client_id" : st.secrets["firebaseKey"]["client_id"],
+    "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
+    "token_uri" : st.secrets["firebaseKey"]["token_uri"],
+    "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
+    "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
+    }
+
 if not firebase_admin._apps:  # Firebase 앱이 이미 초기화되었는지 확인
     # FireBase 연결
     try:

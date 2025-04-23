@@ -1,5 +1,5 @@
 import streamlit as st
-import secrets
+import time
 from firebase_admin import auth
 
 # sidebar Nav 기능 비활성화
@@ -25,26 +25,15 @@ goHome = st.button(
 if goHome:
     st.switch_page(page="mainPage.py")
 
-
-# 이메일 인증 커스텀 설정
-def sendEmail(user:str, solt:str):
-    try:
-        settingCode = auth.ActionCodeSettings(
-            url=f"https://localhost:8502/signupAccess?signupStep={user}%solt={solt}",
-            handle_code_in_app=True
-        )
-        auth.generate_email_verification_link(
-            email=user,
-            action_code_settings=settingCode
-        )
-    except Exception as e:
-        print(e)
-
-# 세션 처리
+# 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
+if "user_status" not in st.session_state:
+    st.session_state.user_status = None
+if "signup_email" not in st.session_state:
+    st.session_state.signup_email = None
 
-# 세션 정보 검증
+# 세션 정보 검증 및 이메일 검증
 if st.session_state.signup_step:
     if "signupStep" not in st.query_params:
         st.progress(
@@ -60,50 +49,48 @@ if st.session_state.signup_step:
             help=None,
             placeholder="id@email.com"
         )
-        next = st.button(
-            label="이메일 인증하기",
-            key="nextStep0",
-            type="primary",
-            use_container_width=True,
-            disabled=False
-        )
-        if next:
+        user_info = None
+        if email:
+            with st.spinner(text="이메일을 확인해볼게요", show_time=True):
+                time.sleep(3)
             try:
-                if auth.get_user_by_email(email=email).email_verified == True:
-                    st.error("이미 존재하는 이메일입니다.")
-                elif auth.get_user_by_email(email=email).email_verified == False:
-                    alreadyN = st.button(
-                        label="인증 이어하기",
-                        key="step0already",
-                        type="primary",
-                        use_container_width=True
-                    )
-                    st.warning(body="회원가입을 시도하셨군요!, 회원가입을 이어하시겠습니까?")
-                    if alreadyN:
-                        solt = secrets.token_hex(nbytes=6)
-                        sendEmail(user=email, solt=solt)
-                        st.session_state.signup_email = email
-                        st.query_params.signupStep = "emailAccess"
+                user_info = auth.get_user_by_email(email=email)
+                if user_info.email_verified:
+                    st.session_state.user_status = "verified"
+                else:
+                    st.session_state.user_status = "unverified"
             except auth.UserNotFoundError:
-                auth.create_user(
-                    email=st.session_state.signup_email,
-                    email_verified=False,
-                    password=None,
-                    display_name=None,
-                    photo_url=None,
-                    disabled=False,
-                    )
-                solt = secrets.token_hex(nbytes=6)
-                sendEmail(user=email, solt=solt)
-                st.session_state.signup_email = email
-                st.query_params.signupStep = "emailAccess"
-    elif st.query_params.signupStep == "emailAccess":
-        st.progress(
-            value=25,
-            text="이메일 인증"
-        )
-        st.write("이메일을 확인해 주세요.")
-    else:
-        st.error("올바른 접근이 아닙니다.")
+                st.session_state.user_status = "not_found"
+            except Exception as e:
+                st.error(f"사용자 확인 중 오류 발생: {e}")
+                st.session_state.user_status = None
+            # 회원 DB 검증
+            # TODO : 이메일 user 미가입 유무 확인, email 인증 페이지 전환
+            if st.session_state.user_status == "verified":
+                st.error("이미 가입한 이메일입니다. 확인해주세요.")
+            elif st.session_state.user_status == "unverified":
+                st.info("회원가입을 시도하셨군요!, 인증 메일을 전송할까요?")
+                sendMail = st.button(
+                    label="인증 메일 보내기",
+                    key="sendMail1",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=False
+                )
+                if sendMail:
+                    st.session_state.signup_email = email
+                    st.switch_page(page="pages/signupAccess.py")
+            elif st.session_state.user_status == "not_found":
+                st.info("환영합니다. 인증 메일을 전송할까요?")
+                sendMail = st.button(
+                    label="인증 메일 보내기",
+                    key="sendMail2",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=False
+                )
+                if sendMail:
+                    st.session_state.signup_email = email
+                    st.switch_page(page="pages/signupAccess.py")
 else:
     st.error("올바른 접근이 아닙니다.")
