@@ -1,7 +1,5 @@
 import streamlit as st
 import time
-import smtplib
-from email.message import EmailMessage
 import secrets
 from firebase_admin import auth
 
