@@ -1,7 +1,6 @@
 import streamlit as st
 import smtplib
 from email.message import EmailMessage
-import time
 import secrets
 from firebase_admin import auth
 
@@ -35,7 +34,7 @@ def sendEmail(userMail: str, solt: str) -> bool:
     SENDER_SERVER = st.secrets["email_credentials"]["smtp_server"]
     SENDER_PORT = st.secrets["email_credentials"]["smtp_port"]
     settingCode = auth.ActionCodeSettings(
-        url=f"https://localhost:8502/demo/signupAccess?signupStep={userMail}&solt={solt}",
+        url=f"https://localhost:8502/demo/userInfo?email={userMail}&solt={solt}",
         handle_code_in_app=True
     )
     link = auth.generate_email_verification_link(
@@ -73,9 +72,6 @@ def sendEmail(userMail: str, solt: str) -> bool:
         print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
         return False
 
-# 사용자 검증키 생성
-solt = secrets.token_hex(nbytes=6)
-
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
@@ -99,26 +95,33 @@ if st.session_state.signup_step:
     )
     if st.session_state.user_status == "not_found":
         try:
+            # 사용자 검증키 생성
+            solt = secrets.token_hex(nbytes=6)+"!!"
             auth.create_user(
                 email=st.session_state.signup_email,
                 email_verified=False,
-                password=None,
+                password=solt,
                 display_name=None,
                 photo_url=None,
                 disabled=False,
                 )
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                time.sleep(3)
-            sendEmail(userMail=st.session_state.signup_email, solt=solt)
-            st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
+                sendEmail(userMail=st.session_state.signup_email, solt=solt)
+                st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
         except Exception as e:
             st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
     elif st.session_state.user_status == "unverified":
         try:
+            # 사용자 검증키 생성
+            solt = secrets.token_hex(nbytes=6)+"!!"
+            uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
+            auth.update_user(
+                uid=uid,
+                password=solt
+            )
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                time.sleep(3)
-            sendEmail(userMail=st.session_state.signup_email, solt=solt)
-            st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
+                sendEmail(userMail=st.session_state.signup_email, solt=solt)
+                st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
         except Exception as e:
             st.error(f"이메일 전송 중 오류 발생: {e}")
 else:

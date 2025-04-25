@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 from firebase_admin import auth
 
 # sidebar Nav 기능 비활성화
@@ -52,20 +51,18 @@ if st.session_state.signup_step:
         user_info = None
         if email:
             with st.spinner(text="이메일을 확인해볼게요", show_time=True):
-                time.sleep(3)
-            try:
-                user_info = auth.get_user_by_email(email=email)
-                if user_info.email_verified:
-                    st.session_state.user_status = "verified"
-                else:
-                    st.session_state.user_status = "unverified"
-            except auth.UserNotFoundError:
-                st.session_state.user_status = "not_found"
-            except Exception as e:
-                st.error(f"사용자 확인 중 오류 발생: {e}")
-                st.session_state.user_status = None
+                try:
+                    user_info = auth.get_user_by_email(email=email)
+                    if user_info.email_verified:
+                        st.session_state.user_status = "verified"
+                    else:
+                        st.session_state.user_status = "unverified"
+                except auth.UserNotFoundError:
+                    st.session_state.user_status = "not_found"
+                except Exception as e:
+                    st.error(f"사용자 확인 중 오류 발생: {e}")
+                    st.session_state.user_status = None
             # 회원 DB 검증
-            # TODO : 이메일 user 미가입 유무 확인, email 인증 페이지 전환
             if st.session_state.user_status == "verified":
                 st.error("이미 가입한 이메일입니다. 확인해주세요.")
             elif st.session_state.user_status == "unverified":
