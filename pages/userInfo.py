@@ -24,12 +24,31 @@ goHome = st.button(
 if goHome:
     st.switch_page(page="mainPage.py")
 
-# 사용자 정보 입력
+# 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
-if "email" not in st.query_params:
-    st.query_params.email = None
-if "solt" not in st.query_params:
-    st.query_params.solt = None
+if "user_status" not in st.session_state:
+    st.session_state.user_status = None
+if "signup_email" not in st.session_state:
+    st.session_state.signup_email = None
 
-auth.get_user_by_phone_number
+# 사용자 정보 저장
+# TODO : 사용자 정보 저장, 주소 검증 API 확인
+if st.session_state.signup_step:
+    st.progress(
+        value=66,
+        text="인증결과 확인"
+    )
+    st.text_input(
+        label="아이디",
+        value=st.session_state.signup_email,
+        key="userEmail",
+        type="default",
+        disabled=True
+    )
+    # pw = st.text_input()
+    # name = st.text_input()
+    # phone = st.text_input()
+    # address = st.text_input()
+else:
+    st.error("올바른 접근이 아닙니다.")

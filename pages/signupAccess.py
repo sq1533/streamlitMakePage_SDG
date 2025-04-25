@@ -1,40 +1,18 @@
 import streamlit as st
+import time
 import smtplib
 from email.message import EmailMessage
 import secrets
 from firebase_admin import auth
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# 홈으로 이동
-goHome = st.button(
-    label="홈으로 이동",
-    key="goHome",
-    type="primary",
-    use_container_width=False,
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
-
 # email 전송
-def sendEmail(userMail: str, solt: str) -> bool:
+def sendEmail(userMail: str) -> bool:
     SENDER_EMAIL = st.secrets["email_credentials"]["sender_email"]
     SENDER_APP_PASSWORD = st.secrets["email_credentials"]["sender_password"]
     SENDER_SERVER = st.secrets["email_credentials"]["smtp_server"]
     SENDER_PORT = st.secrets["email_credentials"]["smtp_port"]
     settingCode = auth.ActionCodeSettings(
-        url=f"https://localhost:8502/demo/userInfo?email={userMail}&solt={solt}",
+        url=f"https://localhost:8502/demo/success?email={userMail}",
         handle_code_in_app=True
     )
     link = auth.generate_email_verification_link(
@@ -72,6 +50,29 @@ def sendEmail(userMail: str, solt: str) -> bool:
         print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
         return False
 
+# sidebar Nav 기능 비활성화
+st.markdown(
+    """
+    <style>
+        [data-testid="stSidebarNav"] {
+            display: none;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# 홈으로 이동
+goHome = st.button(
+    label="홈으로 이동",
+    key="goHome",
+    type="primary",
+    use_container_width=False,
+    disabled=False
+)
+if goHome:
+    st.switch_page(page="mainPage.py")
+
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
@@ -83,7 +84,7 @@ if "signup_email" not in st.session_state:
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
     st.progress(
-        value=25,
+        value=33,
         text="이메일 인증"
     )
     st.text_input(
@@ -106,7 +107,7 @@ if st.session_state.signup_step:
                 disabled=False,
                 )
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                sendEmail(userMail=st.session_state.signup_email, solt=solt)
+                sendEmail(userMail=st.session_state.signup_email)
                 st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
         except Exception as e:
             st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
@@ -120,8 +121,17 @@ if st.session_state.signup_step:
                 password=solt
             )
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                sendEmail(userMail=st.session_state.signup_email, solt=solt)
+                sendEmail(userMail=st.session_state.signup_email)
                 st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
+                time.sleep(2)
+                st.button(
+                    label="인증결과 확인",
+                    key="checkAccess",
+                    type="primary",
+                    on_click=st.switch_page(page="pages/userInfo.py"),
+                    use_container_width=True,
+                    disabled=False
+                )
         except Exception as e:
             st.error(f"이메일 전송 중 오류 발생: {e}")
 else:
