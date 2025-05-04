@@ -62,17 +62,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 홈으로 이동
-goHome = st.button(
-    label="홈으로 이동",
-    key="goHome",
-    type="primary",
-    use_container_width=False,
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
-
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
@@ -84,7 +73,7 @@ if "signup_email" not in st.session_state:
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
     st.progress(
-        value=33,
+        value=25,
         text="이메일 인증"
     )
     st.text_input(
@@ -109,6 +98,14 @@ if st.session_state.signup_step:
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
                 sendEmail(userMail=st.session_state.signup_email)
                 st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
+                st.button(
+                    label="인증결과 확인",
+                    key="checkAccessNew",
+                    type="primary",
+                    on_click=st.switch_page(page="pages/signupPW.py"),
+                    use_container_width=True,
+                    disabled=False
+                )
         except Exception as e:
             st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
     elif st.session_state.user_status == "unverified":
@@ -126,9 +123,9 @@ if st.session_state.signup_step:
                 time.sleep(2)
                 st.button(
                     label="인증결과 확인",
-                    key="checkAccess",
+                    key="checkAccessAgain",
                     type="primary",
-                    on_click=st.switch_page(page="pages/userInfo.py"),
+                    on_click=st.switch_page(page="pages/signupPW.py"),
                     use_container_width=True,
                     disabled=False
                 )
