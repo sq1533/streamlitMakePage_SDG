@@ -1,9 +1,9 @@
 import streamlit as st
+from firebase_admin import auth
 import time
 import smtplib
 from email.message import EmailMessage
 import secrets
-from firebase_admin import auth
 
 # email 전송
 def sendEmail(userMail: str) -> bool:
@@ -73,7 +73,7 @@ if "signup_email" not in st.session_state:
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
     st.progress(
-        value=25,
+        value=33,
         text="이메일 인증"
     )
     st.text_input(
@@ -93,7 +93,7 @@ if st.session_state.signup_step:
                 password=solt,
                 display_name=None,
                 photo_url=None,
-                disabled=False,
+                disabled=True,
                 )
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
                 sendEmail(userMail=st.session_state.signup_email)

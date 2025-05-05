@@ -1,6 +1,6 @@
 import streamlit as st
-import re
 from firebase_admin import auth
+import re
 
 # sidebar Nav 기능 비활성화
 st.markdown(
@@ -23,7 +23,7 @@ if "signup_email" not in st.session_state:
 # 사용자 정보 저장
 if st.session_state.signup_step:
     st.progress(
-        value=50,
+        value=66,
         text="비밀번호 설정"
     )
     pw = st.text_input(

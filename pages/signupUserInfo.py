@@ -1,6 +1,12 @@
 import streamlit as st
+from firebase_admin import auth, firestore
+import time
 import re
 import requests
+
+# userInfo store 연결
+db = firestore.client()
+userConn = db.collection('userInfo')
 
 # sidebar Nav 기능 비활성화
 st.markdown(
@@ -67,8 +73,8 @@ def searchAddress(address):
 
 if st.session_state.signup_step:
     st.progress(
-        value=75,
-        text="사용자 정보 입력"
+        value=100,
+        text="마지막 단계에요!"
     )
     name = st.text_input(
         label="이름",
@@ -108,7 +114,19 @@ if st.session_state.signup_step:
             st.error(body="아직 완료되지 않았어요.")
         else:
             try:
-                pass
+                auth.update_user(
+                    uid=auth.get_user_by_email(email=st.session_state.signup_email).uid,
+                    disabled=False
+                )
+                userInfo = {
+                    "name" : name,
+                    "phone" : phone,
+                    "address" : st.session_state.address
+                }
+                userConn.document(st.session_state.signup_email).set(userInfo)
+                st.info(body="회원가입이 완료되었습니다.")
+                time.sleep(2)
+                st.switch_page(page="mainPage.py")
             except Exception as e:
                 st.error(body=f"회원가입 실패: {e}")
 else:

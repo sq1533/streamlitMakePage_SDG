@@ -1,7 +1,8 @@
-import json
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore
+import json
+
 # json 연동은 cloud DB연동 전까지 사용
 with open(file="storage/data/products.json", mode="r", encoding="utf-8") as f:
     products = json.load(fp=f)
@@ -43,7 +44,8 @@ secretKeyPath = {
     "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
     }
 
-if not firebase_admin._apps:  # Firebase 앱이 이미 초기화되었는지 확인
+# Firebase 앱이 이미 초기화되었는지 확인
+if not firebase_admin._apps:
     # FireBase 연결
     try:
         path = credentials.Certificate(cert=secretKeyPath)
@@ -87,13 +89,27 @@ with st.sidebar:
             type="password",
             placeholder="********"
         )
-        st.button(
+        login = st.button(
             label="log-IN",
             on_click=None,
             type="primary",
             use_container_width=True
         )
-        signup = st.button(label="회원가입", type="secondary", use_container_width=True)
+        signup = st.button(
+            label="회원가입",
+            type="secondary",
+            use_container_width=True
+        )
+        if login:
+            if ID == None:
+                st.error(body="아이디를 입력해주세요.")
+            elif PW == None:
+                st.error(body="비밀번호를 입력해주세요.")
+            else:
+                try:
+                    pass
+                except Exception as e:
+                    st.error(body=f"로그인 실패: {e}")
         if signup:
             # 회원가입 초기 화면 로드
             st.session_state.signup_step = True
