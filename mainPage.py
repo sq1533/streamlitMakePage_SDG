@@ -1,13 +1,56 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
-import json
+import pyrebase
 
-# json 연동은 cloud DB연동 전까지 사용
-with open(file="storage/data/products.json", mode="r", encoding="utf-8") as f:
-    products = json.load(fp=f)
-itemID = products["item"].keys()
-itemCounts = list(itemID)
+# FireBase secret_keys
+secretKeyPath = {
+    "type" : st.secrets["firebaseKey"]["type"],
+    "project_id" : st.secrets["firebaseKey"]["project_id"],
+    "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
+    "private_key" : st.secrets["firebaseKey"]["private_key"],
+    "client_email" : st.secrets["firebaseKey"]["client_email"],
+    "client_id" : st.secrets["firebaseKey"]["client_id"],
+    "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
+    "token_uri" : st.secrets["firebaseKey"]["token_uri"],
+    "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
+    "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
+    }
+
+# Firebase 사용자 keys
+firebaseWebConfig = {
+    "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
+    "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
+    "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
+    "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
+    "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
+    "appId" : st.secrets["firebaseWebConfig"]["appId"],
+    "databaseURL" : None
+    }
+
+# Firebase 앱이 이미 초기화되었는지 확인
+if not firebase_admin._apps:
+    # FireBase 연결
+    try:
+        path = credentials.Certificate(cert=secretKeyPath)
+        firebase_admin.initialize_app(credential=path)
+        print("FireBase 앱 초기화 완료")
+    except Exception as e:
+        print(f"false : {e}")
+
+# 사용자 auth 연결
+firebase = pyrebase.initialize_app(firebaseWebConfig)
+pyrebase_auth = firebase.auth()
+# firestore 연결
+db = firestore.client()
+# 로고 정보 가져오기
+logoDB = db.collection('logo')
+logo = logoDB.get()[0].to_dict()
+# 상품 정보 가져오기
+items = db.collection('items')
+docs = items.get()
+docsCount = docs.__len__()
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -29,31 +72,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# FireBase secret_keys
-secretKeyPath = {
-    "type" : st.secrets["firebaseKey"]["type"],
-    "project_id" : st.secrets["firebaseKey"]["project_id"],
-    "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
-    "private_key" : st.secrets["firebaseKey"]["private_key"],
-    "client_email" : st.secrets["firebaseKey"]["client_email"],
-    "client_id" : st.secrets["firebaseKey"]["client_id"],
-    "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
-    "token_uri" : st.secrets["firebaseKey"]["token_uri"],
-    "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
-    "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
-    "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
-    }
-
-# Firebase 앱이 이미 초기화되었는지 확인
-if not firebase_admin._apps:
-    # FireBase 연결
-    try:
-        path = credentials.Certificate(cert=secretKeyPath)
-        firebase_admin.initialize_app(credential=path)
-        print("FireBase 앱 초기화 완료")
-    except Exception as e:
-        print(f"false : {e}")
-
 # 페이지 제목
 st.title(
     body="shop_demo"
@@ -61,9 +79,8 @@ st.title(
 
 # 페이지 로고
 st.logo(
-    image=products["logo"]["src"],
-    size="large",
-    icon_image=products["logo"]["src"]
+    image=logo.get("path"),
+    size="large"
 )
 
 # 쿼리, 및 세션 관리
@@ -107,7 +124,9 @@ with st.sidebar:
                 st.error(body="비밀번호를 입력해주세요.")
             else:
                 try:
-                    pass
+                    user = pyrebase_auth.sign_in_with_email_and_password(email=ID, password=PW)
+                    st.session_state.user = user["localId"]
+                    st.rerun()
                 except Exception as e:
                     st.error(body=f"로그인 실패: {e}")
         if signup:
@@ -115,12 +134,16 @@ with st.sidebar:
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
     else:
-        st.button(
+        st.write(st.session_state.user)
+        logout = st.button(
             label="log-OUT",
             on_click=None,
             type="primary",
             use_container_width=True
         )
+        if logout:
+            st.session_state.user = None
+            st.rerun()
 
 # MainPage
 # 상품 구매 dialog
@@ -128,24 +151,24 @@ with st.sidebar:
 def itemInfo(item):
     # 아이템 이미지 리스트 노출
     st.image(
-            image=products["item"][item]["src"],
+            image=item.get("path"),
             caption=None,
             use_container_width=True,
             clamp=False,
             output_format="auto"
             )
     # 상품 이름
-    st.write(products["item"][item]["name"])
+    st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
     price, buyBTN = st.columns(spec=2, gap="small", vertical_alignment="center")
-    price.write(products["item"][item]["price"])
+    price.write(item.get("price"))
     if buyBTN.button(label="buy", key="buyItem"):
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if st.session_state.user == None:
             st.write("로그인 해주세요.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            st.session_state.buyItem = item
+            st.session_state.buyItem = item.get("id")
 
 # grid 설정
 cards_1 = st.columns(spec=3, gap="small", vertical_alignment="center")
@@ -158,17 +181,18 @@ count = 0
 # 상품 카드
 for i in cards_1+cards_2+cards_3+cards_4:
     with i.container(height=400, border=True):
+        doc = docs[count].to_dict()
         st.image(
-            image=products["item"][itemCounts[count]]["src"],
+            image=doc.get("path"),
             caption=None,
             use_container_width=True,
             clamp=False,
             output_format="auto"
             )
-        st.write(f"product_{itemCounts[count]}")
-        if st.button(label="구매", key=itemCounts[count]):
-            st.query_params["item"] = itemCounts[count]
-            itemInfo(item=itemCounts[count])
+        st.write(f"{doc.get("name")}")
+        if st.button(label="구매", key=doc.get("id")):
+            st.query_params.item = doc.get("id")
+            itemInfo(item=doc)
         count += 1
-        if count >= itemCounts.__len__():
+        if count >= docsCount:
             break

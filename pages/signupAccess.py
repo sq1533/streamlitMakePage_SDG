@@ -69,6 +69,7 @@ if "user_status" not in st.session_state:
     st.session_state.user_status = None
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = None
+    st.session_state.uid = None
 
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
@@ -95,6 +96,7 @@ if st.session_state.signup_step:
                 photo_url=None,
                 disabled=True,
                 )
+            st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
                 sendEmail(userMail=st.session_state.signup_email)
                 st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
@@ -117,6 +119,7 @@ if st.session_state.signup_step:
                 uid=uid,
                 password=solt
             )
+            st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
                 sendEmail(userMail=st.session_state.signup_email)
                 st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")

@@ -1,11 +1,11 @@
 import streamlit as st
-from firebase_admin import auth, firestore
+from firebase_admin import auth
+from mainPage import db
 import time
 import re
 import requests
 
 # userInfo store 연결
-db = firestore.client()
 userConn = db.collection('userInfo')
 
 # sidebar Nav 기능 비활성화
@@ -23,8 +23,8 @@ st.markdown(
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
-if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+if "uid" not in st.session_state:
+    st.session_state.uid = None
 if "address" not in st.session_state:
     st.session_state.address = None
 
@@ -115,7 +115,7 @@ if st.session_state.signup_step:
         else:
             try:
                 auth.update_user(
-                    uid=auth.get_user_by_email(email=st.session_state.signup_email).uid,
+                    uid=st.session_state.uid,
                     disabled=False
                 )
                 userInfo = {
@@ -123,7 +123,7 @@ if st.session_state.signup_step:
                     "phone" : phone,
                     "address" : st.session_state.address
                 }
-                userConn.document(st.session_state.signup_email).set(userInfo)
+                userConn.document(st.session_state.uid).set(userInfo)
                 st.info(body="회원가입이 완료되었습니다.")
                 time.sleep(2)
                 st.switch_page(page="mainPage.py")

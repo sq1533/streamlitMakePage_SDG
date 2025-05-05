@@ -17,8 +17,8 @@ st.markdown(
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
-if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+if "uid" not in st.session_state:
+    st.session_state.uid = None
 
 # 사용자 정보 저장
 if st.session_state.signup_step:
@@ -103,9 +103,8 @@ if st.session_state.signup_step:
         )
         if next:
             try:
-                uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
                 auth.update_user(
-                    uid=uid,
+                    uid=st.session_state.uid,
                     password=pw
                 )
                 st.switch_page(page="pages/signupUserInfo.py")
