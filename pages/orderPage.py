@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+from mainPage import itemsDB
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -28,4 +29,7 @@ elif st.session_state.item == None:
     time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
-    st.write(st.session_state.item)
+    with st.sidebar:
+        st.write(st.session_state.user)
+    itemInfo = itemsDB.document(st.session_state.item).get().to_dict()
+    st.title(body=itemInfo.get("name"))

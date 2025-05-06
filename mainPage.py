@@ -138,6 +138,9 @@ with st.sidebar:
             logout()
         st.write(st.session_state.user)
 
+itemsDB = db.collection('items') # items 컬렉션 연결
+items = itemsDB.get() # items 하위 문서 가져오기
+
 # 상품 구매 dialog
 @st.dialog("shop_demo")
 def itemInfo(item):
@@ -152,16 +155,22 @@ def itemInfo(item):
     # 상품 이름
     st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
-    price, buyBTN = st.columns(spec=2, gap="small", vertical_alignment="center")
+    price, buy = st.columns(spec=2, gap="small", vertical_alignment="center")
     price.write(item.get("price"))
-    if buyBTN.button(label="buy", key="buyItem"):
+    buyBTN = buy.button(
+        label="구매하기",
+        key="buyItem",
+        type="primary",
+        use_container_width=True
+    )
+    if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if st.session_state.user == None:
             st.write("로그인 해주세요.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
             st.session_state.item = item.get("id")
-            st.switch_page(page="pages/itemPage.py")
+            st.switch_page(page="pages/orderPage.py")
 
 # grid 설정
 cards_1 = st.columns(spec=3, gap="small", vertical_alignment="center")
@@ -170,10 +179,6 @@ cards_3 = st.columns(spec=3, gap="small", vertical_alignment="center")
 cards_4 = st.columns(spec=3, gap="small", vertical_alignment="center")
 
 count = 0
-
-# 상품 정보 가져오기
-itemsDB = db.collection('items') # items 컬렉션 연결
-items = itemsDB.get() # items 하위 문서 가져오기
 
 # 상품 카드
 for i in cards_1+cards_2+cards_3+cards_4:
@@ -187,7 +192,13 @@ for i in cards_1+cards_2+cards_3+cards_4:
             output_format="auto"
             )
         st.write(f"{item.get("name")}")
-        if st.button(label="구매", key=item.get("id")):
+        viewBTN = st.button(
+            label="상세보기",
+            key=item.get("id"),
+            type="primary",
+            use_container_width=True
+            )
+        if viewBTN:
             itemInfo(item=item)
         count += 1
         if count >= items.__len__():

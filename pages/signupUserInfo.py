@@ -121,7 +121,7 @@ if st.session_state.signup_step:
                 userInfo = {
                     "name" : name,
                     "phone" : phone,
-                    "address" : st.session_state.address,
+                    "address" : [st.session_state.address],
                     "like" : [],
                     "cart" : []
                 }
