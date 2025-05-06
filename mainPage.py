@@ -42,15 +42,19 @@ if not firebase_admin._apps:
 # 사용자 auth 연결
 firebase = pyrebase.initialize_app(firebaseWebConfig)
 pyrebase_auth = firebase.auth()
+
 # firestore 연결
 db = firestore.client()
-# 로고 정보 가져오기
 logoDB = db.collection('logo')
-logo = logoDB.get()[0].to_dict()
+itemsDB = db.collection('items')
+userInfoDB = db.collection('userInfo')
+
+# 로고 정보 가져오기
+logo = logoDB.document('logo').get().to_dict()
+
 # 상품 정보 가져오기
-items = db.collection('items')
-docs = items.get()
-docsCount = docs.__len__()
+items = itemsDB.get()
+itemCount = items.__len__()
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -72,18 +76,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 페이지 제목
-st.title(
-    body="shop_demo"
-)
+st.title(body="shop_demo") # 페이지 제목
+st.logo(image=logo.get("path"), size="large") # 페이지 로고
 
-# 페이지 로고
-st.logo(
-    image=logo.get("path"),
-    size="large"
-)
-
-# 쿼리, 및 세션 관리
+# 쿼리, 세션 관리
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -91,12 +87,12 @@ if "user" not in st.session_state:
 with st.sidebar:
     if st.session_state.user == None:
         ID = st.text_input(
-            label="아이디",
+            label="아이디(이메일)",
             value=None,
             max_chars=40,
             key="textID",
             type="default",
-            placeholder="id@email.com"
+            placeholder=None
         )
         PW = st.text_input(
             label="비밀번호",
@@ -104,7 +100,7 @@ with st.sidebar:
             max_chars=20,
             key="textPW",
             type="password",
-            placeholder="********"
+            placeholder=None
         )
         login = st.button(
             label="log-IN",
@@ -118,17 +114,12 @@ with st.sidebar:
             use_container_width=True
         )
         if login:
-            if ID == None:
-                st.error(body="아이디를 입력해주세요.")
-            elif PW == None:
-                st.error(body="비밀번호를 입력해주세요.")
-            else:
-                try:
-                    user = pyrebase_auth.sign_in_with_email_and_password(email=ID, password=PW)
-                    st.session_state.user = user["localId"]
-                    st.rerun()
-                except Exception as e:
-                    st.error(body=f"로그인 실패: {e}")
+            try:
+                user = pyrebase_auth.sign_in_with_email_and_password(email=ID, password=PW)
+                st.session_state.user = userInfoDB.document(f"{user["localId"]}").get().to_dict()
+                st.rerun()
+            except Exception as e:
+                st.error(body=f"로그인 실패: {e}")
         if signup:
             # 회원가입 초기 화면 로드
             st.session_state.signup_step = True
@@ -181,18 +172,18 @@ count = 0
 # 상품 카드
 for i in cards_1+cards_2+cards_3+cards_4:
     with i.container(height=400, border=True):
-        doc = docs[count].to_dict()
+        item = items[count].to_dict()
         st.image(
-            image=doc.get("path"),
+            image=item.get("path"),
             caption=None,
             use_container_width=True,
             clamp=False,
             output_format="auto"
             )
-        st.write(f"{doc.get("name")}")
-        if st.button(label="구매", key=doc.get("id")):
-            st.query_params.item = doc.get("id")
-            itemInfo(item=doc)
+        st.write(f"{item.get("name")}")
+        if st.button(label="구매", key=item.get("id")):
+            st.query_params.item = item.get("id")
+            itemInfo(item=item)
         count += 1
-        if count >= docsCount:
+        if count >= itemCount:
             break

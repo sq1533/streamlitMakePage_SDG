@@ -121,7 +121,9 @@ if st.session_state.signup_step:
                 userInfo = {
                     "name" : name,
                     "phone" : phone,
-                    "address" : st.session_state.address
+                    "address" : st.session_state.address,
+                    "like" : [],
+                    "cart" : []
                 }
                 userConn.document(st.session_state.uid).set(userInfo)
                 st.info(body="회원가입이 완료되었습니다.")
