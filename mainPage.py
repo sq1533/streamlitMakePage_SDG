@@ -3,6 +3,14 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import pyrebase
 
+# 쿼리, 세션 관리
+if "signup_step" not in st.session_state:
+    st.session_state.signup_step = False
+if "user" not in st.session_state:
+    st.session_state.user = None
+if "item" not in st.session_state:
+    st.session_state.item = None
+
 # FireBase secret_keys
 secretKeyPath = {
     "type" : st.secrets["firebaseKey"]["type"],
@@ -42,19 +50,24 @@ if not firebase_admin._apps:
 # 사용자 auth 연결
 firebase = pyrebase.initialize_app(firebaseWebConfig)
 pyrebase_auth = firebase.auth()
-
 # firestore 연결
 db = firestore.client()
-logoDB = db.collection('logo')
-itemsDB = db.collection('items')
-userInfoDB = db.collection('userInfo')
 
-# 로고 정보 가져오기
-logo = logoDB.document('logo').get().to_dict()
+# 사용자 로그인
+def signin(id,pw):
+    userInfoDB = db.collection('userInfo')
+    try:
+        user = pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+        st.session_state.user = userInfoDB.document(f"{user["localId"]}").get().to_dict()
+        st.rerun()
+    except Exception as e:
+        print(f"로그인 실패: {e}")
+        st.session_state.user = None
+        st.error(body="로그인 실패,\n\n\n아이디 또는 비밀번호를 확인해주세요.")
 
-# 상품 정보 가져오기
-items = itemsDB.get()
-itemCount = items.__len__()
+# 사용자 로그아웃
+def logout():
+    st.session_state.user = None
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -77,11 +90,9 @@ st.markdown(
 )
 
 st.title(body="shop_demo") # 페이지 제목
+logoDB = db.collection('logo') # 로고 정보 가져오기
+logo = logoDB.document('logo').get().to_dict()
 st.logo(image=logo.get("path"), size="large") # 페이지 로고
-
-# 쿼리, 세션 관리
-if "user" not in st.session_state:
-    st.session_state.user = None
 
 # siderbar 정의
 with st.sidebar:
@@ -104,7 +115,6 @@ with st.sidebar:
         )
         login = st.button(
             label="log-IN",
-            on_click=None,
             type="primary",
             use_container_width=True
         )
@@ -114,31 +124,22 @@ with st.sidebar:
             use_container_width=True
         )
         if login:
-            try:
-                user = pyrebase_auth.sign_in_with_email_and_password(email=ID, password=PW)
-                st.session_state.user = userInfoDB.document(f"{user["localId"]}").get().to_dict()
-                st.rerun()
-            except Exception as e:
-                st.error(body=f"로그인 실패: {e}")
+            signin(ID,PW)
         if signup:
-            # 회원가입 초기 화면 로드
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
     else:
-        st.write(st.session_state.user)
-        logout = st.button(
+        logoutB = st.button(
             label="log-OUT",
-            on_click=None,
             type="primary",
             use_container_width=True
         )
-        if logout:
-            st.session_state.user = None
-            st.rerun()
+        if logoutB:
+            logout()
+        st.write(st.session_state.user)
 
-# MainPage
 # 상품 구매 dialog
-@st.dialog("itemPage")
+@st.dialog("shop_demo")
 def itemInfo(item):
     # 아이템 이미지 리스트 노출
     st.image(
@@ -159,7 +160,8 @@ def itemInfo(item):
             st.write("로그인 해주세요.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            st.session_state.buyItem = item.get("id")
+            st.session_state.item = item.get("id")
+            st.switch_page(page="pages/itemPage.py")
 
 # grid 설정
 cards_1 = st.columns(spec=3, gap="small", vertical_alignment="center")
@@ -168,6 +170,10 @@ cards_3 = st.columns(spec=3, gap="small", vertical_alignment="center")
 cards_4 = st.columns(spec=3, gap="small", vertical_alignment="center")
 
 count = 0
+
+# 상품 정보 가져오기
+itemsDB = db.collection('items') # items 컬렉션 연결
+items = itemsDB.get() # items 하위 문서 가져오기
 
 # 상품 카드
 for i in cards_1+cards_2+cards_3+cards_4:
@@ -182,8 +188,7 @@ for i in cards_1+cards_2+cards_3+cards_4:
             )
         st.write(f"{item.get("name")}")
         if st.button(label="구매", key=item.get("id")):
-            st.query_params.item = item.get("id")
             itemInfo(item=item)
         count += 1
-        if count >= itemCount:
+        if count >= items.__len__():
             break
