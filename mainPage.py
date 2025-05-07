@@ -73,7 +73,7 @@ def logout():
 st.set_page_config(
     page_title="shop_demo",
     page_icon=":shark:",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
@@ -98,9 +98,8 @@ st.logo(image=logo.get("path"), size="large") # 페이지 로고
 with st.sidebar:
     if st.session_state.user == None:
         ID = st.text_input(
-            label="아이디(이메일)",
+            label="이메일",
             value=None,
-            max_chars=40,
             key="textID",
             type="default",
             placeholder=None
@@ -108,7 +107,6 @@ with st.sidebar:
         PW = st.text_input(
             label="비밀번호",
             value=None,
-            max_chars=20,
             key="textPW",
             type="password",
             placeholder=None
@@ -173,33 +171,66 @@ def itemInfo(item):
             st.switch_page(page="pages/orderPage.py")
 
 # grid 설정
-cards_1 = st.columns(spec=3, gap="small", vertical_alignment="center")
-cards_2 = st.columns(spec=3, gap="small", vertical_alignment="center")
-cards_3 = st.columns(spec=3, gap="small", vertical_alignment="center")
-cards_4 = st.columns(spec=3, gap="small", vertical_alignment="center")
+column_0, column_1, column_2, column_3, column_4 = st.columns(spec=5, gap="small", vertical_alignment="top")
 
-count = 0
+# 첫 줄 card 배치
+with column_0.container(height=400, border=True):
+    item = items[0].to_dict()
+    st.image(
+        image=item.get("path"),
+        caption=None,
+        use_container_width=True,
+        clamp=False,
+        output_format="auto"
+        )
+    st.write(f"{item.get("name")}")
+    viewBTN = st.button(
+        label="상세보기",
+        key=item.get("id"),
+        type="primary",
+        use_container_width=True
+        )
+    if viewBTN:
+        itemInfo(item=item)
 
-# 상품 카드
-for i in cards_1+cards_2+cards_3+cards_4:
-    with i.container(height=400, border=True):
-        item = items[count].to_dict()
-        st.image(
-            image=item.get("path"),
-            caption=None,
-            use_container_width=True,
-            clamp=False,
-            output_format="auto"
-            )
-        st.write(f"{item.get("name")}")
-        viewBTN = st.button(
-            label="상세보기",
-            key=item.get("id"),
-            type="primary",
-            use_container_width=True
-            )
-        if viewBTN:
-            itemInfo(item=item)
-        count += 1
-        if count >= items.__len__():
-            break
+with column_1.container(height=100, border=True):
+    st.write("빈 곳_1")
+
+with column_1.container(height=400, border=True):
+    item = items[1].to_dict()
+    st.image(
+        image=item.get("path"),
+        caption=None,
+        use_container_width=True,
+        clamp=False,
+        output_format="auto"
+        )
+    st.write(f"{item.get("name")}")
+    viewBTN = st.button(
+        label="상세보기",
+        key=item.get("id"),
+        type="primary",
+        use_container_width=True
+        )
+    if viewBTN:
+        itemInfo(item=item)
+
+with column_2.container(height=400, border=True):
+    st.write("items")
+
+with column_3.container(height=100, border=True):
+    st.write("빈 곳_2")
+
+with column_3.container(height=400, border=True):
+    st.write("items")
+
+with column_4.container(height=400, border=True):
+    st.write("items")
+
+# items 행 설정
+count = 5
+for line in range(3):
+    for i in column_0, column_1, column_2, column_3, column_4:
+        with i.container(height=400, border=True):
+            st.write(f"items{count}")
+            count += 1
