@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import pyrebase
 
-# 쿼리, 세션 관리
+# 세션 관리
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 if "user" not in st.session_state:
@@ -52,14 +52,25 @@ firebase = pyrebase.initialize_app(firebaseWebConfig)
 pyrebase_auth = firebase.auth()
 # firestore 연결
 db = firestore.client()
+logoDB = db.collection('logo') # 로고 정보 가져오기
+logo = logoDB.document('logo').get().to_dict()
+itemsDB = db.collection('items') # items 컬렉션 연결
+items = itemsDB.get() # items 하위 문서 가져오기
 
 # 사용자 로그인
 def signin(id,pw):
     userInfoDB = db.collection('userInfo')
     try:
         user = pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-        st.session_state.user = userInfoDB.document(f"{user["localId"]}").get().to_dict()
-        st.rerun()
+        user_doc = userInfoDB.document(user["localId"]).get()
+        if user_doc.exists:
+            st.session_state.user = user_doc.to_dict()
+            print(f"사용자 로그인 성공.")
+            st.rerun()
+        else:
+            st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
+            st.session_state.user = None
+            st.session_state.userToken = None
     except Exception as e:
         print(f"로그인 실패: {e}")
         st.session_state.user = None
@@ -68,6 +79,7 @@ def signin(id,pw):
 # 사용자 로그아웃
 def logout():
     st.session_state.user = None
+    st.rerun()
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -90,8 +102,6 @@ st.markdown(
 )
 
 st.title(body="shop_demo") # 페이지 제목
-logoDB = db.collection('logo') # 로고 정보 가져오기
-logo = logoDB.document('logo').get().to_dict()
 st.logo(image=logo.get("path"), size="large") # 페이지 로고
 
 # siderbar 정의
@@ -134,10 +144,12 @@ with st.sidebar:
         )
         if logoutB:
             logout()
-        st.write(st.session_state.user)
-
-itemsDB = db.collection('items') # items 컬렉션 연결
-items = itemsDB.get() # items 하위 문서 가져오기
+        st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
+        if st.session_state.user["like"] == []:
+            st.write("좋아요한 상품이 없습니다.")
+        else:
+            for i in st.session_state.user["like"]:
+                st.write(items.document(i).get().to_dict()["name"])
 
 # 상품 구매 dialog
 @st.dialog("shop_demo")
