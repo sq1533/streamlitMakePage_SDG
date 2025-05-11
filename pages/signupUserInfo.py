@@ -8,18 +8,6 @@ import requests
 # userInfo store 연결
 userConn = db.collection('userInfo')
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False

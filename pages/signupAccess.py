@@ -50,18 +50,6 @@ def sendEmail(userMail: str) -> bool:
         print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
         return False
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False

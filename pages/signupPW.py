@@ -2,18 +2,6 @@ import streamlit as st
 from firebase_admin import auth
 import re
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # 세션 정의
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False

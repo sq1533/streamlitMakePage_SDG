@@ -8,18 +8,6 @@ if "user" not in st.session_state:
 if "item" not in st.session_state:
     st.session_state.item = None
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 if st.session_state.user == None:
     st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")
     time.sleep(2)

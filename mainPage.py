@@ -89,18 +89,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# sidebar Nav 기능 비활성화
-st.markdown(
-    """
-    <style>
-        [data-testid="stSidebarNav"] {
-            display: none;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 st.title(body="shop_demo") # 페이지 제목
 st.logo(image=logo.get("path"), size="large") # 페이지 로고
 
@@ -176,7 +164,7 @@ def itemInfo(item):
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if st.session_state.user == None:
-            st.write("로그인 해주세요.")
+            st.error("로그인 해주세요.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
             st.session_state.item = item.get("id")
