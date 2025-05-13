@@ -7,9 +7,9 @@ import pyrebase
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 if "user" not in st.session_state:
-    st.session_state.user = None
+    st.session_state.user = False
 if "item" not in st.session_state:
-    st.session_state.item = None
+    st.session_state.item = False
 
 # FireBase secret_keys
 secretKeyPath = {
@@ -69,16 +69,16 @@ def signin(id,pw):
             st.rerun()
         else:
             st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
-            st.session_state.user = None
+            st.session_state.user = False
             st.session_state.userToken = None
     except Exception as e:
         print(f"로그인 실패: {e}")
-        st.session_state.user = None
+        st.session_state.user = False
         st.error(body="로그인 실패,\n\n\n아이디 또는 비밀번호를 확인해주세요.")
 
 # 사용자 로그아웃
 def logout():
-    st.session_state.user = None
+    st.session_state.user = False
     st.rerun()
 
 # 페이지 기본 설정
@@ -94,7 +94,7 @@ st.logo(image=logo.get("path"), size="large") # 페이지 로고
 
 # siderbar 정의
 with st.sidebar:
-    if st.session_state.user == None:
+    if not st.session_state.user:
         ID = st.text_input(
             label="이메일",
             value=None,
@@ -139,17 +139,21 @@ with st.sidebar:
             for i in st.session_state.user["like"]:
                 st.write(items.document(i).get().to_dict()["name"])
 
+@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
+def cachingImage(path):
+    st.image(
+        image=path,
+        caption=None,
+        use_container_width=True,
+        clamp=False,
+        output_format="auto"
+        )
+
 # 상품 구매 dialog
 @st.dialog("shop_demo")
 def itemInfo(item):
     # 아이템 이미지 리스트 노출
-    st.image(
-            image=item.get("path"),
-            caption=None,
-            use_container_width=True,
-            clamp=False,
-            output_format="auto"
-            )
+    cachingImage(item.get("path"))
     # 상품 이름
     st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
@@ -163,7 +167,7 @@ def itemInfo(item):
     )
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
-        if st.session_state.user == None:
+        if not st.session_state.user:
             st.error("로그인 해주세요.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
@@ -176,13 +180,7 @@ column_0, column_1, column_2, column_3, column_4 = st.columns(spec=5, gap="small
 # 첫 줄 card 배치
 with column_0.container(height=400, border=True):
     item = items[0].to_dict()
-    st.image(
-        image=item.get("path"),
-        caption=None,
-        use_container_width=True,
-        clamp=False,
-        output_format="auto"
-        )
+    cachingImage(item.get("path"))
     st.write(f"{item.get("name")}")
     viewBTN = st.button(
         label="상세보기",
@@ -198,13 +196,7 @@ with column_1.container(height=100, border=True):
 
 with column_1.container(height=400, border=True):
     item = items[1].to_dict()
-    st.image(
-        image=item.get("path"),
-        caption=None,
-        use_container_width=True,
-        clamp=False,
-        output_format="auto"
-        )
+    cachingImage(item.get("path"))
     st.write(f"{item.get("name")}")
     viewBTN = st.button(
         label="상세보기",
