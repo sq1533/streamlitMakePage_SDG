@@ -1,7 +1,5 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, firestore
-import pyrebase
+from utils import db, pyrebase_auth, logo_data, itemsDB
 
 # 세션 관리
 if "signup_step" not in st.session_state:
@@ -11,51 +9,8 @@ if "user" not in st.session_state:
 if "item" not in st.session_state:
     st.session_state.item = False
 
-# FireBase secret_keys
-secretKeyPath = {
-    "type" : st.secrets["firebaseKey"]["type"],
-    "project_id" : st.secrets["firebaseKey"]["project_id"],
-    "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
-    "private_key" : st.secrets["firebaseKey"]["private_key"],
-    "client_email" : st.secrets["firebaseKey"]["client_email"],
-    "client_id" : st.secrets["firebaseKey"]["client_id"],
-    "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
-    "token_uri" : st.secrets["firebaseKey"]["token_uri"],
-    "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
-    "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
-    "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
-    }
-
-# Firebase 사용자 keys
-firebaseWebConfig = {
-    "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
-    "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
-    "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
-    "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
-    "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
-    "appId" : st.secrets["firebaseWebConfig"]["appId"],
-    "databaseURL" : None
-    }
-
-# Firebase 앱이 이미 초기화되었는지 확인
-if not firebase_admin._apps:
-    # FireBase 연결
-    try:
-        path = credentials.Certificate(cert=secretKeyPath)
-        firebase_admin.initialize_app(credential=path)
-        print("FireBase 앱 초기화 완료")
-    except Exception as e:
-        print(f"false : {e}")
-
-# 사용자 auth 연결
-firebase = pyrebase.initialize_app(firebaseWebConfig)
-pyrebase_auth = firebase.auth()
-# firestore 연결
-db = firestore.client()
-logoDB = db.collection('logo') # 로고 정보 가져오기
-logo = logoDB.document('logo').get().to_dict()
-itemsDB = db.collection('items') # items 컬렉션 연결
-items = itemsDB.get() # items 하위 문서 가져오기
+# Firebase 관련설정 및 초기화, utils에서 처리
+items = itemsDB.get()
 
 # 사용자 로그인
 def signin(id,pw):
@@ -70,7 +25,6 @@ def signin(id,pw):
         else:
             st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
             st.session_state.user = False
-            st.session_state.userToken = None
     except Exception as e:
         print(f"로그인 실패: {e}")
         st.session_state.user = False
@@ -90,7 +44,7 @@ st.set_page_config(
 )
 
 st.title(body="shop_demo") # 페이지 제목
-st.logo(image=logo.get("path"), size="large") # 페이지 로고
+st.logo(image=logo_data.get("path"), size="large") # 페이지 로고
 
 # siderbar 정의
 with st.sidebar:
@@ -136,8 +90,11 @@ with st.sidebar:
         if st.session_state.user["like"] == []:
             st.write("좋아요한 상품이 없습니다.")
         else:
-            for i in st.session_state.user["like"]:
-                st.write(items.document(i).get().to_dict()["name"])
+            st.write("내가 좋아한 상품:")
+            for liked_item_id in st.session_state.user["like"]:
+                liked_item_doc = itemsDB.document(liked_item_id).get()
+                if liked_item_doc.exists:
+                    st.write(f"- {liked_item_doc.to_dict()['name']}")
 
 @st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
 def cachingImage(path):
@@ -168,7 +125,7 @@ def itemInfo(item):
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:
-            st.error("로그인 해주세요.")
+            st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
             st.session_state.item = item.get("id")
