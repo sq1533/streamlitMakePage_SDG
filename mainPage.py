@@ -1,6 +1,20 @@
 import streamlit as st
 from utils import db, pyrebase_auth, logo_data, itemsDB
 
+# 페이지 기본 설정
+st.set_page_config(
+    page_title="shop_demo",
+    page_icon=":shark:",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+# 페이지 로고
+st.logo(image=logo_data.get("path"), size="large")
+# 페이지 제목
+st.title(body="shop_demo")
+
+# st.video()
+
 # 세션 관리
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
@@ -9,8 +23,15 @@ if "user" not in st.session_state:
 if "item" not in st.session_state:
     st.session_state.item = False
 
-# Firebase 관련설정 및 초기화, utils에서 처리
-items = itemsDB.get()
+@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
+def get_all_items_as_dicts():
+    """Firestore에서 모든 상품 정보를 가져와 딕셔너리 리스트로 반환합니다."""
+    print("데이터베이스에서 상품 정보를 가져오는 중...") # 캐시 동작 확인용 로그
+    items_snapshots = itemsDB.get()
+    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
+
+# 캐시된 함수를 통해 상품 데이터 로드
+items_data = get_all_items_as_dicts()
 
 # 사용자 로그인
 def signin(id,pw):
@@ -34,17 +55,6 @@ def signin(id,pw):
 def logout():
     st.session_state.user = False
     st.rerun()
-
-# 페이지 기본 설정
-st.set_page_config(
-    page_title="shop_demo",
-    page_icon=":shark:",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-st.title(body="shop_demo") # 페이지 제목
-st.logo(image=logo_data.get("path"), size="large") # 페이지 로고
 
 # siderbar 정의
 with st.sidebar:
@@ -87,7 +97,7 @@ with st.sidebar:
         if logoutB:
             logout()
         st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
-        if st.session_state.user["like"] == []:
+        if not st.session_state.user.get("like"):
             st.write("좋아요한 상품이 없습니다.")
         else:
             st.write("내가 좋아한 상품:")
@@ -98,13 +108,17 @@ with st.sidebar:
 
 @st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
 def cachingImage(path):
-    st.image(
-        image=path,
-        caption=None,
-        use_container_width=True,
-        clamp=False,
-        output_format="auto"
-        )
+    # 경로가 유효한 경우에만 이미지 표시
+    if path:
+        st.image(
+            image=path,
+            caption=None,
+            use_container_width=True,
+            clamp=False,
+            output_format="auto"
+            )
+    else:
+        st.warning("이미지 경로가 없습니다.")
 
 # 상품 구매 dialog
 @st.dialog("shop_demo")
@@ -115,10 +129,10 @@ def itemInfo(item):
     st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="center")
-    price.write(item.get("price"))
+    price.write(str(item.get("price","가격 정보 없음"))) # 가격 정보가 없을 수 있으므로 .get 사용 및 문자열 변환
     buyBTN = buy.button(
         label="구매하기",
-        key="buyItem",
+        key=f"buyItem_{item.get('id')}",
         type="primary",
         use_container_width=True
     )
@@ -131,55 +145,23 @@ def itemInfo(item):
             st.session_state.item = item.get("id")
             st.switch_page(page="pages/orderPage.py")
 
-# grid 설정
-column_0, column_1, column_2, column_3, column_4 = st.columns(spec=5, gap="small", vertical_alignment="top")
-
-# 첫 줄 card 배치
-with column_0.container(height=400, border=True):
-    item = items[0].to_dict()
-    cachingImage(item.get("path"))
-    st.write(f"{item.get("name")}")
-    viewBTN = st.button(
-        label="상세보기",
-        key=item.get("id"),
-        type="primary",
-        use_container_width=True
-        )
-    if viewBTN:
-        itemInfo(item=item)
-
-with column_1.container(height=100, border=True):
-    st.write("빈 곳_1")
-
-with column_1.container(height=400, border=True):
-    item = items[1].to_dict()
-    cachingImage(item.get("path"))
-    st.write(f"{item.get("name")}")
-    viewBTN = st.button(
-        label="상세보기",
-        key=item.get("id"),
-        type="primary",
-        use_container_width=True
-        )
-    if viewBTN:
-        itemInfo(item=item)
-
-with column_2.container(height=400, border=True):
-    st.write("items")
-
-with column_3.container(height=100, border=True):
-    st.write("빈 곳_2")
-
-with column_3.container(height=400, border=True):
-    st.write("items")
-
-with column_4.container(height=400, border=True):
-    st.write("items")
-
-# items 행 설정
-count = 5
+count_in_loop = 0
 for line in range(3):
-    for i in column_0, column_1, column_2, column_3, column_4:
-        with i.container(height=400, border=True):
-            st.write(f"items{count}")
-            count += 1
+    cols_in_line = st.columns(spec=5, gap="small", vertical_alignment="top")
+    for col_idx, i_col in enumerate(cols_in_line):
+        with i_col.container(height=400, border=True):
+            if items_data and len(items_data) > count_in_loop:
+                item = items_data[count_in_loop]
+                cachingImage(item.get("path"))
+                st.write(f"{item.get("name")}")
+                viewBTN = st.button(
+                    label="상세보기",
+                    key=f"loop_item_{item.get('id')}",
+                    type="primary",
+                    use_container_width=True
+                )
+                if viewBTN:
+                    itemInfo(item=item)
+            else:
+                st.write(f"상품 없음 (idx: {count_in_loop})")
+            count_in_loop += 1

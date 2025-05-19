@@ -7,8 +7,6 @@ if "user" not in st.session_state:
     st.session_state.user = False
 if "item" not in st.session_state:
     st.session_state.item = False
-else:
-    st.query_params.item = st.session_state.item
 
 if not st.session_state.user:
     st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")
@@ -32,27 +30,20 @@ else:
     with st.sidebar:
         st.write(st.session_state.user)
     itemInfo = itemsDB.document(st.session_state.item).get().to_dict()
-    st.title(body="구매하기")
-    st.write(itemInfo.get("name"))
+    st.title(body=itemInfo.get("name"))
     item_id_to_buy = st.session_state.item
     item_doc_ref = itemsDB.document(item_id_to_buy)
     item_doc = item_doc_ref.get()
     if item_doc.exists:
         item_data = item_doc.to_dict()
-        st.title(body="상품 구매") # 페이지 제목 변경
-        
         col1, col2 = st.columns([1,2])
         with col1:
             st.image(item_data.get("path"), use_container_width=True)
         with col2:
-            st.subheader(f"{item_data.get('name')}")
             st.markdown(f"**가격:** {item_data.get('price')}원")
-            st.write(f"**상품 ID:** {item_id_to_buy}") # 디버깅 또는 내부용 정보
-            # 여기에 수량 선택, 배송지 입력 등 추가 UI 구성
-            quantity = st.number_input("구매 수량", min_value=1, value=1, step=1)
             
             if st.button("결제하기", type="primary", use_container_width=True):
-                st.success(f"{item_data.get('name')} {quantity}개 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
+                st.success(f"{item_data.get('name')} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
                 # st.session_state.item = False # 구매 후 아이템 세션 초기화
                 # time.sleep(3)
                 # st.switch_page("mainPage.py")
