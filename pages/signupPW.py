@@ -1,5 +1,5 @@
 import streamlit as st
-from firebase_admin import auth
+from utils import auth
 import re
 
 # 세션 정의
@@ -10,6 +10,8 @@ if "uid" not in st.session_state:
 
 # 사용자 정보 저장
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.write("환영합니다.")
     st.progress(
         value=66,
         text="비밀번호 설정"

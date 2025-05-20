@@ -1,5 +1,5 @@
 import streamlit as st
-from firebase_admin import auth
+from utils import auth
 import time
 import smtplib
 from email.message import EmailMessage
@@ -61,6 +61,8 @@ if "signup_email" not in st.session_state:
 
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.write("환영합니다.")
     st.progress(
         value=33,
         text="이메일 인증"

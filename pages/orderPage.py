@@ -8,6 +8,11 @@ if "user" not in st.session_state:
 if "item" not in st.session_state:
     st.session_state.item = False
 
+# 사용자 로그아웃
+def logout():
+    st.session_state.user = False
+    st.rerun()
+
 if not st.session_state.user:
     st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")
     time.sleep(2)
@@ -28,7 +33,23 @@ else:
     if goHome:
         st.switch_page(page="mainPage.py")
     with st.sidebar:
-        st.write(st.session_state.user)
+        logoutB = st.button(
+            label="log-OUT",
+            type="primary",
+            use_container_width=True
+        )
+        if logoutB:
+            logout()
+        st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
+        if not st.session_state.user.get("like"):
+            st.write("내가 좋아한 상품:")
+            st.write("좋아요한 상품이 없습니다.")
+        else:
+            st.write("내가 좋아한 상품:")
+            for liked_item_id in st.session_state.user["like"]:
+                liked_item_doc = itemsDB.document(liked_item_id).get()
+                if liked_item_doc.exists:
+                    st.write(f"- {liked_item_doc.to_dict()['name']}")
     itemInfo = itemsDB.document(st.session_state.item).get().to_dict()
     st.title(body=itemInfo.get("name"))
     item_id_to_buy = st.session_state.item

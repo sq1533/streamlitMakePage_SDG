@@ -9,11 +9,34 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 # 페이지 로고
-st.logo(image=logo_data.get("path"), size="large")
+# st.logo(image=logo_data.get("path"), size="large")
 # 페이지 제목
 st.title(body="shop_demo")
 
-# st.video()
+st.markdown(
+    """
+    <style>
+    video::-webkit-media-controls {
+        display: none !important;
+    }
+    video {
+        width: 100% !important;
+        aspect-ratio: 20 / 9;
+        object-fit: cover;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.video(
+    data="C:\\Users\\tj101\\shop_demo\\streamlitMakePage_SDG\\storage\\assets\\video\\testVideo.mp4",
+    format="video/mp4",
+    #start_time=,
+    #end_time=,
+    loop=True,
+    autoplay=True,
+    muted=True
+)
 
 # 세션 관리
 if "signup_step" not in st.session_state:
@@ -98,6 +121,7 @@ with st.sidebar:
             logout()
         st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
         if not st.session_state.user.get("like"):
+            st.write("내가 좋아한 상품:")
             st.write("좋아요한 상품이 없습니다.")
         else:
             st.write("내가 좋아한 상품:")
@@ -147,9 +171,9 @@ def itemInfo(item):
 
 count_in_loop = 0
 for line in range(3):
-    cols_in_line = st.columns(spec=5, gap="small", vertical_alignment="top")
+    cols_in_line = st.columns(spec=3, gap="small", vertical_alignment="top", border=True)
     for col_idx, i_col in enumerate(cols_in_line):
-        with i_col.container(height=400, border=True):
+        with i_col.container():
             if items_data and len(items_data) > count_in_loop:
                 item = items_data[count_in_loop]
                 cachingImage(item.get("path"))

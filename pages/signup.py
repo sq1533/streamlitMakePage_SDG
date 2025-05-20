@@ -1,5 +1,5 @@
 import streamlit as st
-from firebase_admin import auth
+from utils import auth
 
 # 홈으로 이동
 goHome = st.button(
@@ -22,6 +22,8 @@ if "signup_email" not in st.session_state:
 
 # 세션 정보 검증 및 이메일 검증
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.write("환영합니다.")
     if "signupStep" not in st.query_params:
         st.progress(
             value=0,

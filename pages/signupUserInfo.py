@@ -1,6 +1,5 @@
 import streamlit as st
-from firebase_admin import auth
-from mainPage import db
+from utils import auth, db
 import time
 import re
 import requests
@@ -60,6 +59,8 @@ def searchAddress(address):
             st.error(f"주소 검색 중 오류 발생: {e}")
 
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.write("환영합니다.")
     st.progress(
         value=100,
         text="마지막 단계에요!"
