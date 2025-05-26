@@ -29,7 +29,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.video(
-    data="C:\\Users\\tj101\\shop_demo\\streamlitMakePage_SDG\\storage\\assets\\video\\testVideo.mp4",
+    data="storage/assets/video/testVideo.mp4",
     format="video/mp4",
     #start_time=,
     #end_time=,

@@ -26,5 +26,7 @@ COPY --chown=appuser:appuser . .
 # non-root 사용자로 전환하여 보안 강화
 USER appuser
 
+EXPOSE 8502
+
 # 컨테이너 실행 시 Streamlit 애플리케이션을 실행합니다.
 CMD ["streamlit", "run", "mainPage.py"]
