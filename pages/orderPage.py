@@ -40,7 +40,7 @@ else:
         )
         if logoutB:
             logout()
-        st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
+        st.write(f"환영합니다, {st.session_state.user['name']} 고객님!")
         if not st.session_state.user.get("like"):
             st.write("내가 좋아한 상품:")
             st.write("좋아요한 상품이 없습니다.")

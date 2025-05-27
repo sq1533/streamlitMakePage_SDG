@@ -53,7 +53,7 @@ def searchAddress(address):
                             key=f"choise{i}"
                         )
                         if choise:
-                            st.session_state.address = f"{response.json()["results"]["juso"][i]["roadAddr"]} {moreAddr}"
+                            st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
         except Exception as e:
             st.error(f"주소 검색 중 오류 발생: {e}")

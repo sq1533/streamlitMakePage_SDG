@@ -119,7 +119,7 @@ with st.sidebar:
         )
         if logoutB:
             logout()
-        st.write(f"환영합니다, {st.session_state.user["name"]} 고객님!")
+        st.write(f"환영합니다, {st.session_state.user['name']} 고객님!")
         if not st.session_state.user.get("like"):
             st.write("내가 좋아한 상품:")
             st.write("좋아요한 상품이 없습니다.")
@@ -176,8 +176,8 @@ for line in range(3):
         with i_col.container():
             if items_data and len(items_data) > count_in_loop:
                 item = items_data[count_in_loop]
-                cachingImage(item.get("path"))
-                st.write(f"{item.get("name")}")
+                cachingImage(item.get('path'))
+                st.write(f"{item.get('name')}")
                 viewBTN = st.button(
                     label="상세보기",
                     key=f"loop_item_{item.get('id')}",
