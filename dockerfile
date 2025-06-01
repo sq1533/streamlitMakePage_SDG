@@ -26,7 +26,6 @@ COPY --chown=appuser:appuser . .
 # non-root 사용자로 전환하여 보안 강화
 USER appuser
 
-ENV PORT=8080
 EXPOSE 8080
 
 # 컨테이너 실행 시 Streamlit 애플리케이션을 실행합니다.
