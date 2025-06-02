@@ -1,18 +1,17 @@
 import streamlit as st
-from utils import db, pyrebase_auth, logo_data, itemsDB
+from utils import db, pyrebase_auth, itemsDB
 
 # 페이지 기본 설정
 st.set_page_config(
     page_title="shop_demo",
     page_icon=":shark:",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
-# 페이지 로고
-# st.logo(image=logo_data.get("path"), size="large")
+
 # 페이지 제목
 st.title(body="shop_demo")
-
+# vanner 비디오
 st.markdown(
     """
     <style>
@@ -23,6 +22,13 @@ st.markdown(
         width: 100% !important;
         aspect-ratio: 20 / 9;
         object-fit: cover;
+    }
+    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+        display: none !important;
+    }
+    div[aria-label="dialog"][role="dialog"] {
+        width: 80% !important;
+        max-width: 950px !important;
     }
     </style>
     """,
@@ -125,10 +131,10 @@ with st.sidebar:
             st.write("좋아요한 상품이 없습니다.")
         else:
             st.write("내가 좋아한 상품:")
-            for liked_item_id in st.session_state.user["like"]:
-                liked_item_doc = itemsDB.document(liked_item_id).get()
-                if liked_item_doc.exists:
-                    st.write(f"- {liked_item_doc.to_dict()['name']}")
+            for likes in st.session_state.user["like"]:
+                likedItems = [item["name"] for item in items_data if item["id"] == likes]
+                for likedItem in likedItems:
+                    st.write(likedItem)
 
 @st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
 def cachingImage(path):
