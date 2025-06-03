@@ -110,6 +110,7 @@ if st.session_state.signup_step:
                 )
                 userInfo = {
                     "id" : st.session_state.uid,
+                    "email" : auth.get_user_by_uid(uid=st.session_state.uid).email,
                     "name" : name,
                     "phone" : phone,
                     "address" : [st.session_state.address],

@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import db, auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
+from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -8,6 +8,24 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="auto"
 )
+
+@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
+def get_all_items_as_dicts():
+    print("데이터베이스에서 상품 정보를 가져오는 중...")
+    items_snapshots = itemsDB.get()
+    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
+
+# 캐시된 함수를 통해 상품 데이터 로드
+items_data = get_all_items_as_dicts()
+itemCount = items_data.__len__()
+
+# 세션 관리
+if "signup_step" not in st.session_state:
+    st.session_state.signup_step = False
+if "user" not in st.session_state:
+    st.session_state.user = False
+if "item" not in st.session_state:
+    st.session_state.item = False
 
 # 페이지 제목
 st.title(body="shop_demo")
@@ -34,59 +52,36 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.video(
-    data=logoDB.document('video').get().to_dict()['path'],
-    format="video/mp4",
-    #start_time=,
-    #end_time=,
-    loop=True,
-    autoplay=True,
-    muted=True
-)
-
-# 세션 관리
-if "signup_step" not in st.session_state:
-    st.session_state.signup_step = False
-if "user" not in st.session_state:
-    st.session_state.user = False
-if "item" not in st.session_state:
-    st.session_state.item = False
-
-@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
-def get_all_items_as_dicts():
-    print("데이터베이스에서 상품 정보를 가져오는 중...")
-    items_snapshots = itemsDB.get()
-    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
-
-# 캐시된 함수를 통해 상품 데이터 로드
-items_data = get_all_items_as_dicts()
-
-# like 상태변화
-def likeStatus(likedItem) -> str:
-    if not st.session_state.user:
-        type="secondary"
-        return type
+# vanner video
+@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
+def cachingVideo(path):
+    if path:
+        st.video(
+            data=path,
+            format="video/mp4",
+            #start_time=,
+            #end_time=,
+            loop=True,
+            autoplay=True,
+            muted=True
+        )
     else:
-        if likedItem in st.session_state.user["like"]:
-            type="primary"
-        else:
-            type="secondary"
-        return type
+        st.warning("경로가 없습니다.")
+cachingVideo(logoDB.document('video').get().to_dict()['path'])
 
-# liked clicks
-def clickedLike(likedItem):
-    if not st.session_state.user:
-        pass
+@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
+def cachingImage(path):
+    # 경로가 유효한 경우에만 이미지 표시
+    if path:
+        st.image(
+            image=path,
+            caption=None,
+            use_container_width=True,
+            clamp=False,
+            output_format="auto"
+            )
     else:
-        user_doc = userInfoDB.document(st.session_state.user["id"]).get()
-        if likedItem in st.session_state.user["like"]:
-            st.session_state.user["like"].remove(likedItem)
-            user_doc.reference.update({"like": st.session_state.user["like"]})
-            st.rerun()
-        else:
-            st.session_state.user["like"].append(likedItem)
-            user_doc.reference.update({"like": st.session_state.user["like"]})
-            st.rerun()
+        st.warning("이미지 경로가 없습니다.")
 
 # 사용자 로그인
 def signin(id,pw):
@@ -113,6 +108,57 @@ def logout():
     st.session_state.user = False
     st.rerun()
 
+# like 상태변화
+def likeStatus(likedItem) -> str:
+    if not st.session_state.user:
+        type="tertiary"
+        return type
+    else:
+        if likedItem in st.session_state.user["like"]:
+            type="primary"
+        else:
+            type="tertiary"
+        return type
+
+# liked clicks
+def clickedLike(likedItem):
+    if not st.session_state.user:
+        pass
+    else:
+        user_doc = userInfoDB.document(st.session_state.user["id"]).get()
+        if likedItem in st.session_state.user["like"]:
+            st.session_state.user["like"].remove(likedItem)
+            user_doc.reference.update({"like": st.session_state.user["like"]})
+            st.rerun()
+        else:
+            st.session_state.user["like"].append(likedItem)
+            user_doc.reference.update({"like": st.session_state.user["like"]})
+            st.rerun()
+
+# 상품 구매 dialog
+@st.dialog("상세 페이지")
+def itemInfo(item):
+    # 아이템 이미지 리스트 노출
+    cachingImage(item.get("paths"))
+    # 상품 이름
+    st.write(item.get("name"))
+    # 상품 가격 및 구매 버튼
+    price, buy = st.columns(spec=2, gap="small", vertical_alignment="center")
+    price.write(str(item.get("price")))
+    buyBTN = buy.button(
+        label="구매하기",
+        key=f"buyItem_{item.get('id')}",
+        type="primary",
+        use_container_width=True
+    )
+    if buyBTN:
+        # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
+        if not st.session_state.user:
+            st.error("구매하려면 로그인이 필요합니다.")
+        # 로그인 정보 있을 경우, 구매 페이지 스왑
+        else:
+            st.session_state.item = item.get("id")
+            st.switch_page(page="pages/orderPage.py")
 # siderbar 정의
 with st.sidebar:
     if not st.session_state.user:
@@ -153,7 +199,15 @@ with st.sidebar:
         )
         if logoutB:
             logout()
-        st.write(f"환영합니다, {st.session_state.user['name']} 고객님!")
+        welcome, myinfo = st.columns(spec=[2,1], gap="small", vertical_alignment="center")
+        welcome.write(f"{st.session_state.user['name']} 님! 안녕하세요")
+        myinfo = myinfo.button(
+            label="마이페이지",
+            type="tertiary",
+            use_container_width=True
+        )
+        if myinfo:
+            st.switch_page(page="pages/myPageAccess.py")
         if not st.session_state.user.get("like"):
             st.write("내가 좋아한 상품:")
             st.write("좋아요한 상품이 없습니다.")
@@ -162,53 +216,22 @@ with st.sidebar:
             for likes in st.session_state.user["like"]:
                 likedItems = [item["name"] for item in items_data if item["id"] == likes]
                 for likedItem in likedItems:
-                    st.write(likedItem)
-
-@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
-def cachingImage(path):
-    # 경로가 유효한 경우에만 이미지 표시
-    if path:
-        st.image(
-            image=path,
-            caption=None,
-            use_container_width=True,
-            clamp=False,
-            output_format="auto"
-            )
-    else:
-        st.warning("이미지 경로가 없습니다.")
-
-# 상품 구매 dialog
-@st.dialog("상세 페이지")
-def itemInfo(item):
-    # 아이템 이미지 리스트 노출
-    cachingImage(item.get("paths"))
-    # 상품 이름
-    st.write(item.get("name"))
-    # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap="small", vertical_alignment="center")
-    price.write(str(item.get("price","가격 정보 없음"))) # 가격 정보가 없을 수 있으므로 .get 사용 및 문자열 변환
-    buyBTN = buy.button(
-        label="구매하기",
-        key=f"buyItem_{item.get('id')}",
-        type="primary",
-        use_container_width=True
-    )
-    if buyBTN:
-        # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
-        if not st.session_state.user:
-            st.error("구매하려면 로그인이 필요합니다.")
-        # 로그인 정보 있을 경우, 구매 페이지 스왑
-        else:
-            st.session_state.item = item.get("id")
-            st.switch_page(page="pages/orderPage.py")
+                    likeThings = st.button(
+                        label=likedItem,
+                        key=f"liked_{likedItem}",
+                        type="primary",
+                        use_container_width=True
+                    )
+                    if likeThings:
+                        itemInfo(itemsDB.document(likes).get())
 
 count_in_loop = 0
-for line in range(3):
+length = itemCount//3 + 1
+for line in range(length):
     cols_in_line = st.columns(spec=3, gap="small", vertical_alignment="top", border=True)
     for col_idx, i_col in enumerate(cols_in_line):
         with i_col.container():
-            if items_data and len(items_data) > count_in_loop:
+            if items_data and itemCount > count_in_loop:
                 item = items_data[count_in_loop]
                 cachingImage(item.get('path'))
                 name, like = st.columns(spec=[2, 1], gap="small", vertical_alignment="center")
@@ -230,5 +253,5 @@ for line in range(3):
                 if viewBTN:
                     itemInfo(item=item)
             else:
-                st.write(f"상품 없음 (idx: {count_in_loop})")
+                break
             count_in_loop += 1
