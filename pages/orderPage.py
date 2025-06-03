@@ -70,5 +70,5 @@ else:
                 # st.switch_page("mainPage.py")
     else:
         st.error("선택하신 상품 정보를 찾을 수 없습니다. 메인 페이지로 돌아갑니다.")
-        time.sleep(3)
+        time.sleep(2)
         st.switch_page("mainPage.py")

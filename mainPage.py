@@ -1,11 +1,11 @@
 import streamlit as st
-from utils import db, pyrebase_auth, itemsDB
+from utils import db, auth, pyrebase_auth, itemsDB
 
 # 페이지 기본 설정
 st.set_page_config(
     page_title="shop_demo",
     page_icon=":shark:",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="auto"
 )
 
@@ -54,8 +54,7 @@ if "item" not in st.session_state:
 
 @st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
 def get_all_items_as_dicts():
-    """Firestore에서 모든 상품 정보를 가져와 딕셔너리 리스트로 반환합니다."""
-    print("데이터베이스에서 상품 정보를 가져오는 중...") # 캐시 동작 확인용 로그
+    print("데이터베이스에서 상품 정보를 가져오는 중...")
     items_snapshots = itemsDB.get()
     return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
 
@@ -69,16 +68,19 @@ def signin(id,pw):
         user = pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
         user_doc = userInfoDB.document(user["localId"]).get()
         if user_doc.exists:
-            st.session_state.user = user_doc.to_dict()
-            print(f"사용자 로그인 성공.")
-            st.rerun()
+            if auth.get_user_by_email(email=id).email_verified == False:
+                st.error(body="이메일 인증이 안되었어요.")
+                st.session_state.user = False
+            else:
+                st.session_state.user = user_doc.to_dict()
+                st.rerun()
         else:
             st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
             st.session_state.user = False
     except Exception as e:
         print(f"로그인 실패: {e}")
         st.session_state.user = False
-        st.error(body="로그인 실패,\n\n\n아이디 또는 비밀번호를 확인해주세요.")
+        st.error(body="Error! 로그인 실패")
 
 # 사용자 로그아웃
 def logout():

@@ -1,6 +1,6 @@
 import streamlit as st
-from utils import auth
 import time
+from utils import auth
 import smtplib
 from email.message import EmailMessage
 import secrets
@@ -11,8 +11,9 @@ def sendEmail(userMail: str) -> bool:
     SENDER_APP_PASSWORD = st.secrets["email_credentials"]["sender_password"]
     SENDER_SERVER = st.secrets["email_credentials"]["smtp_server"]
     SENDER_PORT = st.secrets["email_credentials"]["smtp_port"]
+    DEPLOYED_BASE_URL = st.secrets["email_credentials"]["base_url"]
     settingCode = auth.ActionCodeSettings(
-        url=f"https://localhost:8502/demo/success?email={userMail}",
+        url=f"{DEPLOYED_BASE_URL}/success?email={userMail}",
         handle_code_in_app=True
     )
     link = auth.generate_email_verification_link(
@@ -35,16 +36,18 @@ def sendEmail(userMail: str) -> bool:
 감사합니다.
 """)
     try:
-        with smtplib.SMTP_SSL(SENDER_SERVER, SENDER_PORT) as smtp_server:
+        with smtplib.SMTP(SENDER_SERVER, SENDER_PORT) as smtp_server:
+            smtp_server.ehlo() # 서버에 자신을 소개
+            smtp_server.starttls() # TLS 암호화 시작
             smtp_server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
             smtp_server.send_message(msg)
         print(f"인증 이메일이 {userMail} 주소로 성공적으로 발송되었습니다.")
         return True
     except smtplib.SMTPAuthenticationError:
-        print("오류: Gmail SMTP 인증 실패.")
+        print("오류: SMTP 인증 실패.")
         return False
     except smtplib.SMTPServerDisconnected:
-        print("오류: Gmail SMTP 서버 연결 끊김.")
+        print("오류: SMTP 서버 연결 끊김.")
         return False
     except Exception as e:
         print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
@@ -88,16 +91,24 @@ if st.session_state.signup_step:
                 )
             st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                sendEmail(userMail=st.session_state.signup_email)
-                st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
-                st.button(
-                    label="인증결과 확인",
-                    key="checkAccessNew",
-                    type="primary",
-                    on_click=st.switch_page(page="pages/signupPW.py"),
-                    use_container_width=True,
-                    disabled=False
-                )
+                if sendEmail(userMail=st.session_state.signup_email):
+                    st.button(
+                        label="인증결과 확인",
+                        key="checkAccessNew",
+                        type="primary",
+                        on_click=st.switch_page(page="pages/signupPW.py"),
+                        use_container_width=True,
+                        disabled=False
+                    )
+                else:
+                    st.button(
+                        label="인증 실패",
+                        key="checkAccessNewFalse",
+                        type="primary",
+                        on_click=st.switch_page(page="pages/fail.py"),
+                        use_container_width=True,
+                        disabled=False
+                    )
         except Exception as e:
             st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
     elif st.session_state.user_status == "unverified":
@@ -111,18 +122,27 @@ if st.session_state.signup_step:
             )
             st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
             with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                sendEmail(userMail=st.session_state.signup_email)
-                st.info(body="전송을 완료했습니다. 이메일을 확인해주세요.")
-                time.sleep(2)
-                st.button(
-                    label="인증결과 확인",
-                    key="checkAccessAgain",
-                    type="primary",
-                    on_click=st.switch_page(page="pages/signupPW.py"),
-                    use_container_width=True,
-                    disabled=False
-                )
+                if sendEmail(userMail=st.session_state.signup_email):
+                    st.button(
+                        label="인증결과 확인",
+                        key="checkAccessAgain",
+                        type="primary",
+                        on_click=st.switch_page(page="pages/signupPW.py"),
+                        use_container_width=True,
+                        disabled=False
+                    )
+                else:
+                    st.button(
+                        label="인증 실패",
+                        key="checkAccessAgainFalse",
+                        type="primary",
+                        on_click=st.switch_page(page="pages/fail.py"),
+                        use_container_width=True,
+                        disabled=False
+                    )
         except Exception as e:
             st.error(f"이메일 전송 중 오류 발생: {e}")
 else:
     st.error("올바른 접근이 아닙니다.")
+    time.sleep(2)
+    st.switch_page(page="mainPage.py")

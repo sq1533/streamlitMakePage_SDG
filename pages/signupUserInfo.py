@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from utils import auth, db
 import time
 import re
@@ -121,3 +122,5 @@ if st.session_state.signup_step:
                 st.error(body=f"회원가입 실패: {e}")
 else:
     st.error("올바른 접근이 아닙니다.")
+    time.sleep(2)
+    st.switch_page(page="mainPage.py")

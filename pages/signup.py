@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from utils import auth
 
 # 홈으로 이동
@@ -81,3 +82,5 @@ if st.session_state.signup_step:
                     st.switch_page(page="pages/signupAccess.py")
 else:
     st.error("올바른 접근이 아닙니다.")
+    time.sleep(2)
+    st.switch_page(page="mainPage.py")
