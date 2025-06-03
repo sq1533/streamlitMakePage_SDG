@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import db, auth, pyrebase_auth, itemsDB
+from utils import db, auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -28,14 +28,14 @@ st.markdown(
     }
     div[aria-label="dialog"][role="dialog"] {
         width: 80% !important;
-        max-width: 950px !important;
+        max-width: 800px !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 st.video(
-    data="storage/assets/video/testVideo.mp4",
+    data=logoDB.document('video').get().to_dict()['path'],
     format="video/mp4",
     #start_time=,
     #end_time=,
@@ -61,9 +61,35 @@ def get_all_items_as_dicts():
 # 캐시된 함수를 통해 상품 데이터 로드
 items_data = get_all_items_as_dicts()
 
+# like 상태변화
+def likeStatus(likedItem) -> str:
+    if not st.session_state.user:
+        type="secondary"
+        return type
+    else:
+        if likedItem in st.session_state.user["like"]:
+            type="primary"
+        else:
+            type="secondary"
+        return type
+
+# liked clicks
+def clickedLike(likedItem):
+    if not st.session_state.user:
+        pass
+    else:
+        user_doc = userInfoDB.document(st.session_state.user["id"]).get()
+        if likedItem in st.session_state.user["like"]:
+            st.session_state.user["like"].remove(likedItem)
+            user_doc.reference.update({"like": st.session_state.user["like"]})
+            st.rerun()
+        else:
+            st.session_state.user["like"].append(likedItem)
+            user_doc.reference.update({"like": st.session_state.user["like"]})
+            st.rerun()
+
 # 사용자 로그인
 def signin(id,pw):
-    userInfoDB = db.collection('userInfo')
     try:
         user = pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
         user_doc = userInfoDB.document(user["localId"]).get()
@@ -153,10 +179,10 @@ def cachingImage(path):
         st.warning("이미지 경로가 없습니다.")
 
 # 상품 구매 dialog
-@st.dialog("shop_demo")
+@st.dialog("상세 페이지")
 def itemInfo(item):
     # 아이템 이미지 리스트 노출
-    cachingImage(item.get("path"))
+    cachingImage(item.get("paths"))
     # 상품 이름
     st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
@@ -185,7 +211,16 @@ for line in range(3):
             if items_data and len(items_data) > count_in_loop:
                 item = items_data[count_in_loop]
                 cachingImage(item.get('path'))
-                st.write(f"{item.get('name')}")
+                name, like = st.columns(spec=[2, 1], gap="small", vertical_alignment="center")
+                name.write(f"{item.get('name')}")
+                likeBTN = like.button(
+                    label=":heart:",
+                    key=f"liked_item_{item.get('id')}",
+                    type=likeStatus(likedItem=item.get('id')),
+                    use_container_width=True
+                )
+                if likeBTN:
+                    clickedLike(likedItem=item.get('id'))
                 viewBTN = st.button(
                     label="상세보기",
                     key=f"loop_item_{item.get('id')}",

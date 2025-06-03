@@ -109,6 +109,7 @@ if st.session_state.signup_step:
                     disabled=False
                 )
                 userInfo = {
+                    "id" : st.session_state.uid,
                     "name" : name,
                     "phone" : phone,
                     "address" : [st.session_state.address],

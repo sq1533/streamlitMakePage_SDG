@@ -44,5 +44,20 @@ pyrebase_auth = firebase.auth()
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
-logo_data = logoDB.document('logo').get().to_dict() # logo 위젯과의 충돌을 피하기 위해 logo_data로 변경
 itemsDB = db.collection('items') # items 컬렉션 연결
+userInfoDB = db.collection('userInfo')
+
+def addItem(item_data, item_id):
+    try:
+        if item_id:
+            item_data_to_set = item_data.copy()
+            item_data_to_set['id'] = item_id
+            itemsDB.document(item_id).set(item_data_to_set)
+            print(f"상품 '{item_id}'이(가) Firestore에 성공적으로 설정되었습니다.")
+            return item_id
+        else:
+            print("상품 ID 미지정, 실패")
+            return None
+    except Exception as e:
+        print(f"Firestore에 상품을 추가/설정하는 중 오류 발생: {e}")
+        return None
