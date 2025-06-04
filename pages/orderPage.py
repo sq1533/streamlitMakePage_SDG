@@ -8,6 +8,16 @@ if "user" not in st.session_state:
 if "item" not in st.session_state:
     st.session_state.item = False
 
+st.markdown(
+    """
+    <style>
+    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # 사용자 로그아웃
 def logout():
     st.session_state.user = False
@@ -43,13 +53,22 @@ else:
     item_doc = item_doc_ref.get()
     if item_doc.exists:
         item_data = item_doc.to_dict()
-        col1, col2 = st.columns([1,2])
+        col1, col2, col3 = st.columns(spec=[1,2,1], gap="small", vertical_alignment="top")
         with col1:
-            st.image(item_data.get("path"), use_container_width=True)
+            st.image(
+                image=item_data.get("path"),
+                use_container_width=True
+                )
         with col2:
-            st.markdown(f"**가격:** {item_data.get('price')}원")
-            
-            if st.button("결제하기", type="primary", use_container_width=True):
+            st.markdown(
+                body=f"**가격:** {item_data.get('price')}원"
+                )
+            buyBTN = st.button(
+                label="결제하기",
+                type="primary",
+                use_container_width=True
+                )
+            if buyBTN:
                 st.success(f"{item_data.get('name')} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
                 # st.session_state.item = False # 구매 후 아이템 세션 초기화
                 # time.sleep(3)

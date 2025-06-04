@@ -5,19 +5,9 @@ from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
 st.set_page_config(
     page_title="shop_demo",
     page_icon=":shark:",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="auto"
 )
-
-@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
-def get_all_items_as_dicts():
-    print("데이터베이스에서 상품 정보를 가져오는 중...")
-    items_snapshots = itemsDB.get()
-    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
-
-# 캐시된 함수를 통해 상품 데이터 로드
-items_data = get_all_items_as_dicts()
-itemCount = items_data.__len__()
 
 # 세션 관리
 if "signup_step" not in st.session_state:
@@ -68,6 +58,16 @@ def cachingVideo(path):
     else:
         st.warning("경로가 없습니다.")
 cachingVideo(logoDB.document('video').get().to_dict()['path'])
+
+@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
+def get_all_items_as_dicts():
+    print("데이터베이스에서 상품 정보를 가져오는 중...")
+    items_snapshots = itemsDB.get()
+    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
+
+# 캐시된 함수를 통해 상품 데이터 로드
+items_data = get_all_items_as_dicts()
+itemCount = items_data.__len__()
 
 @st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
 def cachingImage(path):
@@ -159,6 +159,7 @@ def itemInfo(item):
         else:
             st.session_state.item = item.get("id")
             st.switch_page(page="pages/orderPage.py")
+
 # siderbar 정의
 with st.sidebar:
     if not st.session_state.user:
@@ -226,21 +227,21 @@ with st.sidebar:
                         itemInfo(itemsDB.document(likes).get())
 
 count_in_loop = 0
-length = itemCount//3 + 1
+length = itemCount//4 + 1
 for line in range(length):
-    cols_in_line = st.columns(spec=3, gap="small", vertical_alignment="top", border=True)
+    cols_in_line = st.columns(spec=4, gap="small", vertical_alignment="top", border=True)
     for col_idx, i_col in enumerate(cols_in_line):
         with i_col.container():
             if items_data and itemCount > count_in_loop:
                 item = items_data[count_in_loop]
                 cachingImage(item.get('path'))
-                name, like = st.columns(spec=[2, 1], gap="small", vertical_alignment="center")
+                name, like = st.columns(spec=[5, 1], gap="small", vertical_alignment="center")
                 name.write(f"{item.get('name')}")
                 likeBTN = like.button(
                     label=":heart:",
                     key=f"liked_item_{item.get('id')}",
                     type=likeStatus(likedItem=item.get('id')),
-                    use_container_width=True
+                    use_container_width=False
                 )
                 if likeBTN:
                     clickedLike(likedItem=item.get('id'))
