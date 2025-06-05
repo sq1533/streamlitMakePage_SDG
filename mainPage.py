@@ -195,7 +195,7 @@ with st.sidebar:
     else:
         logoutB = st.button(
             label="log-OUT",
-            type="primary",
+            type="secondary",
             use_container_width=True
         )
         if logoutB:
