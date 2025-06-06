@@ -3,7 +3,9 @@ from utils import addItem
 if __name__ == "__main__":
     data = [
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603001",
             "name":"sample_01",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_01.jpg?alt=media&token=3e8c05c1-da88-4085-b168-371bf6f77283",
@@ -11,7 +13,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603002",
             "name":"sample_02",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_02.jpg?alt=media&token=4f29f2c5-cb79-4eed-882d-af599e417828",
@@ -19,7 +23,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603003",
             "name":"sample_03",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_03.jpg?alt=media&token=6bfdfb2e-356a-4719-ae8e-33f687bc038e",
@@ -27,7 +33,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603004",
             "name":"sample_04",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_04.jpg?alt=media&token=ceddf657-c413-4bb7-83b8-70460ab1e3b8",
@@ -35,7 +43,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603005",
             "name":"sample_05",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_04.jpg?alt=media&token=ceddf657-c413-4bb7-83b8-70460ab1e3b8",
@@ -43,7 +53,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603006",
             "name":"sample_06",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_06.jpg?alt=media&token=07d09da7-484a-4dcf-85d0-92eaf53d998b",
@@ -51,7 +63,9 @@ if __name__ == "__main__":
             "price":50000
         },
         {
-            "categoly":[""],
+            "categoly":"",
+            "color":"",
+            "event":"",
             "id":"EE250603007",
             "name":"sample_07",
             "path":"https://firebasestorage.googleapis.com/v0/b/shop-demo-5d78e.firebasestorage.app/o/testFile%2Fsample_07.jpg?alt=media&token=f3979425-e632-4e4b-a6cf-38a4b5f86e2c",

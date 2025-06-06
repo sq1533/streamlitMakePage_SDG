@@ -68,6 +68,9 @@ def get_all_items_as_dicts():
 # 캐시된 함수를 통해 상품 데이터 로드
 items_data = get_all_items_as_dicts()
 itemCount = items_data.__len__()
+itemCategoly = {i["categoly"] for i in items_data}
+itemColor = {i["color"] for i in items_data}
+itemEvent = {i["event"] for i in items_data}
 
 @st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
 def cachingImage(path):
@@ -138,8 +141,16 @@ def clickedLike(likedItem):
 # 상품 구매 dialog
 @st.dialog("상세 페이지")
 def itemInfo(item):
-    # 아이템 이미지 리스트 노출
-    cachingImage(item.get("paths"))
+    row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
+    row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
+    with row1.container():
+        cachingImage(item.get("paths")[0])
+    with row2.container():
+        cachingImage(item.get("paths")[1])
+    with row3.container():
+        cachingImage(item.get("paths")[0])
+    with row4.container():
+        cachingImage(item.get("paths")[0])
     # 상품 이름
     st.write(item.get("name"))
     # 상품 가격 및 구매 버튼
@@ -226,33 +237,67 @@ with st.sidebar:
                     if likeThings:
                         itemInfo(itemsDB.document(likes).get())
 
-count_in_loop = 0
-length = itemCount//4 + 1
-for line in range(length):
-    cols_in_line = st.columns(spec=4, gap="small", vertical_alignment="top", border=True)
-    for col_idx, i_col in enumerate(cols_in_line):
-        with i_col.container():
-            if items_data and itemCount > count_in_loop:
-                item = items_data[count_in_loop]
-                cachingImage(item.get('path'))
-                name, like = st.columns(spec=[5, 1], gap="small", vertical_alignment="center")
-                name.write(f"{item.get('name')}")
-                likeBTN = like.button(
-                    label=":heart:",
-                    key=f"liked_item_{item.get('id')}",
-                    type=likeStatus(likedItem=item.get('id')),
-                    use_container_width=False
-                )
-                if likeBTN:
-                    clickedLike(likedItem=item.get('id'))
-                viewBTN = st.button(
-                    label="상세보기",
-                    key=f"loop_item_{item.get('id')}",
-                    type="primary",
-                    use_container_width=True
-                )
-                if viewBTN:
-                    itemInfo(item=item)
-            else:
-                break
-            count_in_loop += 1
+filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
+
+colorFilter = filter_1.segmented_control(
+    label = "컬러",
+    options = itemColor,
+    selection_mode = "single",
+    default = None,
+    key="itemColor",
+    label_visibility="visible"
+    )
+
+categoryFilter = filter_2.segmented_control(
+    label = "카테고리",
+    options = itemCategoly,
+    selection_mode = "single",
+    default = None,
+    key="itemCategory",
+    label_visibility="visible"
+    )
+
+eventFilter = filter_3.segmented_control(
+    label = "이벤트",
+    options = itemCategoly,
+    selection_mode = "single",
+    default = None,
+    key="itemEvent",
+    label_visibility="visible"
+    )
+
+count_in_card = 0
+line = itemCount//5 + 1
+
+for l in range(line):
+    cards = st.columns(spec=5, gap="small", vertical_alignment="top")
+
+for item in items_data:
+    if (colorFilter == None or colorFilter == item.get("color")) and (categoryFilter == None or categoryFilter == item.get("categoly")) and (eventFilter == None or eventFilter == item.get("event")):
+        with cards[count_in_card].container():
+            cachingImage(item.get('path'))
+            name, like = st.columns(spec=[5, 1], gap="small", vertical_alignment="center")
+            name.write(f"{item.get('name')}")
+            likeBTN = like.button(
+                label=":heart:",
+                key=f"liked_item_{item.get('id')}",
+                type=likeStatus(likedItem=item.get('id')),
+                use_container_width=False
+            )
+            if likeBTN:
+                clickedLike(likedItem=item.get('id'))
+            viewBTN = st.button(
+                label="상세보기",
+                key=f"loop_item_{item.get('id')}",
+                type="primary",
+                use_container_width=True
+            )
+            if viewBTN:
+                itemInfo(item=item)
+        count_in_card += 1
+        if count_in_card == 5:
+            count_in_card = 0
+        else:
+            pass
+    else:
+        pass
