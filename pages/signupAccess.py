@@ -64,84 +64,88 @@ if "signup_email" not in st.session_state:
 
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
-    with st.sidebar:
-        st.write("환영합니다.")
-    st.progress(
-        value=33,
-        text="이메일 인증"
-    )
-    st.text_input(
-        label="아이디",
-        value=st.session_state.signup_email,
-        key="userEmail",
-        type="default",
-        disabled=True
-    )
-    if st.session_state.user_status == "not_found":
-        try:
-            # 사용자 검증키 생성
-            solt = secrets.token_hex(nbytes=6)+"!!"
-            auth.create_user(
-                email=st.session_state.signup_email,
-                email_verified=False,
-                password=solt,
-                display_name=None,
-                photo_url=None,
-                disabled=True,
+
+    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
+
+    with main.container():
+        with st.sidebar:
+            st.title("환영합니다.")
+        st.progress(
+            value=33,
+            text="이메일 인증"
+        )
+        st.text_input(
+            label="아이디",
+            value=st.session_state.signup_email,
+            key="userEmail",
+            type="default",
+            disabled=True
+        )
+        if st.session_state.user_status == "not_found":
+            try:
+                # 사용자 검증키 생성
+                solt = secrets.token_hex(nbytes=6)+"!!"
+                auth.create_user(
+                    email=st.session_state.signup_email,
+                    email_verified=False,
+                    password=solt,
+                    display_name=None,
+                    photo_url=None,
+                    disabled=True,
+                    )
+                st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
+                with st.spinner(text="인증 메일 전송 중...", show_time=True):
+                    if sendEmail(userMail=st.session_state.signup_email):
+                        st.button(
+                            label="인증결과 확인",
+                            key="checkAccessNew",
+                            type="primary",
+                            on_click=st.switch_page(page="pages/signupPW.py"),
+                            use_container_width=True,
+                            disabled=False
+                        )
+                    else:
+                        st.button(
+                            label="인증 실패",
+                            key="checkAccessNewFalse",
+                            type="primary",
+                            on_click=st.switch_page(page="pages/fail.py"),
+                            use_container_width=True,
+                            disabled=False
+                        )
+            except Exception as e:
+                st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
+        elif st.session_state.user_status == "unverified":
+            try:
+                # 사용자 검증키 생성
+                solt = secrets.token_hex(nbytes=6)+"!!"
+                uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
+                auth.update_user(
+                    uid=uid,
+                    password=solt
                 )
-            st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
-            with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                if sendEmail(userMail=st.session_state.signup_email):
-                    st.button(
-                        label="인증결과 확인",
-                        key="checkAccessNew",
-                        type="primary",
-                        on_click=st.switch_page(page="pages/signupPW.py"),
-                        use_container_width=True,
-                        disabled=False
-                    )
-                else:
-                    st.button(
-                        label="인증 실패",
-                        key="checkAccessNewFalse",
-                        type="primary",
-                        on_click=st.switch_page(page="pages/fail.py"),
-                        use_container_width=True,
-                        disabled=False
-                    )
-        except Exception as e:
-            st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
-    elif st.session_state.user_status == "unverified":
-        try:
-            # 사용자 검증키 생성
-            solt = secrets.token_hex(nbytes=6)+"!!"
-            uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
-            auth.update_user(
-                uid=uid,
-                password=solt
-            )
-            st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
-            with st.spinner(text="인증 메일 전송 중...", show_time=True):
-                if sendEmail(userMail=st.session_state.signup_email):
-                    st.button(
-                        label="인증결과 확인",
-                        key="checkAccessAgain",
-                        type="primary",
-                        on_click=st.switch_page(page="pages/signupPW.py"),
-                        use_container_width=True,
-                        disabled=False
-                    )
-                else:
-                    st.button(
-                        label="인증 실패",
-                        key="checkAccessAgainFalse",
-                        type="primary",
-                        on_click=st.switch_page(page="pages/fail.py"),
-                        use_container_width=True,
-                        disabled=False
-                    )
-        except Exception as e:
-            st.error(f"이메일 전송 중 오류 발생: {e}")
+                st.session_state.uid = auth.get_user_by_email(email=st.session_state.signup_email).uid
+                with st.spinner(text="인증 메일 전송 중...", show_time=True):
+                    if sendEmail(userMail=st.session_state.signup_email):
+                        st.button(
+                            label="인증결과 확인",
+                            key="checkAccessAgain",
+                            type="primary",
+                            on_click=st.switch_page(page="pages/signupPW.py"),
+                            use_container_width=True,
+                            disabled=False
+                        )
+                    else:
+                        st.button(
+                            label="인증 실패",
+                            key="checkAccessAgainFalse",
+                            type="primary",
+                            on_click=st.switch_page(page="pages/fail.py"),
+                            use_container_width=True,
+                            disabled=False
+                        )
+            except Exception as e:
+                st.error(f"이메일 전송 중 오류 발생: {e}")
 else:
     st.error("올바른 접근이 아닙니다.")
     time.sleep(2)

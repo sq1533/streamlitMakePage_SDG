@@ -8,3 +8,4 @@ venv/
 .git/
 .gitignore
 .dockerignore
+addItems.py

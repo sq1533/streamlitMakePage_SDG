@@ -20,42 +20,45 @@ if not st.session_state.user:
     time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
-    # 홈으로 이동
-    goHome = st.button(
-        label="홈으로 이동",
-        key="goHome",
-        type="primary",
-        use_container_width=False,
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
-    with st.sidebar:
-        st.title(body="마이페이지")
-
-    st.write("본인확인 인증")
-    st.text_input(
-        label="Email",
-        value=st.session_state.user["email"],
-        key="myinfoAccessEmail",
-        type="default",
-        disabled=True
-    )
-    PW = st.text_input(
-        label="비밀번호",
-        value=None,
-        key="myinfoAccessPW",
-        type="password",
-        placeholder=None
-    )
-    access = st.button(
-            label="인증",
+    with main.container():
+        # 홈으로 이동
+        goHome = st.button(
+            label="홈으로 이동",
+            key="goHome",
             type="primary",
-            use_container_width=True
+            use_container_width=False,
+            disabled=False
         )
-    if access:
-        if myinfoPass(id=st.session_state.user["email"],pw=PW):
-            st.switch_page(page="pages/myPage.py")
-        else:
-            st.error("인증 실패")
+        if goHome:
+            st.switch_page(page="mainPage.py")
+
+        with st.sidebar:
+            st.title(body="마이페이지")
+
+        st.write("본인확인 인증")
+        st.text_input(
+            label="Email",
+            value=st.session_state.user["email"],
+            key="myinfoAccessEmail",
+            type="default",
+            disabled=True
+        )
+        PW = st.text_input(
+            label="비밀번호",
+            value=None,
+            key="myinfoAccessPW",
+            type="password",
+            placeholder=None
+        )
+        access = st.button(
+                label="인증",
+                type="primary",
+                use_container_width=True
+            )
+        if access:
+            if myinfoPass(id=st.session_state.user["email"],pw=PW):
+                st.switch_page(page="pages/myPage.py")
+            else:
+                st.error("인증 실패")

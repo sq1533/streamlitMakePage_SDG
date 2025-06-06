@@ -29,7 +29,7 @@ st.markdown(
     video {
         width: 100% !important;
         aspect-ratio: 20 / 9;
-        object-fit: cover;
+        object-fit: fill;
     }
     button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
         display: none !important;
@@ -101,8 +101,7 @@ def signin(id,pw):
         else:
             st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
             st.session_state.user = False
-    except Exception as e:
-        print(f"로그인 실패: {e}")
+    except Exception:
         st.session_state.user = False
         st.error(body="Error! 로그인 실패")
 
@@ -146,22 +145,24 @@ def itemInfo(item):
     with row1.container():
         cachingImage(item.get("paths")[0])
     with row2.container():
-        cachingImage(item.get("paths")[1])
+        cachingImage(item.get("paths")[0])
     with row3.container():
         cachingImage(item.get("paths")[0])
     with row4.container():
         cachingImage(item.get("paths")[0])
     # 상품 이름
-    st.write(item.get("name"))
+    st.markdown(f"# {item.get("name")}")
     # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap="small", vertical_alignment="center")
-    price.write(str(item.get("price")))
+    price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
+    price.markdown(f"#### 상품 가격 : {item.get("price")} 원 / 배송비 : 무료")
     buyBTN = buy.button(
         label="구매하기",
         key=f"buyItem_{item.get('id')}",
         type="primary",
         use_container_width=True
     )
+    with st.expander(label="상품 세부정보"):
+        st.markdown(body=f"{item.get("detail")}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:
@@ -211,25 +212,34 @@ with st.sidebar:
         )
         if logoutB:
             logout()
-        welcome, myinfo = st.columns(spec=[2,1], gap="small", vertical_alignment="center")
-        welcome.write(f"{st.session_state.user['name']} 님! 안녕하세요")
+        st.markdown(f"## {st.session_state.user['name']} 님! 안녕하세요")
+        myinfo, empty, orderList = st.columns(spec=[1,1,1], gap="small", vertical_alignment="center")
         myinfo = myinfo.button(
             label="마이페이지",
             type="tertiary",
+            key="myPage",
+            use_container_width=True
+        )
+        orderL = orderList.button(
+            label="주문내역",
+            type="tertiary",
+            key="orderList",
             use_container_width=True
         )
         if myinfo:
             st.switch_page(page="pages/myPageAccess.py")
+        if orderL:
+            st.switch_page(page="pages/orderList.py")
         if not st.session_state.user.get("like"):
-            st.write("내가 좋아한 상품:")
-            st.write("좋아요한 상품이 없습니다.")
+            st.markdown("## 내가 좋아한 상품:")
+            st.markdown("#### 좋아요한 상품이 없습니다.")
         else:
-            st.write("내가 좋아한 상품:")
+            st.markdown("## 내가 좋아한 상품:")
             for likes in st.session_state.user["like"]:
                 likedItems = [item["name"] for item in items_data if item["id"] == likes]
                 for likedItem in likedItems:
                     likeThings = st.button(
-                        label=likedItem,
+                        label=f"### {likedItem}",
                         key=f"liked_{likedItem}",
                         type="primary",
                         use_container_width=True
@@ -276,13 +286,13 @@ for item in items_data:
     if (colorFilter == None or colorFilter == item.get("color")) and (categoryFilter == None or categoryFilter == item.get("categoly")) and (eventFilter == None or eventFilter == item.get("event")):
         with cards[count_in_card].container():
             cachingImage(item.get('path'))
-            name, like = st.columns(spec=[5, 1], gap="small", vertical_alignment="center")
-            name.write(f"{item.get('name')}")
+            name, like = st.columns(spec=[3, 1], gap="small", vertical_alignment="center")
+            name.markdown(body=f"##### {item.get('name')}")
             likeBTN = like.button(
                 label=":heart:",
                 key=f"liked_item_{item.get('id')}",
                 type=likeStatus(likedItem=item.get('id')),
-                use_container_width=False
+                use_container_width=True
             )
             if likeBTN:
                 clickedLike(likedItem=item.get('id'))
