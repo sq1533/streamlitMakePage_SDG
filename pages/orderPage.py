@@ -1,7 +1,8 @@
 import streamlit as st
 import time
 import requests
-from utils import itemsDB
+from datetime import datetime, timezone, timedelta
+from utils import itemsDB, userInfoDB
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -85,8 +86,12 @@ else:
             )
         if buyBTN:
             st.success(f"{itemInfo.get('name')} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
-            # with st.spinner(text="결제 승인 요청 중...", show_time=False):
+            with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
-                # st.session_state.item = False # 구매 후 아이템 세션 초기화
-                # time.sleep(3)
-                # st.switch_page("mainPage.py")
+                now = datetime.now(timezone.utc) + timedelta(hours=9)
+                orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
+                st.session_state.user["orders"].append(orderTime + " / " + st.session_state.item)
+                user_doc = userInfoDB.document(st.session_state.user["id"]).get()
+                user_doc.reference.update({"orders":st.session_state.user["orders"]})
+                st.session_state.item = False # 구매 후 아이템 세션 초기화
+                st.switch_page("pages/myPageOrderList.py")

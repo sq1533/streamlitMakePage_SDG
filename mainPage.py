@@ -94,15 +94,12 @@ def signin(id,pw):
         if user_doc.exists:
             if auth.get_user_by_email(email=id).email_verified == False:
                 st.error(body="이메일 인증이 안되었어요.")
-                st.session_state.user = False
             else:
                 st.session_state.user = user_doc.to_dict()
                 st.rerun()
         else:
             st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
-            st.session_state.user = False
     except Exception:
-        st.session_state.user = False
         st.error(body="Error! 로그인 실패")
 
 # 사용자 로그아웃
@@ -229,7 +226,7 @@ with st.sidebar:
         if myinfo:
             st.switch_page(page="pages/myPageAccess.py")
         if orderL:
-            st.switch_page(page="pages/orderList.py")
+            st.switch_page(page="pages/myPageOrderList.py")
         if not st.session_state.user.get("like"):
             st.markdown("## 내가 좋아한 상품:")
             st.markdown("#### 좋아요한 상품이 없습니다.")
