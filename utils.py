@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime, timezone, timedelta
 import firebase_admin
 from firebase_admin import auth, credentials, firestore
 import pyrebase
@@ -46,7 +47,9 @@ db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
 itemsDB = db.collection('items') # items 컬렉션 연결
 userInfoDB = db.collection('userInfo')
+now = datetime.now(timezone.utc) + timedelta(hours=9)
 
+# 상품 추가 함수
 def addItem(item_data, item_id):
     try:
         if item_id:

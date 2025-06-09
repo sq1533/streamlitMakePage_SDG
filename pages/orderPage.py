@@ -1,8 +1,7 @@
 import streamlit as st
 import time
 import requests
-from datetime import datetime, timezone, timedelta
-from utils import itemsDB, userInfoDB
+from utils import itemsDB, userInfoDB, now
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -88,7 +87,6 @@ else:
             st.success(f"{itemInfo.get('name')} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
-                now = datetime.now(timezone.utc) + timedelta(hours=9)
                 orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
                 st.session_state.user["orders"].append(orderTime + " / " + st.session_state.item)
                 user_doc = userInfoDB.document(st.session_state.user["id"]).get()

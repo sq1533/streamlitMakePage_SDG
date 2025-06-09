@@ -6,7 +6,7 @@ from utils import auth
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 if "user_status" not in st.session_state:
-    st.session_state.user_status = None
+    st.session_state.user_status = False
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = None
 

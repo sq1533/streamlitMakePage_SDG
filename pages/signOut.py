@@ -3,7 +3,7 @@ import time
 from utils import auth
 
 if "user" not in st.session_state:
-    st.session_state.user = None
+    st.session_state.user = False
 
 if not st.session_state.user:
     st.error("잘못된 접근 입니다.")

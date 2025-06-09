@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import requests
-from utils import userInfoDB
+from utils import userInfoDB, now, datetime
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -27,7 +27,7 @@ def checkCancel(cancelItem):
         st.rerun()
     if YESBTN:
         cancelOrder(cancelItem)
-
+# 2025-06-08 21:22 / EE250603003
 # cancel order 결제 취소 API 추가
 def cancelOrder(cancelItem):
     if not st.session_state.user:
@@ -35,7 +35,8 @@ def cancelOrder(cancelItem):
     else:
         user_doc = userInfoDB.document(st.session_state.user["id"]).get()
         if cancelItem in st.session_state.user.get("orders"):
-            st.session_state.user["orders"].append("cancel"+"_"+cancelItem)
+            # requests.post()
+            st.session_state.user["orders"].append(cancelItem + "_" + "cancel")
             st.session_state.user["orders"].remove(cancelItem)
             user_doc.reference.update({"orders": st.session_state.user["orders"]})
             st.rerun()
@@ -68,10 +69,17 @@ else:
         if not st.session_state.user.get("orders"):
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
-            for order in st.session_state.user.get("orders"):
+            for order in reversed(st.session_state.user.get("orders")):
+                orderDay = order.split(" ")[0]
+                nowDay = now.strftime("%Y-%m-%d")
+                orderDay_d = datetime.strptime(orderDay, "%Y-%m-%d").date()
+                nowDay_d = datetime.strptime(nowDay, "%Y-%m-%d").date()
+                elapsed = (nowDay_d - orderDay_d).days
                 orderThings, cancel = st.columns(spec=[4,1], gap="small", vertical_alignment="center")
                 orderThings.markdown(body=order)
-                if "cancel_" in order:
+                if "_cancel" in order:
+                    disabled = True
+                elif elapsed > 20:
                     disabled = True
                 else:
                     disabled = False

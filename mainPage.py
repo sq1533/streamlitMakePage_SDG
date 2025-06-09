@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
+from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB, now, datetime
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -209,6 +209,14 @@ with st.sidebar:
         )
         if logoutB:
             logout()
+        
+        # PW 생성 날짜
+        createPW = st.session_state.user.get("createPW")
+        nowDay = now.strftime("%Y-%m-%d")
+        orderDay_d = datetime.strptime(createPW, "%Y-%m-%d").date()
+        nowDay_d = datetime.strptime(nowDay, "%Y-%m-%d").date()
+        elapsed = (nowDay_d - orderDay_d).days
+
         st.markdown(f"## {st.session_state.user['name']} 님! 안녕하세요")
         myinfo, empty, orderList = st.columns(spec=[1,1,1], gap="small", vertical_alignment="center")
         myinfo = myinfo.button(
@@ -223,6 +231,30 @@ with st.sidebar:
             key="orderList",
             use_container_width=True
         )
+        if elapsed > 90:
+            st.warning("비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.")
+            YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
+            pwChange = YES.button(
+                label="변경하기",
+                type="tertiary",
+                key="pwChange",
+                use_container_width=True
+            )
+            laterChange = NO.button(
+                label="나중에..",
+                type="secondary",
+                key="laterChange",
+                use_container_width=True
+            )
+            if pwChange:
+                st.switch_page(page="pages/myPageChangePW.py")
+            if laterChange:
+                st.session_state.user["createPW"] = now.strftime("%Y-%m-%d")
+                user_doc = userInfoDB.document(st.session_state.user["id"]).get()
+                user_doc.reference.update({"createPW":st.session_state.user["createPW"]})
+                st.rerun()
+        else:
+            pass
         if myinfo:
             st.switch_page(page="pages/myPageAccess.py")
         if orderL:

@@ -1,9 +1,8 @@
 import streamlit as st
 import time
-from utils import auth, db
-import time
 import re
 import requests
+from utils import auth, db, now
 
 # userInfo store 연결
 userConn = db.collection('userInfo')
@@ -57,7 +56,7 @@ def searchAddress(address):
                             st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
         except Exception as e:
-            st.error(f"주소 검색 중 오류 발생: {e}")
+            st.error(f"주소 검색 중 오류 발생")
 
 if st.session_state.signup_step:
 
@@ -114,6 +113,7 @@ if st.session_state.signup_step:
                     )
                     userInfo = {
                         "id" : st.session_state.uid,
+                        "createPW" : now.strftime("%Y-%m-%d"),
                         "email" : auth.get_user_by_uid(uid=st.session_state.uid).email,
                         "name" : name,
                         "phone" : phone,

@@ -2,10 +2,8 @@ import streamlit as st
 import time
 from utils import pyrebase_auth
 
-if "signup_step" not in st.session_state:
-    st.session_state.signup_step = False
 if "user" not in st.session_state:
-    st.session_state.user = None
+    st.session_state.user = False
 
 # 사용자 로그인
 def myinfoPass(id,pw):

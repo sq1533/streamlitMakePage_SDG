@@ -5,6 +5,15 @@ import smtplib
 from email.message import EmailMessage
 import secrets
 
+# 세션 정의
+if "signup_step" not in st.session_state:
+    st.session_state.signup_step = False
+if "user_status" not in st.session_state:
+    st.session_state.user_status = False
+if "signup_email" not in st.session_state:
+    st.session_state.signup_email = None
+    st.session_state.uid = None
+
 # email 전송
 def sendEmail(userMail: str) -> bool:
     SENDER_EMAIL = st.secrets["email_credentials"]["sender_email"]
@@ -52,15 +61,6 @@ def sendEmail(userMail: str) -> bool:
     except Exception as e:
         print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
         return False
-
-# 세션 정의
-if "signup_step" not in st.session_state:
-    st.session_state.signup_step = False
-if "user_status" not in st.session_state:
-    st.session_state.user_status = None
-if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
-    st.session_state.uid = None
 
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:

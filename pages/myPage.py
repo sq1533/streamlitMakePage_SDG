@@ -5,10 +5,9 @@ import requests
 from utils import pyrebase_auth, userInfoDB
 
 if "user" not in st.session_state:
-    st.session_state.user = None
+    st.session_state.user = False
 
 user_doc = userInfoDB.document(st.session_state.user["id"]).get()
-sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
 
 st.markdown(
     """
@@ -22,22 +21,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 사용자 로그인
-def myinfoPass(id,pw):
-    try:
-        pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-        return True
-    except Exception:
-        return False
+sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
 
-# 주소지 삭제
-def deleteAddress(address):
-    st.session_state.user["address"].remove(address)
-    user_doc.reference.update({"address": st.session_state.user["address"]})
-    st.rerun()
-
-# 마이페이지 dialog
-@st.dialog("배송지 추가")
+# 사용자 주소 검색 팝업, API 신청시 유효 url 입력 필요
+@st.dialog("address")
 def addressPOP(address):
     if re.search(r"[\]\[%;<>=]", address):
         st.error(body="특수문자는 포함할 수 없습니다.")
@@ -68,18 +55,28 @@ def addressPOP(address):
                             type="default"
                         )
                         choise = st.button(
-                            label="추가",
+                            label="선택",
                             key=f"choise{i}"
                         )
                         if choise:
-                            if f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}" in st.session_state.user["address"]:
-                                st.error(body="중복된 배송지 입니다.")
-                            else:
-                                st.session_state.user["address"].append(f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}")
-                                user_doc.reference.update({"address": st.session_state.user["address"]})
-                                st.rerun()
+                            st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
+                            st.rerun()
         except Exception as e:
-            st.error(f"주소 검색 중 오류 발생: {e}")
+            st.error(f"주소 검색 중 오류 발생")
+
+# 사용자 로그인
+def myinfoPass(id,pw):
+    try:
+        pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+        return True
+    except Exception:
+        return False
+
+# 주소지 삭제
+def deleteAddress(address):
+    st.session_state.user["address"].remove(address)
+    user_doc.reference.update({"address": st.session_state.user["address"]})
+    st.rerun()
 
 if not st.session_state.user:
     st.error("잘못된 접근 입니다.")
@@ -111,7 +108,7 @@ else:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        email, passwardBTN = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
+        email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
         email.text_input(
             label="Email",
             value=st.session_state.user["email"],
@@ -119,12 +116,14 @@ else:
             type="default",
             disabled=True
         )
-        passwardBTN.button(
+        passwardBTN = passward.button(
             label="비밀번호 변경",
             key="myinfoPWbtn",
             type="primary",
             use_container_width=True
         )
+        if passwardBTN:
+            st.switch_page(page="pages/myPageChangePW.py")
         st.text_input(
             label="이름",
             value=st.session_state.user["name"],
