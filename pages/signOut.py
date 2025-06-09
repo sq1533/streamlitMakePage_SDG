@@ -54,6 +54,6 @@ else:
                     disabled=True
                 )
                 st.info(body="회원 탈퇴 완료")
-                st.session_state.user = False
+                st.session_state.clear
                 time.sleep(2)
                 st.switch_page(page="mainPage.py")
