@@ -88,7 +88,7 @@ else:
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
                 orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
-                st.session_state.user["orders"].append(orderTime + " / " + st.session_state.item)
+                st.session_state.user["orders"].append(orderTime + "/" + st.session_state.item)
                 user_doc = userInfoDB.document(st.session_state.user["id"]).get()
                 user_doc.reference.update({"orders":st.session_state.user["orders"]})
                 st.session_state.item = False # 구매 후 아이템 세션 초기화

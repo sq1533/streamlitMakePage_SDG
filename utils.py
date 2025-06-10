@@ -64,3 +64,37 @@ def addItem(item_data, item_id):
     except Exception as e:
         print(f"Firestore에 상품을 추가/설정하는 중 오류 발생: {e}")
         return None
+
+# 사용자 orders status 수정_배송중
+def deliveryStatus(orderStatus:list):
+    try:
+        allUsers = userInfoDB.stream()
+        for user in allUsers:
+            orderLists = user.get().to_dict()["orders"]
+            for orderList in orderLists:
+                if orderList in orderStatus:
+                    orderDay = orderList + "_" + "delivery"
+                    orderLists.remove(orderList)
+                    orderLists.append(orderDay)
+                else:
+                    pass
+            userInfoDB.document(user.id).update({"orders":orderLists})
+    except Exception:
+        print("배송 상태 업데이트 오류")
+
+# 사용자 orders status 수정_완료
+def completeStatus(orderStatus:list):
+    try:
+        allUsers = userInfoDB.stream()
+        for user in allUsers:
+            orderLists = user.get().to_dict()["orders"]
+            for orderList in orderLists:
+                if orderList in orderStatus:
+                    orderDay = orderList + "_" + "complete"
+                    orderLists.remove(orderList)
+                    orderLists.append(orderDay)
+                else:
+                    pass
+            userInfoDB.document(user.id).update({"orders":orderLists})
+    except Exception:
+        print("완료 상태 업데이트 오류")
