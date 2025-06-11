@@ -58,8 +58,8 @@ def sendEmail(userMail: str) -> bool:
     except smtplib.SMTPServerDisconnected:
         print("오류: SMTP 서버 연결 끊김.")
         return False
-    except Exception as e:
-        print(f"오류: 이메일 발송 중 예상치 못한 오류: {e}")
+    except Exception:
+        print("오류: 이메일 발송 중 예상치 못한 오류")
         return False
 
 # 세션 검증 및 이메일 검증
@@ -113,8 +113,8 @@ if st.session_state.signup_step:
                             use_container_width=True,
                             disabled=False
                         )
-            except Exception as e:
-                st.error(f"사용자 생성 또는 메일 발송 실패: {e}")
+            except Exception:
+                st.error("사용자 생성 또는 메일 발송 실패")
         elif st.session_state.user_status == "unverified":
             try:
                 # 사용자 검증키 생성
@@ -144,8 +144,8 @@ if st.session_state.signup_step:
                             use_container_width=True,
                             disabled=False
                         )
-            except Exception as e:
-                st.error(f"이메일 전송 중 오류 발생: {e}")
+            except Exception:
+                st.error("이메일 전송 중 오류 발생")
 else:
     st.error("올바른 접근이 아닙니다.")
     time.sleep(2)

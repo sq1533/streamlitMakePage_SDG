@@ -148,10 +148,10 @@ def itemInfo(item):
     with row4.container():
         cachingImage(item.get("paths")[0])
     # 상품 이름
-    st.markdown(f"# {item.get("name")}")
+    st.markdown(f"# {item.get('name')}")
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : {item.get("price")} 원 / 배송비 : 무료")
+    price.markdown(f"#### 상품 가격 : {item.get('price')} 원 / 배송비 : 무료")
     buyBTN = buy.button(
         label="구매하기",
         key=f"buyItem_{item.get('id')}",
@@ -159,7 +159,7 @@ def itemInfo(item):
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.markdown(body=f"{item.get("detail")}")
+        st.markdown(body=f"{item.get('detail')}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:

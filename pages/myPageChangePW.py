@@ -114,4 +114,4 @@ else:
                     st.session_state.clear()
                     st.switch_page(page="mainPage.py")
                 except Exception as e:
-                    st.error(body=f"비밀번호 설정 실패")
+                    st.error(body="비밀번호 설정 실패")

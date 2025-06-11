@@ -55,8 +55,8 @@ def searchAddress(address):
                         if choise:
                             st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
-        except Exception as e:
-            st.error(f"주소 검색 중 오류 발생")
+        except Exception:
+            st.error("주소 검색 중 오류 발생")
 
 if st.session_state.signup_step:
 

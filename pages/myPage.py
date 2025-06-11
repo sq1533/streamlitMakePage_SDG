@@ -62,7 +62,7 @@ def addressPOP(address):
                             st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
         except Exception as e:
-            st.error(f"주소 검색 중 오류 발생")
+            st.error("주소 검색 중 오류 발생")
 
 # 사용자 로그인
 def myinfoPass(id,pw):

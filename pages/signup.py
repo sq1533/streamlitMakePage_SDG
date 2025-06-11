@@ -53,8 +53,8 @@ if st.session_state.signup_step:
                             st.session_state.user_status = "unverified"
                     except auth.UserNotFoundError:
                         st.session_state.user_status = "not_found"
-                    except Exception as e:
-                        st.error(f"사용자 확인 중 오류 발생: {e}")
+                    except Exception:
+                        st.error("사용자 확인 중 오류 발생")
                         st.session_state.user_status = None
                 # 회원 DB 검증
                 if st.session_state.user_status == "verified":

@@ -103,8 +103,8 @@ if st.session_state.signup_step:
                         password=pw
                     )
                     st.switch_page(page="pages/signupUserInfo.py")
-                except Exception as e:
-                    st.error(body=f"비밀번호 설정 실패: {e}")
+                except Exception:
+                    st.error(body="비밀번호 설정 실패")
 else:
     st.error("올바른 접근이 아닙니다.")
     time.sleep(2)

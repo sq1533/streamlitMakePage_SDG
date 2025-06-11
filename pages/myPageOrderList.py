@@ -7,6 +7,21 @@ from utils import userInfoDB, itemsDB
 if "user" not in st.session_state:
     st.session_state.user = False
 
+st.markdown(
+    body="""
+    <style>
+    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+        display: none !important;
+    }
+    div[aria-label="dialog"][role="dialog"] {
+        width: 80% !important;
+        max-width: 800px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 user_doc = userInfoDB.document(st.session_state.user["id"]).get()
 
 # check cancel
@@ -116,7 +131,7 @@ else:
                 itemID = order.split("/")[1].split("_")[0]
                 orderTime = order.split("/")[0]
                 itemInfo = itemsDB.document(itemID).get().to_dict()
-                orderImage, orderInfo, cancel = st.columns(spec=[1,4,1], gap="small", vertical_alignment="center")
+                orderImage, orderInfo, orderStatus, cancel = st.columns(spec=[1,3,1,1], gap="small", vertical_alignment="center")
                 orderImage.image(
                     image=itemInfo.get("path"),
                     caption=None,
@@ -126,6 +141,7 @@ else:
                     )
                 orderInfo.markdown(body=f"상품명 : {itemInfo.get("name")} // 주문 날짜 : {orderTime}")
                 if "_cancel" in order:
+                    orderStatus.markdown(body="취소")
                     cancel.button(
                         label="취소 완료",
                         key=f"cancel_{order}_complete",
@@ -134,6 +150,7 @@ else:
                         disabled=True
                     )
                 elif "_delivery" in order:
+                    orderStatus.markdown(body="배송중")
                     cancelBTN = cancel.button(
                         label="취소 요청하기",
                         key=f"cancel_{order}_request",
@@ -144,6 +161,7 @@ else:
                     if cancelBTN:
                         checkCancel(order)
                 elif "_complete" in order:
+                    orderStatus.markdown(body="배송 완료")
                     cancelBTN = cancel.button(
                         label="반품 신청하기",
                         key=f"return_{order}",
@@ -154,6 +172,7 @@ else:
                     if cancelBTN:
                         checkCancel(order)
                 else:
+                    orderStatus.markdown(body="상품 준비중")
                     cancelBTN = cancel.button(
                         label="취소",
                         key=f"cancel_{order}",

@@ -67,7 +67,7 @@ else:
                 body=f"##### **가격 :** {itemInfo.get('price')}원"
                 )
             st.markdown(
-                body=f"##### **배송비 :** 무료"
+                body="##### **배송비 :** 무료"
                 )
 
         addressTarget = st.radio(
