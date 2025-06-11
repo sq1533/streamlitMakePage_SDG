@@ -139,7 +139,7 @@ else:
                     clamp=False,
                     output_format="auto"
                     )
-                orderInfo.markdown(body=f"상품명 : {itemInfo.get("name")} // 주문 날짜 : {orderTime}")
+                orderInfo.markdown(body=f"상품명 : {itemInfo.get('name')} // 주문 날짜 : {orderTime}")
                 if "_cancel" in order:
                     orderStatus.markdown(body="취소")
                     cancel.button(
