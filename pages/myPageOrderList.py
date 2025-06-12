@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import requests
-from utils import userInfoDB, itemsDB
+from utils import userInfoDB, itemsDB, orderDB, firestore
 
 # 세션 관리
 if "user" not in st.session_state:
@@ -27,7 +27,7 @@ user_doc = userInfoDB.document(st.session_state.user["id"]).get()
 # check cancel
 @st.dialog(title="진행 하시겠습니까?")
 def checkCancel(cancelItem):
-    if "_delivery" in cancelItem:
+    if "/delivery" in cancelItem:
         st.info(body="이미 발송된 상품입니다. 발송된 주소로 회수되며, 택배비를 제외한 가격으로 반품됩니다.")
         NO, YES = st.columns(spec=[1,1], gap="small", vertical_alignment="center")
         NOBTN = NO.button(
@@ -45,27 +45,8 @@ def checkCancel(cancelItem):
         if NOBTN:
             st.rerun()
         if YESBTN:
-            # 반품 리스트 추가
-            st.rerun()
-    elif "_complete" in cancelItem:
-        st.info(body="반품은 상품 발송된 주소로 회수되며, 택배비를 제외한 가격으로 반품됩니다.")
-        NO, YES = st.columns(spec=[1,1], gap="small", vertical_alignment="center")
-        NOBTN = NO.button(
-            label="아니요.",
-            key=f"noCancel_{cancelItem}",
-            type="secondary",
-            use_container_width=True
-        )
-        YESBTN = YES.button(
-            label="네, 반품 하겠습니다.",
-            key=f"yesCancel_{cancelItem}",
-            type="primary",
-            use_container_width=True
-        )
-        if NOBTN:
-            st.rerun()
-        if YESBTN:
-            # 반품 리스트 추가
+            orderDB.document("delivery").set({"delivery":firestore.ArrayRemove([cancelItem])}, merge=True)
+            orderDB.document("cancel").set({"cancel":firestore.ArrayUnion([cancelItem])}, merge=True)
             st.rerun()
     else:
         NO, YES = st.columns(spec=[1,1], gap="small", vertical_alignment="center")
@@ -93,10 +74,12 @@ def cancelOrder(cancelItem):
     else:
         if cancelItem in st.session_state.user.get("orders"):
             # requests.post()
-            st.session_state.user["orders"].append(cancelItem + "_" + "cancel")
+            st.session_state.user["orders"].append(cancelItem + "/" + "cancel")
             st.session_state.user["orders"].remove(cancelItem)
             st.session_state.user["orders"].sort()
             user_doc.reference.update({"orders": st.session_state.user["orders"]})
+            orderDB.document("dayOrder").set({"order":firestore.ArrayRemove([cancelItem])}, merge=True)
+            orderDB.document("cancel").set({"cancel":firestore.ArrayUnion([cancelItem])}, merge=True)
             st.rerun()
         else:
             st.error("주문 취소 실패, 고객센터에 문의해주세요.")
@@ -128,7 +111,7 @@ else:
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
             for order in reversed(st.session_state.user.get("orders")):
-                itemID = order.split("/")[1].split("_")[0]
+                itemID = order.split("/")[1]
                 orderTime = order.split("/")[0]
                 itemInfo = itemsDB.document(itemID).get().to_dict()
                 orderImage, orderInfo, orderStatus, cancel = st.columns(spec=[1,3,1,1], gap="small", vertical_alignment="center")
@@ -140,7 +123,7 @@ else:
                     output_format="auto"
                     )
                 orderInfo.markdown(body=f"상품명 : {itemInfo.get('name')} // 주문 날짜 : {orderTime}")
-                if "_cancel" in order:
+                if "/cancel" in order:
                     orderStatus.markdown(body="취소")
                     cancel.button(
                         label="취소 완료",
@@ -149,7 +132,7 @@ else:
                         use_container_width=True,
                         disabled=True
                     )
-                elif "_delivery" in order:
+                elif "/delivery" in order:
                     orderStatus.markdown(body="배송중")
                     cancelBTN = cancel.button(
                         label="취소 요청하기",
@@ -160,10 +143,10 @@ else:
                     )
                     if cancelBTN:
                         checkCancel(order)
-                elif "_complete" in order:
+                elif "/complete" in order:
                     orderStatus.markdown(body="배송 완료")
                     cancelBTN = cancel.button(
-                        label="반품 신청하기",
+                        label="교환/환불",
                         key=f"return_{order}",
                         type="secondary",
                         use_container_width=True,

@@ -47,6 +47,7 @@ db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
 itemsDB = db.collection('items') # items 컬렉션 연결
 userInfoDB = db.collection('userInfo')
+orderDB = db.collection('orderList')
 now = datetime.now(timezone.utc) + timedelta(hours=9)
 
 # 상품 추가 함수
@@ -73,9 +74,9 @@ def deliveryStatus(orderStatus:list):
             orderLists = user.get().to_dict()["orders"]
             for orderList in orderLists:
                 if orderList in orderStatus:
-                    orderDay = orderList + "_" + "delivery"
+                    orderDelivery = orderList + "/" + "delivery"
                     orderLists.remove(orderList)
-                    orderLists.append(orderDay)
+                    orderLists.append(orderDelivery)
                 else:
                     pass
             userInfoDB.document(user.id).update({"orders":orderLists})
@@ -90,9 +91,9 @@ def completeStatus(orderStatus:list):
             orderLists = user.get().to_dict()["orders"]
             for orderList in orderLists:
                 if orderList in orderStatus:
-                    orderDay = orderList + "_" + "complete"
+                    orderComplete = orderList.replace("delivery", "complete")
                     orderLists.remove(orderList)
-                    orderLists.append(orderDay)
+                    orderLists.append(orderComplete)
                 else:
                     pass
             userInfoDB.document(user.id).update({"orders":orderLists})

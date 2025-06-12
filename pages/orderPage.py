@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import requests
-from utils import itemsDB, userInfoDB, now
+from utils import itemsDB, userInfoDB, orderDB, now, firestore
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -33,7 +33,6 @@ elif not st.session_state.item:
     time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
-
     with st.sidebar:
         st.title(body="상품 주문")
 
@@ -88,8 +87,10 @@ else:
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
                 orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
-                st.session_state.user["orders"].append(orderTime + "/" + st.session_state.item)
+                orderInfo = orderTime + "/" + st.session_state.item + "/" + st.session_state.user["id"] + "/" + addressTarget
+                st.session_state.user["orders"].append(orderInfo)
                 user_doc = userInfoDB.document(st.session_state.user["id"]).get()
                 user_doc.reference.update({"orders":st.session_state.user["orders"]})
+                orderDB.document("dayOrder").set({"order":firestore.ArrayUnion([orderInfo])}, merge=True)
                 st.session_state.item = False # 구매 후 아이템 세션 초기화
                 st.switch_page("pages/myPageOrderList.py")
