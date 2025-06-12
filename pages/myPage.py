@@ -161,4 +161,7 @@ else:
             use_container_width=True
         )
         if addAddressBTN:
-            addressPOP(addAddress)
+            if st.session_state.user["address"].__len__() <= 5:
+                addressPOP(addAddress)
+            else:
+                st.warning(body="등록 가능한 주소지는 5개입니다.")
