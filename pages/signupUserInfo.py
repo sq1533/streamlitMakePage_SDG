@@ -2,7 +2,8 @@ import streamlit as st
 import time
 import re
 import requests
-from utils import auth, db, now
+from datetime import datetime, timezone, timedelta
+from utils import auth, db
 
 # userInfo store 연결
 userConn = db.collection('userInfo')
@@ -15,6 +16,7 @@ if "uid" not in st.session_state:
 if "address" not in st.session_state:
     st.session_state.address = None
 
+now = datetime.now(timezone.utc) + timedelta(hours=9)
 sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
 
 # 사용자 주소 검색 팝업, API 신청시 유효 url 입력 필요
@@ -59,12 +61,12 @@ def searchAddress(address):
             st.error("주소 검색 중 오류 발생")
 
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.title("환영합니다.")
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
     with main.container():
-        with st.sidebar:
-            st.title("환영합니다.")
         st.progress(
             value=100,
             text="마지막 단계에요!"
@@ -93,6 +95,8 @@ if st.session_state.signup_step:
             type="primary",
             use_container_width=False
         )
+        if searchAddr:
+            searchAddress(addr)
         userAddr = st.write(st.session_state.address)
         signupDone = st.button(
             label="회원가입 완료",
@@ -100,8 +104,6 @@ if st.session_state.signup_step:
             type="primary",
             use_container_width=True
         )
-        if searchAddr:
-            searchAddress(addr)
         if signupDone:
             if name == None or phone == None or st.session_state.address == None:
                 st.error(body="아직 완료되지 않았어요.")
@@ -125,8 +127,8 @@ if st.session_state.signup_step:
                     st.info(body="회원가입이 완료되었습니다.")
                     time.sleep(2)
                     st.switch_page(page="mainPage.py")
-                except Exception as e:
-                    st.error(body=f"회원가입 실패: {e}")
+                except Exception:
+                    st.error(body=f"회원가입 실패")
 else:
     st.error("올바른 접근이 아닙니다.")
     time.sleep(2)

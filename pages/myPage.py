@@ -34,7 +34,7 @@ def addressPOP(address):
         addressKey = {
             "confmKey" : st.secrets["address_search"]["keys"],
             "currentPage" : 1,
-            "countPerPage" : 10,
+            "countPerPage" : 20,
             "keyword" : address,
             "resultType" : "json"
         }
@@ -61,7 +61,7 @@ def addressPOP(address):
                         if choise:
                             st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
-        except Exception as e:
+        except Exception:
             st.error("주소 검색 중 오류 발생")
 
 # 사용자 로그인

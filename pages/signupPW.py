@@ -11,12 +11,12 @@ if "uid" not in st.session_state:
 
 # 사용자 정보 저장
 if st.session_state.signup_step:
+    with st.sidebar:
+        st.title("환영합니다.")
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
     with main.container():
-        with st.sidebar:
-            st.title("환영합니다.")
         st.progress(
             value=66,
             text="비밀번호 설정"

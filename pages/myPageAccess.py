@@ -18,6 +18,9 @@ if not st.session_state.user:
     time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
+    with st.sidebar:
+        st.title(body="마이페이지")
+
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
     with main.container():
@@ -31,9 +34,6 @@ else:
         )
         if goHome:
             st.switch_page(page="mainPage.py")
-
-        with st.sidebar:
-            st.title(body="마이페이지")
 
         st.write("본인확인 인증")
         st.text_input(

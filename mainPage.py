@@ -1,5 +1,6 @@
 import streamlit as st
-from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB, now, datetime
+from datetime import datetime, timezone, timedelta
+from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -212,6 +213,7 @@ with st.sidebar:
         
         # PW 생성 날짜
         createPW = st.session_state.user.get("createPW")
+        now = datetime.now(timezone.utc) + timedelta(hours=9)
         nowDay = now.strftime("%Y-%m-%d")
         orderDay_d = datetime.strptime(createPW, "%Y-%m-%d").date()
         nowDay_d = datetime.strptime(nowDay, "%Y-%m-%d").date()

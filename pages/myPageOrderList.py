@@ -69,20 +69,17 @@ def checkCancel(cancelItem):
 
 # cancel order 결제 취소 API 추가
 def cancelOrder(cancelItem):
-    if not st.session_state.user:
-        pass
+    if cancelItem in st.session_state.user.get("orders"):
+        # requests.post()
+        st.session_state.user["orders"].append(cancelItem + "/" + "cancel")
+        st.session_state.user["orders"].remove(cancelItem)
+        st.session_state.user["orders"].sort()
+        user_doc.reference.update({"orders": st.session_state.user["orders"]})
+        orderDB.document("dayOrder").set({"order":firestore.ArrayRemove([cancelItem])}, merge=True)
+        orderDB.document("cancel").set({"cancel":firestore.ArrayUnion([cancelItem])}, merge=True)
+        st.rerun()
     else:
-        if cancelItem in st.session_state.user.get("orders"):
-            # requests.post()
-            st.session_state.user["orders"].append(cancelItem + "/" + "cancel")
-            st.session_state.user["orders"].remove(cancelItem)
-            st.session_state.user["orders"].sort()
-            user_doc.reference.update({"orders": st.session_state.user["orders"]})
-            orderDB.document("dayOrder").set({"order":firestore.ArrayRemove([cancelItem])}, merge=True)
-            orderDB.document("cancel").set({"cancel":firestore.ArrayUnion([cancelItem])}, merge=True)
-            st.rerun()
-        else:
-            st.error("주문 취소 실패, 고객센터에 문의해주세요.")
+        st.error("주문 취소 실패, 고객센터에 문의해주세요.")
 
 if not st.session_state.user:
     st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")

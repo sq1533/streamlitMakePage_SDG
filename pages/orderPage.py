@@ -1,7 +1,8 @@
 import streamlit as st
 import time
 import requests
-from utils import itemsDB, userInfoDB, orderDB, now, firestore
+from datetime import datetime, timezone, timedelta
+from utils import itemsDB, userInfoDB, orderDB, firestore
 
 # 쿼리, 세션 관리
 if "user" not in st.session_state:
@@ -19,6 +20,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # 사용자 로그아웃
 def logout():
     st.session_state.user = False
@@ -86,6 +88,7 @@ else:
             st.success(f"{itemInfo.get('name')} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
+                now = datetime.now(timezone.utc) + timedelta(hours=9)
                 orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
                 orderInfo = orderTime + "/" + st.session_state.item + "/" + st.session_state.user["id"] + "/" + addressTarget
                 st.session_state.user["orders"].append(orderInfo)
