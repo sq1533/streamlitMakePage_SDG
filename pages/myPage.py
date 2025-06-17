@@ -61,7 +61,8 @@ def addressPOP(address):
                         if choise:
                             st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
                             st.rerun()
-        except Exception:
+        except Exception as e:
+            print(e)
             st.error("주소 검색 중 오류 발생")
 
 # 사용자 로그인
@@ -161,7 +162,8 @@ else:
             use_container_width=True
         )
         if addAddressBTN:
-            if st.session_state.user["address"].__len__() <= 5:
-                addressPOP(addAddress)
-            else:
-                st.warning(body="등록 가능한 주소지는 5개입니다.")
+            addressPOP(addAddress)
+            #if st.session_state.user["address"].__len__() <= 5:
+            #    addressPOP(addAddress)
+            #else:
+            #    st.warning(body="등록 가능한 주소지는 5개입니다.")
