@@ -41,6 +41,7 @@ if not firebase_admin._apps:
 # 사용자 auth 연결
 firebase = pyrebase.initialize_app(config=firebaseWebConfig)
 pyrebase_auth = firebase.auth()
+
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
