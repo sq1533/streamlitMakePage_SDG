@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timezone, timedelta
+import streamlit_js_eval
 from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
 
 # 페이지 기본 설정
@@ -19,7 +20,7 @@ if "item" not in st.session_state:
     st.session_state.item = False
 
 # 페이지 제목
-st.title(body="shop_demo")
+st.html(body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>")
 # vanner 비디오
 st.markdown(
     """
