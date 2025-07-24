@@ -50,19 +50,20 @@ firebase = pyrebase.initialize_app(config=firebaseWebConfig)
 class guest:
     def __init__(self):
         self.pyrebase_auth = firebase.auth() # 회원 인증
-        self.pyrebase_db_user = firebase.database().child('user')
+        self.pyrebase_db_user = firebase.database().child('user') # 회원 정보 db
 
     # 회원 가입 전 중복 이메일 검증
     def emailCheck(self, id : str):
         try:
-            if self.pyrebase_db_user.child('id').get() is None:
+            if self.pyrebase_db_user.child(id).get() is None:
                 return True
             else:
                 return False
         except Exception as e:
             print(e)
             return False
-
+    
+    # 회원 가입 db 연동
     def signUP(self, id : str, pw : str, userInfo):
         try:
             self.pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
@@ -72,20 +73,60 @@ class guest:
             print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
             return False
 
+    # 로그인
     def signIN(self, id : str, pw : str):
         try:
             user = self.pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
             return user
         except Exception as e:
-            print(e)
+            print(f'로그인 실패 {e}')
             return False
 
-    def guestOUT():
+    # 로그아웃
+    def signOUT(self):
+        try:
+            st.session_state.clear
+            return True
+        except Exception as e:
+            print(f'로그아웃 실패 {e}')
+            return False
+    
+    # 회원 탈퇴
+    def guestOUT(self):
         pass
 
 class items:
     def __init__(self):
-        pass
+        self.pyrebase_db_items = firebase.database().child('items')
+        self.pyrebase_db_user = firebase.database().child('user')
+    
+    def itemsInfo(self):
+        itemsId_dict = self.pyrebase_db_items.shallow().get().val() # 아이템 키값 dict {'items1':True}
+        itemsId = list(itemsId_dict.keys()) # 아이템 키값 list
+        itemsCount = itemsId.__len__()
+
+    def itemsLike(self, id : str, userInfo : dict, like : str):
+        try:
+            if like in userInfo['like']:
+                userInfo['like'].remove(like)
+                results = {
+                    'like' : userInfo['like']
+                }
+                self.pyrebase_db_user.child(id).update(results)
+                return True
+            else:
+                userInfo['like'].append(like)
+                results = {
+                    'like' : userInfo['like']
+                }
+                self.pyrebase_db_user.child(id).update(results)
+                return True
+        except Exception as e:
+            print(f'like 실패 {e}')
+            return False
+
+
+
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
