@@ -1,7 +1,10 @@
 import streamlit as st
+import pyrebase
+import requests.exceptions
+import json
 import firebase_admin
 from firebase_admin import auth, credentials, firestore
-import pyrebase
+
 
 """
 # FireBase secret_keys
@@ -48,32 +51,39 @@ class guest:
     def __init__(self):
         self.pyrebase_auth = firebase.auth() # 회원 인증
         self.pyrebase_db_user = firebase.database().child('user')
-    
-    def signUP(self, id : str, pw : str):
+
+    # 회원 가입 전 중복 이메일 검증
+    def emailCheck(self, id : str):
         try:
-            newUser = self.pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
-            UID = newUser['localId']
-            userInfo = {}
-            self.pyrebase_db_user.child(UID).set()
+            if self.pyrebase_db_user.child('id').get() is None:
+                return True
+            else:
+                return False
         except Exception as e:
             print(e)
-            st.error(body="Error! 회원가입 실패")
+            return False
+
+    def signUP(self, id : str, pw : str, userInfo):
+        try:
+            self.pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            self.pyrebase_db_user.child(id).set(userInfo)
+            return True
+        except Exception as e:
+            print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
+            return False
 
     def signIN(self, id : str, pw : str):
         try:
             user = self.pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            print(user["localId"])
+            return user
         except Exception as e:
             print(e)
-            st.error(body="Error! 로그인 실패")
-    
-    def signOUT():
-        pass
+            return False
 
     def guestOUT():
         pass
 
-class create:
+class items:
     def __init__(self):
         pass
 # firestore 연결
