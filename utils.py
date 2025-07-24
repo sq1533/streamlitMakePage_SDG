@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import auth, credentials, firestore
 import pyrebase
 
+"""
 # FireBase secret_keys
 secretKeyPath = {
     "type" : st.secrets["firebaseKey"]["type"],
@@ -18,17 +19,6 @@ secretKeyPath = {
     "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
     }
 
-# Firebase 사용자 keys
-firebaseWebConfig = {
-    "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
-    "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
-    "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
-    "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
-    "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
-    "appId" : st.secrets["firebaseWebConfig"]["appId"],
-    "databaseURL" : None # pyrebase는 databaseURL이 없어도 괜찮습니다.
-    }
-
 # Firebase 앱이 이미 초기화되었는지 확인
 if not firebase_admin._apps:
     try:
@@ -37,11 +27,55 @@ if not firebase_admin._apps:
         print("FireBase Admin SDK 앱 초기화 완료 (from utils.py)")
     except Exception as e:
         print(f"Firebase Admin SDK 초기화 오류 in utils.py: {e}")
+"""
 
-# 사용자 auth 연결
+# Firebase 사용자 keys
+firebaseWebConfig = {
+    "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
+    "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
+    "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
+    "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
+    "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
+    "appId" : st.secrets["firebaseWebConfig"]["appId"],
+    "databaseURL" : None
+    }
+
+# pyrebase - firebase 연결
 firebase = pyrebase.initialize_app(config=firebaseWebConfig)
-pyrebase_auth = firebase.auth()
 
+# guest 관리
+class guest:
+    def __init__(self):
+        self.pyrebase_auth = firebase.auth() # 회원 인증
+        self.pyrebase_db_user = firebase.database().child('user')
+    
+    def signUP(self, id : str, pw : str):
+        try:
+            newUser = self.pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            UID = newUser['localId']
+            userInfo = {}
+            self.pyrebase_db_user.child(UID).set()
+        except Exception as e:
+            print(e)
+            st.error(body="Error! 회원가입 실패")
+
+    def signIN(self, id : str, pw : str):
+        try:
+            user = self.pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+            print(user["localId"])
+        except Exception as e:
+            print(e)
+            st.error(body="Error! 로그인 실패")
+    
+    def signOUT():
+        pass
+
+    def guestOUT():
+        pass
+
+class create:
+    def __init__(self):
+        pass
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
