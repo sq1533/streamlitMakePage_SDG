@@ -95,16 +95,32 @@ class guest:
     def guestOUT(self):
         pass
 
+    # 주문 내역
+    def orderList(self):
+        pass
+
 class items:
     def __init__(self):
         self.pyrebase_db_items = firebase.database().child('items')
+        self.pyrebase_db_itemCount = firebase.database().child('itemCount')
         self.pyrebase_db_user = firebase.database().child('user')
     
-    def itemsInfo(self):
+    # 아이템 수량 및 상태    
+    def itemStatus(self, itemId : str):
+        try:
+            itemStatus = self.pyrebase_db_itemCount.child(itemId).get() # 아이템 상태 조회
+            return itemStatus
+        except Exception as e:
+            print(f'아이템 상태 조회 실패 {e}')
+            return False
+    
+    # 아이템 ID 리스트
+    def itemsIdList(self):
         itemsId_dict = self.pyrebase_db_items.shallow().get().val() # 아이템 키값 dict {'items1':True}
         itemsId = list(itemsId_dict.keys()) # 아이템 키값 list
-        itemsCount = itemsId.__len__()
+        return itemsId
 
+    # 아이템 like 상태 (고객 info로 따라감)
     def itemsLike(self, id : str, userInfo : dict, like : str):
         try:
             if like in userInfo['like']:
@@ -125,8 +141,11 @@ class items:
             print(f'like 실패 {e}')
             return False
 
+    # 아이템 구매 및 상태 변경
+    def itemOrder(self):
+        pass
 
-
+"""
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기
@@ -183,3 +202,4 @@ def completeStatus(orderStatus:list):
             userInfoDB.document(user.id).update({"orders":orderLists})
     except Exception:
         print("완료 상태 업데이트 오류")
+"""
