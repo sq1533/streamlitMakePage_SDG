@@ -1,27 +1,29 @@
 import streamlit as st
 from datetime import datetime, timezone, timedelta
-import streamlit_js_eval
-from utils import auth, pyrebase_auth, userInfoDB, logoDB, itemsDB
+# import streamlit_js_eval
+import utils
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="shop_demo",
+    page_title="AMU-redo",
     page_icon=":shark:",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
-# 세션 관리
+# 회원 가입 구분
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
+
+# 회원 로그인 구분
 if "user" not in st.session_state:
     st.session_state.user = False
+
+# 상품 구매 페이지
 if "item" not in st.session_state:
     st.session_state.item = False
 
-# 페이지 제목
-st.html(body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>")
-# vanner 비디오
+# 페이지 UI 변경 사항
 st.markdown(
     """
     <style>
@@ -44,39 +46,22 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-# vanner video
-@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
-def cachingVideo(path):
-    if path:
-        st.video(
-            data=path,
-            format="video/mp4",
-            #start_time=,
-            #end_time=,
-            loop=True,
-            autoplay=True,
-            muted=True
-        )
+
+# UX function
+# like 상태변화
+def likeStatus(likedItem) -> str:
+    if not st.session_state.user:
+        type="tertiary"
+        return type
     else:
-        st.warning("경로가 없습니다.")
-cachingVideo(logoDB.document('video').get().to_dict()['path'])
+        if likedItem in st.session_state.user.get('like'):
+            type="primary"
+        else:
+            type="tertiary"
+        return type
 
-@st.cache_data(ttl=3600) # 1시간 동안 캐시 유지
-def get_all_items_as_dicts():
-    print("데이터베이스에서 상품 정보를 가져오는 중...")
-    items_snapshots = itemsDB.get()
-    return [snapshot.to_dict() for snapshot in items_snapshots if snapshot.exists]
-
-# 캐시된 함수를 통해 상품 데이터 로드
-items_data = get_all_items_as_dicts()
-itemCount = items_data.__len__()
-itemCategoly = {i["categoly"] for i in items_data}
-itemColor = {i["color"] for i in items_data}
-itemEvent = {i["event"] for i in items_data}
-
-@st.cache_data(ttl=None, max_entries=None, show_spinner=True, persist=True)
-def cachingImage(path):
-    # 경로가 유효한 경우에만 이미지 표시
+# 이미지 고정 설정
+def showImage(path : str):
     if path:
         st.image(
             image=path,
@@ -88,88 +73,48 @@ def cachingImage(path):
     else:
         st.warning("이미지 경로가 없습니다.")
 
-# 사용자 로그인
-def signin(id,pw):
-    try:
-        user = pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-        user_doc = userInfoDB.document(user["localId"]).get()
-        if user_doc.exists:
-            if auth.get_user_by_email(email=id).email_verified == False:
-                st.error(body="이메일 인증이 안되었어요.")
-            else:
-                st.session_state.user = user_doc.to_dict()
-                st.rerun()
-        else:
-            st.error("로그인에 성공했으나 Firestore에서 사용자 정보를 찾을 수 없습니다.")
-    except Exception:
-        st.error(body="Error! 로그인 실패")
-
-# 사용자 로그아웃
-def logout():
-    st.session_state.user = False
-    st.rerun()
-
-# like 상태변화
-def likeStatus(likedItem) -> str:
-    if not st.session_state.user:
-        type="tertiary"
-        return type
-    else:
-        if likedItem in st.session_state.user["like"]:
-            type="primary"
-        else:
-            type="tertiary"
-        return type
-
-# liked clicks
-def clickedLike(likedItem):
-    if not st.session_state.user:
-        pass
-    else:
-        user_doc = userInfoDB.document(st.session_state.user["id"]).get()
-        if likedItem in st.session_state.user["like"]:
-            st.session_state.user["like"].remove(likedItem)
-            user_doc.reference.update({"like": st.session_state.user["like"]})
-            st.rerun()
-        else:
-            st.session_state.user["like"].append(likedItem)
-            user_doc.reference.update({"like": st.session_state.user["like"]})
-            st.rerun()
-
-# 상품 구매 dialog
+# 상품 상세페이지 dialog
 @st.dialog("상세 페이지")
-def itemInfo(item):
+def showItem(item): # item == itemId로 검색
+    itemInfo = utils.items().pyrebase_db_items.child(item).get()
+    # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
     with row1.container():
-        cachingImage(item.get("paths")[0])
+        showImage(path=itemInfo['paths'][0])
     with row2.container():
-        cachingImage(item.get("paths")[0])
+        showImage(path=itemInfo['paths'][0])
     with row3.container():
-        cachingImage(item.get("paths")[0])
+        showImage(path=itemInfo['paths'][0])
     with row4.container():
-        cachingImage(item.get("paths")[0])
+        showImage(path=itemInfo['paths'][0])
     # 상품 이름
-    st.markdown(f"# {item.get('name')}")
+    st.markdown(f"# {itemInfo['name']}")
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : {item.get('price')} 원 / 배송비 : 무료")
+    price.markdown(f"#### 상품 가격 : {itemInfo['price']} 원 / 배송비 : 무료")
     buyBTN = buy.button(
         label="구매하기",
-        key=f"buyItem_{item.get('id')}",
+        key=f"buyItem_{item}",
         type="primary",
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.markdown(body=f"{item.get('detail')}")
+        st.markdown(body=f"{itemInfo['details']}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            st.session_state.item = item.get("id")
+            st.session_state.item = item
             st.switch_page(page="pages/orderPage.py")
+
+# 메인 페이지
+# 페이지 제목
+st.html(
+    body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>"
+    )
 
 # siderbar 정의
 with st.sidebar:
@@ -199,7 +144,13 @@ with st.sidebar:
             use_container_width=True
         )
         if login:
-            signin(ID,PW)
+            if not utils.guest.signIN(id=ID, pw=PW): # 로그인 실패
+                st.error(
+                    body='로그인 실패, 계정정보를 확인해주세요.'
+                )
+            else:
+                st.session.user = utils.guest.signIN(id=ID, pw=PW)
+                st.rerun()
         if signup:
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
@@ -210,17 +161,10 @@ with st.sidebar:
             use_container_width=True
         )
         if logoutB:
-            logout()
-        
-        # PW 생성 날짜
-        createPW = st.session_state.user.get("createPW")
-        now = datetime.now(timezone.utc) + timedelta(hours=9)
-        nowDay = now.strftime("%Y-%m-%d")
-        orderDay_d = datetime.strptime(createPW, "%Y-%m-%d").date()
-        nowDay_d = datetime.strptime(nowDay, "%Y-%m-%d").date()
-        elapsed = (nowDay_d - orderDay_d).days
+            utils.guest.signOUT()
+            st.rerun()
 
-        st.markdown(f"## {st.session_state.user['name']} 님! 안녕하세요")
+        st.markdown(f'## 환영합니다, 손님.')
         myinfo, empty, orderList = st.columns(spec=[1,1,1], gap="small", vertical_alignment="center")
         myinfo = myinfo.button(
             label="마이페이지",
@@ -234,8 +178,18 @@ with st.sidebar:
             key="orderList",
             use_container_width=True
         )
+
+        # 회원 비밀번호 생성기간 확인
+        createPW = st.session_state.user.get('createPW')
+        now = datetime.now(timezone.utc) + timedelta(hours=9)
+        nowDay = now.strftime('%Y-%m-%d')
+        orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
+        nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
+        elapsed = (nowDay_d - orderDay_d).days
         if elapsed > 90:
-            st.warning("비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.")
+            st.warning(
+                body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.'
+                )
             YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
             pwChange = YES.button(
                 label="변경하기",
@@ -252,32 +206,36 @@ with st.sidebar:
             if pwChange:
                 st.switch_page(page="pages/myPageChangePW.py")
             if laterChange:
-                st.session_state.user["createPW"] = now.strftime("%Y-%m-%d")
-                user_doc = userInfoDB.document(st.session_state.user["id"]).get()
-                user_doc.reference.update({"createPW":st.session_state.user["createPW"]})
+                st.session_state.user.get('createPW') = now.strftime("%Y-%m-%d")
+                utils.guest.PWlaterChange(id=st.session_state.user.get('email'), date=st.session_state.user.get('createPW'))
                 st.rerun()
         else:
             pass
+
+        # 마이페이지
         if myinfo:
             st.switch_page(page="pages/myPageAccess.py")
+
+        # 주문 내역 페이지
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
-        if not st.session_state.user.get("like"):
-            st.markdown("## 내가 좋아한 상품:")
+
+        # 회원 Like 상품 리스트
+        st.markdown("## 내가 좋아한 상품:")
+        if not st.session_state.user.get('like'):
             st.markdown("#### 좋아요한 상품이 없습니다.")
         else:
-            st.markdown("## 내가 좋아한 상품:")
-            for likes in st.session_state.user["like"]:
-                likedItems = [item["name"] for item in items_data if item["id"] == likes]
-                for likedItem in likedItems:
-                    likeThings = st.button(
-                        label=f"### {likedItem}",
-                        key=f"liked_{likedItem}",
-                        type="primary",
-                        use_container_width=True
-                    )
-                    if likeThings:
-                        itemInfo(itemsDB.document(likes).get())
+            for likes in st.session_state.user.get('like'):
+                itemInfo = utils.items().pyrebase_db_items.child(likes).get()
+                likeThings = st.button(
+                    label=f"### {itemInfo['name']}",
+                    key=f"liked_{likes}",
+                    type="primary",
+                    use_container_width=True
+                )
+                if likeThings:
+                    showItem(item=likes)
+
 
 filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
 

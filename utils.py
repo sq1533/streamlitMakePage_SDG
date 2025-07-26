@@ -1,5 +1,6 @@
 import streamlit as st
 import pyrebase
+import re
 import requests.exceptions
 import json
 import firebase_admin
@@ -60,7 +61,7 @@ class guest:
             else:
                 return False
         except Exception as e:
-            print(e)
+            print(f'이메일 중복확인 실패 {e}')
             return False
     
     # 회원 가입 db 연동
@@ -77,7 +78,8 @@ class guest:
     def signIN(self, id : str, pw : str):
         try:
             user = self.pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            return user
+            userInfo = self.pyrebase_db_user.child(user['--']).get()
+            return userInfo
         except Exception as e:
             print(f'로그인 실패 {e}')
             return False
@@ -85,19 +87,26 @@ class guest:
     # 로그아웃
     def signOUT(self):
         try:
-            st.session_state.clear
-            return True
+            return st.session_state.clear
         except Exception as e:
             print(f'로그아웃 실패 {e}')
+            return False
+
+    def PWlaterChange(self, id : str, date : str):
+        try:
+            results = {
+                'createPW' : date
+            }
+            self.pyrebase_db_user.child(id).update(results)
+            return True
+        except Exception as e:
+            print(f'비밀번호 연장 실패 {e}')
             return False
     
     # 회원 탈퇴
     def guestOUT(self):
         pass
 
-    # 주문 내역
-    def orderList(self):
-        pass
 
 class items:
     def __init__(self):
@@ -142,8 +151,69 @@ class items:
             return False
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(self):
-        pass
+    def itemOrder(self, id : str, itemId : str):
+        try:
+            userInfo = self.pyrebase_db_user.child(id)
+            orderList = userInfo.get()['orderList']
+            orderResults = orderList.append(itemId)
+            userResults = {
+                'orderList' : orderResults
+            }
+            userInfo.update(userResults) # 고객 주문 내역에 추가
+            itemStatus = self.pyrebase_db_itemCount.child(itemId) # 아이템 수량 변경
+            countResults = int(itemStatus.get()['count']) - 1
+            if countResults < 4:
+                itemResults = {
+                    'count' : countResults,
+                    'enable' : False
+                }
+                itemStatus.update(itemResults)
+                return True
+            else:
+                itemResults = {
+                    'count' : countResults
+                }
+                itemStatus.update(itemResults)
+                return True
+        except Exception as e:
+            print(f'상품 주문 실패 {e}')
+            return False
+
+
+# 주소 검색
+def seachAddress(address : str):
+    sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
+    if re.search(r"[\]\[%;<>=]", address):
+        st.error(body="특수문자는 포함할 수 없습니다.")
+    elif any(i in address.upper() for i in sqlInjection):
+        st.error(body="포함할 수 없는 단어가 존재합니다.")
+    else:
+        addressKey = {
+            "confmKey" : st.secrets["address_search"]["keys"],
+            "currentPage" : 1,
+            "countPerPage" : 10,
+            "keyword" : address,
+            "resultType" : "json"
+        }
+        try:
+            response = requests.post("https://business.juso.go.kr/addrlink/addrLinkApi.do", data=addressKey)
+            if response.status_code == 200:
+                addrLen = response.json()["results"]["juso"].__len__()
+                if addrLen == 0:
+                    return '검색 결과가 없습니다. 주소를 다시 확인해주세요.'
+                else:
+                    for i in range(addrLen):
+                        st.write(response.json()["results"]["juso"][i]["zipNo"])
+                        st.write(response.json()["results"]["juso"][i]["roadAddr"])
+                        choise = st.button(
+                            label="선택",
+                            key=f"choise{i}"
+                        )
+                        if choise:
+                            return response.json()['results']['juso'][i]['roadAddr']
+        except Exception as e:
+            st.error(f'주소 검색 실패 {e}')
+            return False
 
 """
 # firestore 연결
