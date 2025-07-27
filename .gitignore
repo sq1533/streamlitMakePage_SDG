@@ -1,4 +1,3 @@
 __pycache__/
-storage/
+database/
 .streamlit/*.toml
-changeDB.py

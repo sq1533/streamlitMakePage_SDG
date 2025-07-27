@@ -41,22 +41,29 @@ firebaseWebConfig = {
     "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
     "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
     "appId" : st.secrets["firebaseWebConfig"]["appId"],
-    "databaseURL" : None
+    "databaseURL" : "https://shop-demo-5d78e-default-rtdb.firebaseio.com"
     }
 
 # pyrebase - firebase 연결
 firebase = pyrebase.initialize_app(config=firebaseWebConfig)
 
-# guest 관리
-class guest:
+# database
+class database:
     def __init__(self):
         self.pyrebase_auth = firebase.auth() # 회원 인증
         self.pyrebase_db_user = firebase.database().child('user') # 회원 정보 db
+        self.pyrebase_db_items = firebase.database().child('items') # items 정보 db
+        self.pyrebase_db_itemStatus = firebase.database().child('itemStatus') # itemStatus 정보 db
+        self.pyrebase_db_orderList = firebase.database().child('orderList') # orderList 정보 db
+        self.pyrebase_db_UIUX = firebase.database().child('UIUX') # UIUX 정보 db
 
+
+# guest 관리
+class guest(database):
     # 회원 가입 전 중복 이메일 검증
-    def emailCheck(self, id : str):
+    def emailCheck(id : str):
         try:
-            if self.pyrebase_db_user.child(id).get() is None:
+            if database().pyrebase_db_user.child(id).get() is None:
                 return True
             else:
                 return False
@@ -65,102 +72,98 @@ class guest:
             return False
     
     # 회원 가입 db 연동
-    def signUP(self, id : str, pw : str, userInfo):
+    def signUP(id : str, pw : str, userInfo):
         try:
-            self.pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
-            self.pyrebase_db_user.child(id).set(userInfo)
+            database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            database().pyrebase_db_user.child(id).set(userInfo)
             return True
         except Exception as e:
             print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
             return False
 
+
     # 로그인
-    def signIN(self, id : str, pw : str):
+    def signIN(id : str, pw : str):
         try:
-            user = self.pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            userInfo = self.pyrebase_db_user.child(user['--']).get()
+            user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+            userInfo = database().pyrebase_db_user.child(user['--']).get().val()
             return userInfo
         except Exception as e:
             print(f'로그인 실패 {e}')
             return False
 
     # 로그아웃
-    def signOUT(self):
+    def signOUT():
         try:
             return st.session_state.clear
         except Exception as e:
             print(f'로그아웃 실패 {e}')
             return False
 
-    def PWlaterChange(self, id : str, date : str):
+    def PWlaterChange(id : str, date : str):
         try:
             results = {
                 'createPW' : date
             }
-            self.pyrebase_db_user.child(id).update(results)
+            database().pyrebase_db_user.child(id).update(results)
             return True
         except Exception as e:
             print(f'비밀번호 연장 실패 {e}')
             return False
     
     # 회원 탈퇴
-    def guestOUT(self):
+    def guestOUT():
         pass
 
 
-class items:
-    def __init__(self):
-        self.pyrebase_db_items = firebase.database().child('items')
-        self.pyrebase_db_itemCount = firebase.database().child('itemCount')
-        self.pyrebase_db_user = firebase.database().child('user')
-    
+class items(database):
     # 아이템 수량 및 상태    
-    def itemStatus(self, itemId : str):
+    def itemStatus(itemId : str):
         try:
-            itemStatus = self.pyrebase_db_itemCount.child(itemId).get() # 아이템 상태 조회
+            itemStatus = database().pyrebase_db_itemStatus.child(itemId).get().val() # 아이템 상태 조회
             return itemStatus
         except Exception as e:
             print(f'아이템 상태 조회 실패 {e}')
             return False
     
     # 아이템 ID 리스트
-    def itemsIdList(self):
-        itemsId_dict = self.pyrebase_db_items.shallow().get().val() # 아이템 키값 dict {'items1':True}
+    def itemsIdList():
+        itemsId_dict = database().pyrebase_db_items.get().val() # 아이템 키값 dict {'items1':True}
         itemsId = list(itemsId_dict.keys()) # 아이템 키값 list
         return itemsId
 
     # 아이템 like 상태 (고객 info로 따라감)
-    def itemsLike(self, id : str, userInfo : dict, like : str):
+    def itemsLike(id : str, userInfo : dict, like : str):
         try:
             if like in userInfo['like']:
                 userInfo['like'].remove(like)
                 results = {
                     'like' : userInfo['like']
                 }
-                self.pyrebase_db_user.child(id).update(results)
+                database().pyrebase_db_user.child(id).update(results)
                 return True
             else:
                 userInfo['like'].append(like)
                 results = {
                     'like' : userInfo['like']
                 }
-                self.pyrebase_db_user.child(id).update(results)
+                database().pyrebase_db_user.child(id).update(results)
                 return True
         except Exception as e:
             print(f'like 실패 {e}')
             return False
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(self, id : str, itemId : str):
+    def itemOrder(id : str, itemId : str):
         try:
-            userInfo = self.pyrebase_db_user.child(id)
+            userInfo = database().pyrebase_db_user.child(id)
             orderList = userInfo.get()['orderList']
             orderResults = orderList.append(itemId)
             userResults = {
                 'orderList' : orderResults
             }
             userInfo.update(userResults) # 고객 주문 내역에 추가
-            itemStatus = self.pyrebase_db_itemCount.child(itemId) # 아이템 수량 변경
+            itemStatus = database().pyrebase_db_itemStatus.child(itemId) # 아이템 수량 변경
             countResults = int(itemStatus.get()['count']) - 1
             if countResults < 4:
                 itemResults = {

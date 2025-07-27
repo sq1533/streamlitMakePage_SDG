@@ -11,13 +11,18 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
+# items 데이터 호출 list > key : values
+itemsInfoList = utils.database().pyrebase_db_items.get().each()
+itemsInfoDict = utils.database().pyrebase_db_items.get().val()
+
 # 회원 가입 구분
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
 # 회원 로그인 구분
-if "user" not in st.session_state:
-    st.session_state.user = False
+if "userID" not in st.session_state:
+    st.session_state.userID = False
+    st.session_state.userInfo = False
 
 # 상품 구매 페이지
 if "item" not in st.session_state:
@@ -49,16 +54,16 @@ st.markdown(
 
 # UX function
 # like 상태변화
-def likeStatus(likedItem) -> str:
-    if not st.session_state.user:
-        type="tertiary"
-        return type
+def likeStatus(likedItem : str) -> str:
+    if not st.session_state.userID:
+        icon = "like :grey_question:"
+        return icon
     else:
-        if likedItem in st.session_state.user.get('like'):
-            type="primary"
+        if likedItem in st.session_state.userInfo['like']:
+            icon = "like :grey_question:"
         else:
-            type="tertiary"
-        return type
+            icon = "like :heart:"
+        return icon
 
 # 이미지 고정 설정
 def showImage(path : str):
@@ -76,7 +81,7 @@ def showImage(path : str):
 # 상품 상세페이지 dialog
 @st.dialog("상세 페이지")
 def showItem(item): # item == itemId로 검색
-    itemInfo = utils.items().pyrebase_db_items.child(item).get()
+    itemInfo = itemsInfoDict[item]
     # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -100,10 +105,10 @@ def showItem(item): # item == itemId로 검색
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.markdown(body=f"{itemInfo['details']}")
+        st.markdown(body=f"{itemInfo['detail']}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
-        if not st.session_state.user:
+        if not st.session_state.userID:
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
@@ -118,7 +123,7 @@ st.html(
 
 # siderbar 정의
 with st.sidebar:
-    if not st.session_state.user:
+    if not st.session_state.userID:
         ID = st.text_input(
             label="이메일",
             value=None,
@@ -149,7 +154,8 @@ with st.sidebar:
                     body='로그인 실패, 계정정보를 확인해주세요.'
                 )
             else:
-                st.session.user = utils.guest.signIN(id=ID, pw=PW)
+                st.session_state.userID = ID
+                st.session_state.userInfo = utils.guest.signIN(id=ID, pw=PW)[ID]
                 st.rerun()
         if signup:
             st.session_state.signup_step = True
@@ -180,7 +186,7 @@ with st.sidebar:
         )
 
         # 회원 비밀번호 생성기간 확인
-        createPW = st.session_state.user.get('createPW')
+        createPW = st.session_state.userInfo['createPW']
         now = datetime.now(timezone.utc) + timedelta(hours=9)
         nowDay = now.strftime('%Y-%m-%d')
         orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
@@ -206,8 +212,8 @@ with st.sidebar:
             if pwChange:
                 st.switch_page(page="pages/myPageChangePW.py")
             if laterChange:
-                st.session_state.user.get('createPW') = now.strftime("%Y-%m-%d")
-                utils.guest.PWlaterChange(id=st.session_state.user.get('email'), date=st.session_state.user.get('createPW'))
+                st.session_state.userInfo['createPW'] = now.strftime("%Y-%m-%d")
+                utils.guest.PWlaterChange(id=st.session_state.userID, date=st.session_state.userInfo['createPW'])
                 st.rerun()
         else:
             pass
@@ -222,11 +228,11 @@ with st.sidebar:
 
         # 회원 Like 상품 리스트
         st.markdown("## 내가 좋아한 상품:")
-        if not st.session_state.user.get('like'):
+        if st.session_state.userInfo['like'] == []:
             st.markdown("#### 좋아요한 상품이 없습니다.")
         else:
-            for likes in st.session_state.user.get('like'):
-                itemInfo = utils.items().pyrebase_db_items.child(likes).get()
+            for likes in st.session_state.userInfo['like']:
+                itemInfo = itemsInfoDict[likes]
                 likeThings = st.button(
                     label=f"### {itemInfo['name']}",
                     key=f"liked_{likes}",
@@ -236,6 +242,10 @@ with st.sidebar:
                 if likeThings:
                     showItem(item=likes)
 
+# 상품 카테고리
+itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
+itemCategory = list(set([item.val()['category'] for item in itemsInfoList]))
+itemEvent = list(set([item.val()['event'] for item in itemsInfoList]))
 
 filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
 
@@ -250,7 +260,7 @@ colorFilter = filter_1.segmented_control(
 
 categoryFilter = filter_2.segmented_control(
     label = "카테고리",
-    options = itemCategoly,
+    options = itemCategory,
     selection_mode = "single",
     default = None,
     key="itemCategory",
@@ -259,7 +269,7 @@ categoryFilter = filter_2.segmented_control(
 
 eventFilter = filter_3.segmented_control(
     label = "이벤트",
-    options = itemCategoly,
+    options = itemEvent,
     selection_mode = "single",
     default = None,
     key="itemEvent",
@@ -267,33 +277,33 @@ eventFilter = filter_3.segmented_control(
     )
 
 count_in_card = 0
-line = itemCount//5 + 1
+line = itemsInfoList.__len__()//5 + 1
 
 for l in range(line):
     cards = st.columns(spec=5, gap="small", vertical_alignment="top")
 
-for item in items_data:
-    if (colorFilter == None or colorFilter == item.get("color")) and (categoryFilter == None or categoryFilter == item.get("categoly")) and (eventFilter == None or eventFilter == item.get("event")):
+for item in utils.items.itemsIdList():
+    if (colorFilter == None or colorFilter == itemsInfoDict[item]['color']) and (categoryFilter == None or categoryFilter == itemsInfoDict[item]['category']) and (eventFilter == None or eventFilter == itemsInfoDict[item]['event']):
         with cards[count_in_card].container():
-            cachingImage(item.get('path'))
+            showImage(itemsInfoDict[item]['paths'][0])
             name, like = st.columns(spec=[3, 1], gap="small", vertical_alignment="center")
-            name.markdown(body=f"##### {item.get('name')}")
+            name.markdown(body=f"##### {itemsInfoDict[item]['name']}")
             likeBTN = like.button(
-                label=":heart:",
-                key=f"liked_item_{item.get('id')}",
-                type=likeStatus(likedItem=item.get('id')),
+                label=likeStatus(likedItem=item),
+                key=f"liked_item_{item}",
+                type="tertiary",
                 use_container_width=True
             )
             if likeBTN:
-                clickedLike(likedItem=item.get('id'))
+                utils.items.itemsLike(id=st.session_state.userID, userInfo=st.session_state.userInfo, like=item)
             viewBTN = st.button(
                 label="상세보기",
-                key=f"loop_item_{item.get('id')}",
+                key=f"loop_item_{item}",
                 type="primary",
                 use_container_width=True
             )
             if viewBTN:
-                itemInfo(item=item)
+                showItem(item=item)
         count_in_card += 1
         if count_in_card == 5:
             count_in_card = 0
