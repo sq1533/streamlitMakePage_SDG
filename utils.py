@@ -1,5 +1,8 @@
 import streamlit as st
 import pyrebase
+from email_validator import validate_email, EmailNotValidError
+import smtplib
+from email.message import EmailMessage
 import re
 import requests.exceptions
 import json
@@ -63,13 +66,21 @@ class guest(database):
     # 회원 가입 전 중복 이메일 검증
     def emailCheck(id : str):
         try:
-            if database().pyrebase_db_user.child(id).get() is None:
-                return True
+            # 이메일 형식 확인
+            if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
+                # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
+                pathID = id.replace('@','_-A_-').replace('.','_-D_-')
+                lookUPemail = database().pyrebase_db_user.child(pathID).get().val()
+                if lookUPemail is None or not lookUPemail:
+                    return {'allow' : True, 'result' : pathID}
+                else:
+                    return {'allow' : False, 'result' : '이미 가입한 이메일입니다.'}
             else:
-                return False
+                return {'allow' : False, 'result' : '이메일 형식이 잘못되었습니다.'}
+        except EmailNotValidError as e:
+            return {'allow' : False, 'result' : f'이메일 검증 오류 {e}'}
         except Exception as e:
-            print(f'이메일 중복확인 실패 {e}')
-            return False
+            return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
     
     # 회원 가입 db 연동
     def signUP(id : str, pw : str, userInfo):
@@ -81,12 +92,11 @@ class guest(database):
             print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
             return False
 
-
     # 로그인
     def signIN(id : str, pw : str):
         try:
             user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            userInfo = database().pyrebase_db_user.child(user['--']).get().val()
+            userInfo = database().pyrebase_db_user.child(user['email']).get().val()
             return userInfo
         except Exception as e:
             print(f'로그인 실패 {e}')
@@ -219,6 +229,58 @@ def seachAddress(address : str):
             return False
 
 """
+# 인증 이메일 검증
+def sendEmail(userMail: str) -> bool:
+    SENDER_EMAIL = st.secrets["email_credentials"]["sender_email"]
+    SENDER_APP_PASSWORD = st.secrets["email_credentials"]["sender_password"]
+    SENDER_SERVER = st.secrets["email_credentials"]["smtp_server"]
+    SENDER_PORT = st.secrets["email_credentials"]["smtp_port"]
+    DEPLOYED_BASE_URL = st.secrets["email_credentials"]["base_url"]
+
+    settingCode = auth.ActionCodeSettings(
+        url=f"{DEPLOYED_BASE_URL}/success?email={userMail}",
+        handle_code_in_app=True
+    )
+
+    link = auth.generate_email_verification_link(
+        email=userMail,
+        action_code_settings=settingCode
+    )
+
+    msg = EmailMessage()
+    msg['Subject'] = "회원가입 이메일 인증"
+    msg['From'] = SENDER_EMAIL
+    msg['To'] = userMail
+    msg.set_content(f""
+안녕하세요!
+
+회원가입을 완료하려면 아래 링크를 클릭하여 이메일 주소를 인증해주세요:
+
+{link}
+
+이 링크는 일정 시간 후에 만료될 수 있습니다.
+
+감사합니다.
+"")
+    try:
+        with smtplib.SMTP(SENDER_SERVER, SENDER_PORT) as smtp_server:
+            smtp_server.ehlo() # 서버에 자신을 소개
+            smtp_server.starttls() # TLS 암호화 시작
+            smtp_server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
+            smtp_server.send_message(msg)
+        print(f"인증 이메일이 {userMail} 주소로 성공적으로 발송되었습니다.")
+        return True
+    except smtplib.SMTPAuthenticationError:
+        print("오류: SMTP 인증 실패.")
+        return False
+    except smtplib.SMTPServerDisconnected:
+        print("오류: SMTP 서버 연결 끊김.")
+        return False
+    except Exception:
+        print("오류: 이메일 발송 중 예상치 못한 오류")
+        return False
+
+
 # firestore 연결
 db = firestore.client()
 logoDB = db.collection('logo') # 로고 정보 가져오기

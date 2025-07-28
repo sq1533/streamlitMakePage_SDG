@@ -1,64 +1,22 @@
 import streamlit as st
+import utils
 import time
-import re
-import requests
 from datetime import datetime, timezone, timedelta
-from utils import auth, db
 
-# userInfo store 연결
-userConn = db.collection('userInfo')
 
-# 세션 정의
+# 회원 가입 step 검증
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
-if "uid" not in st.session_state:
-    st.session_state.uid = None
-if "address" not in st.session_state:
-    st.session_state.address = None
+
+# 가입 이메일 정보
+if "signup_email" not in st.session_state:
+    st.session_state.signup_email = None
+
+# 가입 이메일 정보
+if "password" not in st.session_state:
+    st.session_state.password = None
 
 now = datetime.now(timezone.utc) + timedelta(hours=9)
-sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
-
-# 사용자 주소 검색 팝업, API 신청시 유효 url 입력 필요
-@st.dialog("address")
-def searchAddress(address):
-    if re.search(r"[\]\[%;<>=]", address):
-        st.error(body="특수문자는 포함할 수 없습니다.")
-    elif any(i in address.upper() for i in sqlInjection):
-        st.error(body="포함할 수 없는 단어가 존재합니다.")
-    else:
-        addressKey = {
-            "confmKey" : st.secrets["address_search"]["keys"],
-            "currentPage" : 1,
-            "countPerPage" : 10,
-            "keyword" : address,
-            "resultType" : "json"
-        }
-        try:
-            response = requests.post("https://business.juso.go.kr/addrlink/addrLinkApi.do", data=addressKey)
-            if response.status_code == 200:
-                addrLen = response.json()["results"]["juso"].__len__()
-                if addrLen == 0:
-                    st.error(body="검색 결과가 없습니다.")
-                else:
-                    for i in range(addrLen):
-                        st.write(response.json()["results"]["juso"][i]["zipNo"])
-                        st.write(response.json()["results"]["juso"][i]["roadAddr"])
-                        moreAddr = st.text_input(
-                            label="상세주소",
-                            value=None,
-                            key=f"moreAddr{i}",
-                            type="default"
-                        )
-                        choise = st.button(
-                            label="선택",
-                            key=f"choise{i}"
-                        )
-                        if choise:
-                            st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
-                            st.rerun()
-        except Exception:
-            st.error("주소 검색 중 오류 발생")
 
 if st.session_state.signup_step:
     with st.sidebar:
@@ -68,8 +26,8 @@ if st.session_state.signup_step:
 
     with main.container():
         st.progress(
-            value=100,
-            text="마지막 단계에요!"
+            value=66,
+            text="거의 다 왔어요~!"
         )
         name = st.text_input(
             label="이름",
@@ -84,7 +42,7 @@ if st.session_state.signup_step:
             type="default"
         )
         addr = st.text_input(
-            label="기본 배송지 설정하기",
+            label="주소 찾아보기",
             value=None,
             key="searchAddr",
             type="default"
@@ -96,8 +54,17 @@ if st.session_state.signup_step:
             use_container_width=False
         )
         if searchAddr:
-            searchAddress(addr)
-        userAddr = st.write(st.session_state.address)
+            @st.dialog(title='주소 검색')
+            def test(ad):
+                return utils.seachAddress(address=ad)
+        detailAddr = st.text_input(
+            label="상세주소",
+            value=None,
+            key="detailAddr",
+            type="default"
+        )
+        st.session_state.address = test(ad=addr) + detailAddr
+
         signupDone = st.button(
             label="회원가입 완료",
             key="done",

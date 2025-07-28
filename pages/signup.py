@@ -1,5 +1,4 @@
 import streamlit as st
-from email_validator import validate_email, EmailNotValidError
 import time
 import utils
 
@@ -7,11 +6,7 @@ import utils
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
-# 
-if "user_status" not in st.session_state:
-    st.session_state.user_status = False
-
-# 
+# 가입 이메일 정보
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = None
 
@@ -50,57 +45,30 @@ if st.session_state.signup_step:
                 help=None,
                 placeholder="id@email.com"
             )
-            nextBTN = True
-            checkEmail = st.button(
-                label="다음",
-                key="goMakePW",
-                type="primary",
-                use_container_width=True,
-                disabled=nextBTN
-            )
+
             if email:
                 with st.spinner(text="이메일을 확인해볼게요", show_time=True):
                     try:
-                        if validate_email(email=email, check_deliverability=True, timeout=5)['email'] == email:
-                            userEmail = utils.guest.emailCheck(id=email)
-                            if userEmail: # 신규 회원일 경우
-                                nextBTN = False
-                            else: # 회원가입 후 이메일 인증 안된경우, 회원가입 후 이메일 인증까지 완료한 경우
-                                pass
-
-                    except EmailNotValidError as e:
+                        userEmail = utils.guest.emailCheck(id=email)
+                        if userEmail['allow']: # 신규 회원일 경우
+                            checkEmail = st.button(
+                                label="다음",
+                                key="goMakePW",
+                                type="primary",
+                                use_container_width=True
+                            )
+                            if checkEmail:
+                                st.session_state.signup_email = email
+                                st.switch_page(page="pages/signupPW.py")
+                        else:
+                            st.error(
+                                body=userEmail['result']
+                            )
+                    except Exception as e:
                         print(e)
                         st.error(
-                            body='유효하지 않은 이메일 형식입니다.'
+                            body=e
                         )
-
-                # 회원 DB 검증
-                if st.session_state.user_status == "verified":
-                    st.error("이미 가입한 이메일입니다. 확인해주세요.")
-                elif st.session_state.user_status == "unverified":
-                    st.info("회원가입을 시도하셨군요!, 인증 메일을 전송할까요?")
-                    sendMail = st.button(
-                        label="인증 메일 보내기",
-                        key="sendMail1",
-                        type="primary",
-                        use_container_width=True,
-                        disabled=False
-                    )
-                    if sendMail:
-                        st.session_state.signup_email = email
-                        st.switch_page(page="pages/signupAccess.py")
-                elif st.session_state.user_status == "not_found":
-                    st.info("환영합니다. 인증 메일을 전송할까요?")
-                    sendMail = st.button(
-                        label="인증 메일 보내기",
-                        key="sendMail2",
-                        type="primary",
-                        use_container_width=True,
-                        disabled=False
-                    )
-                    if sendMail:
-                        st.session_state.signup_email = email
-                        st.switch_page(page="pages/signupAccess.py")
 else:
     st.error("올바른 접근이 아닙니다.")
     time.sleep(2)

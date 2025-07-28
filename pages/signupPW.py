@@ -1,15 +1,21 @@
 import streamlit as st
 import time
-from utils import auth
+import utils
 import re
 
-# 세션 정의
+# 회원 가입 step 검증
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
-if "uid" not in st.session_state:
-    st.session_state.uid = None
 
-# 사용자 정보 저장
+# 가입 이메일 정보
+if "signup_email" not in st.session_state:
+    st.session_state.signup_email = None
+
+# 가입 이메일 정보
+if "password" not in st.session_state:
+    st.session_state.password = None
+
+# 회원 비밀번호 설정
 if st.session_state.signup_step:
     with st.sidebar:
         st.title("환영합니다.")
@@ -18,7 +24,7 @@ if st.session_state.signup_step:
 
     with main.container():
         st.progress(
-            value=66,
+            value=33,
             text="비밀번호 설정"
         )
         pw = st.text_input(
@@ -35,34 +41,46 @@ if st.session_state.signup_step:
             type="password",
             placeholder="비밀번호와 동일하게 입력해주세요."
         )
+        # 비밀번호 보안 규칙 준수 검증
         length, eng, num, special, check = "gray", "gray", "gray", "gray", "gray"
         lengthC, engC, numC, specialC, checkC = False, False, False, False, False
+
         if pw:
+            # 비밀번호 길이
             if 8 <= len(pw) <= 20:
                 length = "green"
                 lengthC = True
             else:
                 length = "gray"
+            
+            # 비밀번호 대소문자 영문
             if re.search(r'[a-zA-Z]', pw):
                 eng = "green"
                 engC = True
             else:
                 eng = "gray"
+            
+            # 비밀번호 숫자
             if re.search(r'[0-9]', pw):
                 num = "green"
                 numC = True
             else:
                 num = "gray"
+            
+            # 비밀번호 특수문자
             if re.search(r"[!@#$%^&*(),.?:<>'/]", pw):
                 special = "green"
                 specialC = True
             else:
                 special = "gray"
+            
+            # 비밀번호 재확인
             if pw == pwCheck:
                 check = "green"
                 checkC = True
             else:
                 check = "gray"
+        
         st.badge(
             label="비밀번호 08 ~ 20 자리",
             icon=None,
@@ -98,10 +116,7 @@ if st.session_state.signup_step:
             )
             if next:
                 try:
-                    auth.update_user(
-                        uid=st.session_state.uid,
-                        password=pw
-                    )
+                    st.session_state.password = pw
                     st.switch_page(page="pages/signupUserInfo.py")
                 except Exception:
                     st.error(body="비밀번호 설정 실패")
