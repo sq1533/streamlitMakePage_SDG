@@ -176,18 +176,16 @@ class items(database):
             return False
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(id : str, itemId : str):
+    def itemOrder(id : str, itemID : str, orderList : list):
         try:
             pathID = id.replace('@','__aA__').replace('.','__dD__')
-            userInfo = database().pyrebase_db_user.child(pathID)
-            orderList = userInfo.get()['orderList']
-            orderResults = orderList.append(itemId)
-            userResults = {
-                'orderList' : orderResults
+            userInfo = database().pyrebase_db_user.child(pathID).get().val()
+            Results = {
+                'orderList' : orderList
             }
-            userInfo.update(userResults) # 고객 주문 내역에 추가
-            itemStatus = database().pyrebase_db_itemStatus.child(itemId) # 아이템 수량 변경
-            countResults = int(itemStatus.get()['count']) - 1
+            userInfo.update(Results) # 고객 주문 내역에 추가
+            itemStatus = database().pyrebase_db_itemStatus.child(itemID).get().val() # 아이템 수량 변경
+            countResults = int(itemStatus['count']) - 1
             if countResults < 4:
                 itemResults = {
                     'count' : countResults,

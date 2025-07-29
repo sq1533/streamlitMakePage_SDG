@@ -84,15 +84,28 @@ else:
             use_container_width=True
             )
         if buyBTN:
-            st.success(f"{itemInfo['name']} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)")
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
                 now = datetime.now(timezone.utc) + timedelta(hours=9)
-                orderTime = now.strftime("%Y-%m-%d %H:%M:%S")
-                orderInfo = orderTime + "/" + st.session_state.item + "/" + st.session_state.user["id"] + "/" + addressTarget
-                st.session_state.user["orders"].append(orderInfo)
-                user_doc = userInfoDB.document(st.session_state.user["id"]).get()
-                user_doc.reference.update({"orders":st.session_state.user["orders"]})
-                orderDB.document("dayOrder").set({"order":firestore.ArrayUnion([orderInfo])}, merge=True)
-                st.session_state.item = False # 구매 후 아이템 세션 초기화
-                st.switch_page("pages/myPageOrderList.py")
+                orderTime = now.strftime("%Y%m%d%HH%MM%SS")
+                orderInfo = orderTime + st.session_state.item + '/' + st.session_state.userID + '/' + addressTarget
+                st.session_state.userInfo["orderList"].append(orderInfo)
+                order = utils.items.itemOrder(
+                    id=st.session_state.userID,
+                    itemID=st.session_state.item,
+                    orderList=st.session_state.userInfo["orderList"]
+                    )
+                if order:
+                    st.success(
+                        body=f"{itemInfo['name']} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)"
+                        )
+                    st.session_state.item = False # 구매 후 아이템 세션 초기화
+                    time.sleep(3)
+                    st.switch_page("mainPage.py")
+                else:
+                    st.warning(
+                        body='주문 중 오류가 발생했습니다. 다시 시도해주세요.'
+                    )
+                    st.session_state.item = False # 구매 후 아이템 세션 초기화
+                    time.sleep(3)
+                    st.switch_page("mainPage.py")
