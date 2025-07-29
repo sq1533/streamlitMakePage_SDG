@@ -81,11 +81,11 @@ class guest(database):
             return {'allow' : False, 'result' : f'이메일 검증 오류 {e}'}
         except Exception as e:
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
-        
+    
+    # 인증 메일 전송
     def sendEmail(id : str, pw : str) -> bool:
         try:
-            email = id.replace('__aA__','@').replace('__dD__','.')
-            user = database().pyrebase_auth.sign_in_with_email_and_password(email=email, password=pw)
+            user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
             database().pyrebase_auth.send_email_verification(user['idToken'])
             return True
         except Exception as e:
