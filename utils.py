@@ -69,7 +69,7 @@ class guest(database):
             # 이메일 형식 확인
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
                 # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
-                pathID = id.replace('@','_-A_-').replace('.','_-D_-')
+                pathID = id.replace('@','__aA__').replace('.','__dD__')
                 lookUPemail = database().pyrebase_db_user.child(pathID).get().val()
                 if lookUPemail is None or not lookUPemail:
                     return {'allow' : True, 'result' : pathID}
@@ -81,12 +81,23 @@ class guest(database):
             return {'allow' : False, 'result' : f'이메일 검증 오류 {e}'}
         except Exception as e:
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
+        
+    def sendEmail(id : str, pw : str) -> bool:
+        try:
+            email = id.replace('__aA__','@').replace('__dD__','.')
+            user = database().pyrebase_auth.sign_in_with_email_and_password(email=email, password=pw)
+            database().pyrebase_auth.send_email_verification(user['idToken'])
+            return True
+        except Exception as e:
+            print(f"회원가입 또는 이메일 인증 메일 전송 중 오류 발생: {e}")
+            return False
     
     # 회원 가입 db 연동
     def signUP(id : str, pw : str, userInfo):
         try:
+            pathID = id.replace('@','__aA__').replace('.','__dD__')
             database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
-            database().pyrebase_db_user.child(id).set(userInfo)
+            database().pyrebase_db_user.child(pathID).set(userInfo)
             return True
         except Exception as e:
             print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
@@ -96,8 +107,7 @@ class guest(database):
     def signIN(id : str, pw : str):
         try:
             user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            userInfo = database().pyrebase_db_user.child(user['email']).get().val()
-            return userInfo
+            return user
         except Exception as e:
             print(f'로그인 실패 {e}')
             return False
@@ -112,10 +122,11 @@ class guest(database):
 
     def PWlaterChange(id : str, date : str):
         try:
+            pathID = id.replace('@','__aA__').replace('.','__dD__')
             results = {
                 'createPW' : date
             }
-            database().pyrebase_db_user.child(id).update(results)
+            database().pyrebase_db_user.child(pathID).update(results)
             return True
         except Exception as e:
             print(f'비밀번호 연장 실패 {e}')
@@ -145,19 +156,20 @@ class items(database):
     # 아이템 like 상태 (고객 info로 따라감)
     def itemsLike(id : str, userInfo : dict, like : str):
         try:
+            pathID = id.replace('@','__aA__').replace('.','__dD__')
             if like in userInfo['like']:
                 userInfo['like'].remove(like)
                 results = {
                     'like' : userInfo['like']
                 }
-                database().pyrebase_db_user.child(id).update(results)
+                database().pyrebase_db_user.child(pathID).update(results)
                 return True
             else:
                 userInfo['like'].append(like)
                 results = {
                     'like' : userInfo['like']
                 }
-                database().pyrebase_db_user.child(id).update(results)
+                database().pyrebase_db_user.child(pathID).update(results)
                 return True
         except Exception as e:
             print(f'like 실패 {e}')
@@ -166,7 +178,8 @@ class items(database):
     # 아이템 구매 및 상태 변경
     def itemOrder(id : str, itemId : str):
         try:
-            userInfo = database().pyrebase_db_user.child(id)
+            pathID = id.replace('@','__aA__').replace('.','__dD__')
+            userInfo = database().pyrebase_db_user.child(pathID)
             orderList = userInfo.get()['orderList']
             orderResults = orderList.append(itemId)
             userResults = {
@@ -197,9 +210,9 @@ class items(database):
 def seachAddress(address : str):
     sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
     if re.search(r"[\]\[%;<>=]", address):
-        st.error(body="특수문자는 포함할 수 없습니다.")
+        return [{'False':'특수문자는 포함할 수 없습니다.'}]
     elif any(i in address.upper() for i in sqlInjection):
-        st.error(body="포함할 수 없는 단어가 존재합니다.")
+        return [{'False':'포함할 수 없는 단어가 존재합니다.'}]
     else:
         addressKey = {
             "confmKey" : st.secrets["address_search"]["keys"],
@@ -213,20 +226,14 @@ def seachAddress(address : str):
             if response.status_code == 200:
                 addrLen = response.json()["results"]["juso"].__len__()
                 if addrLen == 0:
-                    return '검색 결과가 없습니다. 주소를 다시 확인해주세요.'
+                    return [{'None':'검색 결과가 없습니다. 주소를 다시 확인해주세요.'}]
                 else:
+                    addrList = []
                     for i in range(addrLen):
-                        st.write(response.json()["results"]["juso"][i]["zipNo"])
-                        st.write(response.json()["results"]["juso"][i]["roadAddr"])
-                        choise = st.button(
-                            label="선택",
-                            key=f"choise{i}"
-                        )
-                        if choise:
-                            return response.json()['results']['juso'][i]['roadAddr']
+                        addrList.append({response.json()["results"]["juso"][i]["zipNo"] : response.json()["results"]["juso"][i]["roadAddr"]})
+                    return addrList
         except Exception as e:
-            st.error(f'주소 검색 실패 {e}')
-            return False
+            return [{'False':f'알 수 없는 오류 발생 {e}'}]
 
 """
 # 인증 이메일 검증

@@ -16,7 +16,47 @@ if "signup_email" not in st.session_state:
 if "password" not in st.session_state:
     st.session_state.password = None
 
+# 고객 주소 정보
+if "address" not in st.session_state:
+    st.session_state.address = '배송지 입력하기'
+
 now = datetime.now(timezone.utc) + timedelta(hours=9)
+nowDay = now.strftime('%Y-%m-%d')
+
+@st.dialog(title='주소 검색')
+def addrDialog():
+    dialogAddr = st.text_input(
+        label="주소",
+        value=None,
+        key="addrTrue",
+        type="default",
+        disabled=False
+    )
+    if dialogAddr == None:
+        st.markdown(
+            body="검색창에 찾을 주소를 입력해주세요."
+        )
+    else:
+        for i in utils.seachAddress(dialogAddr):
+            addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
+            addrNo.markdown(
+                body=list(i.keys())[0]
+            )
+            addrStr.markdown(
+
+                body=list(i.values())[0]
+            )
+            choice = btn.button(
+                label="선택",
+                key=list(i.values())[0],
+                type="primary",
+                use_container_width=False
+            )
+            if choice:
+                st.session_state.address = list(i.keys())[0] + list(i.values())[0]
+                st.rerun()
+
+        return st.session_state.address
 
 if st.session_state.signup_step:
     with st.sidebar:
@@ -41,59 +81,65 @@ if st.session_state.signup_step:
             key="userPhone",
             type="default"
         )
+        addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
         addr = st.text_input(
-            label="주소 찾아보기",
-            value=None,
-            key="searchAddr",
-            type="default"
+            label="기본 배송지",
+            value=st.session_state.address,
+            key="addrNone",
+            type="default",
+            disabled=True
         )
         searchAddr = st.button(
-            label="검색",
+            label="찾아보기",
             key="addressSearch",
             type="primary",
             use_container_width=False
         )
         if searchAddr:
-            @st.dialog(title='주소 검색')
-            def test(ad):
-                return utils.seachAddress(address=ad)
+            addrDialog()
+
         detailAddr = st.text_input(
             label="상세주소",
-            value=None,
+            value="",
             key="detailAddr",
             type="default"
         )
-        st.session_state.address = test(ad=addr) + detailAddr
+        
+        address = st.session_state.address + detailAddr
 
-        signupDone = st.button(
-            label="회원가입 완료",
+        infomation = {
+            'name':name,
+            'phoneNumber':phone,
+            'address':[address],
+            'createPW':nowDay,
+            'like':[],
+            'orderList':[]
+        }
+
+        sendEmail = st.button(
+            label="인증 메일 보내기",
             key="done",
             type="primary",
             use_container_width=True
         )
-        if signupDone:
-            if name == None or phone == None or st.session_state.address == None:
+        if sendEmail:
+            if name == None or phone == None or detailAddr == "상세주소 입력하기" or st.session_state.address == '배송지 입력하기':
                 st.error(body="아직 완료되지 않았어요.")
             else:
                 try:
-                    auth.update_user(
-                        uid=st.session_state.uid,
-                        disabled=False
-                    )
-                    userInfo = {
-                        "id" : st.session_state.uid,
-                        "createPW" : now.strftime("%Y-%m-%d"),
-                        "email" : auth.get_user_by_uid(uid=st.session_state.uid).email,
-                        "name" : name,
-                        "phone" : phone,
-                        "address" : [st.session_state.address],
-                        "like" : [],
-                        "orders" : []
-                    }
-                    userConn.document(st.session_state.uid).set(userInfo)
-                    st.info(body="회원가입이 완료되었습니다.")
-                    time.sleep(2)
-                    st.switch_page(page="mainPage.py")
+                    endStep = utils.guest.signUP(
+                        id=st.session_state.signup_email,
+                        pw=st.session_state.password,
+                        userInfo=infomation
+                        )
+                    if endStep:
+                        st.info(body="인증 메일을 보내는 중이에요.")
+                        time.sleep(2)
+                        st.switch_page(page="pages/signupAccess.py")
+                    else:
+                        st.warning(body="입력하신 정보에 오류가 있어요. 확인해주세요")
+                        time.sleep(3)
+                        st.rerun()
                 except Exception:
                     st.error(body=f"회원가입 실패")
 else:
