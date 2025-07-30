@@ -87,7 +87,7 @@ else:
             with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
                 now = datetime.now(timezone.utc) + timedelta(hours=9)
-                orderTime = now.strftime("%Y%m%d%HH%MM%SS")
+                orderTime = now.strftime("%Y%m%d%H%M%S")
                 orderInfo = orderTime + st.session_state.item + '/' + st.session_state.userID + '/' + addressTarget
                 st.session_state.userInfo["orderList"].append(orderInfo)
                 order = utils.items.itemOrder(

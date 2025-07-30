@@ -1,11 +1,12 @@
 import streamlit as st
+import utils
 import time
 import requests
-from utils import userInfoDB, itemsDB, orderDB, firestore
 
-# 세션 관리
-if "user" not in st.session_state:
-    st.session_state.user = False
+# 회원 로그인 구분
+if "userID" not in st.session_state:
+    st.session_state.userID = False
+    st.session_state.userInfo = False
 
 st.markdown(
     body="""
@@ -21,8 +22,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-user_doc = userInfoDB.document(st.session_state.user["id"]).get()
 
 # check cancel
 @st.dialog(title="진행 하시겠습니까?")
@@ -81,7 +80,7 @@ def cancelOrder(cancelItem):
     else:
         st.error("주문 취소 실패, 고객센터에 문의해주세요.")
 
-if not st.session_state.user:
+if not st.session_state.userID:
     st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")
     time.sleep(2)
     st.switch_page(page="mainPage.py")
@@ -104,10 +103,10 @@ else:
             st.switch_page(page="mainPage.py")
         
         st.markdown(body="주문 내역")
-        if not st.session_state.user.get("orders"):
+        if not st.session_state.userInfo['orderList'].__len__() == 1:
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
-            for order in reversed(st.session_state.user.get("orders")):
+            for order in reversed(st.session_state.userInfo['orderList'][1:]):
                 itemID = order.split("/")[1]
                 orderTime = order.split("/")[0]
                 itemInfo = itemsDB.document(itemID).get().to_dict()

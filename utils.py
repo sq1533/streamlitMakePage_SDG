@@ -115,10 +115,9 @@ class guest(database):
     # 로그아웃
     def signOUT():
         try:
-            return st.session_state.clear
+            st.session_state.clear
         except Exception as e:
             print(f'로그아웃 실패 {e}')
-            return False
 
     def PWlaterChange(id : str, date : str):
         try:
@@ -163,14 +162,14 @@ class items(database):
                     'like' : userInfo['like']
                 }
                 database().pyrebase_db_user.child(pathID).update(results)
-                return True
+                return userInfo['like']
             else:
                 userInfo['like'].append(like)
                 results = {
                     'like' : userInfo['like']
                 }
                 database().pyrebase_db_user.child(pathID).update(results)
-                return True
+                return userInfo['like']
         except Exception as e:
             print(f'like 실패 {e}')
             return False
@@ -179,11 +178,10 @@ class items(database):
     def itemOrder(id : str, itemID : str, orderList : list):
         try:
             pathID = id.replace('@','__aA__').replace('.','__dD__')
-            userInfo = database().pyrebase_db_user.child(pathID).get().val()
-            Results = {
+            results = {
                 'orderList' : orderList
             }
-            userInfo.update(Results) # 고객 주문 내역에 추가
+            database().pyrebase_db_user.child(pathID).update(results)
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get().val() # 아이템 수량 변경
             countResults = int(itemStatus['count']) - 1
             if countResults < 4:
@@ -191,13 +189,13 @@ class items(database):
                     'count' : countResults,
                     'enable' : False
                 }
-                itemStatus.update(itemResults)
+                database().pyrebase_db_itemStatus.child(itemID).update(itemResults)
                 return True
             else:
                 itemResults = {
                     'count' : countResults
                 }
-                itemStatus.update(itemResults)
+                database().pyrebase_db_itemStatus.child(itemID).update(itemResults)
                 return True
         except Exception as e:
             print(f'상품 주문 실패 {e}')

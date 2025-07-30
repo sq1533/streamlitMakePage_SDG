@@ -60,10 +60,12 @@ def likeStatus(likedItem : str) -> str:
         return icon
     else:
         if likedItem in st.session_state.userInfo['like']:
-            icon = "like :grey_question:"
-        else:
             icon = "like :heart:"
-        return icon
+            return icon
+        else:
+            icon = "like :grey_question:"
+            return icon
+        
 
 # 이미지 고정 설정
 def showImage(path : str):
@@ -168,11 +170,11 @@ with st.sidebar:
             use_container_width=True
         )
         if logoutB:
-            utils.guest.signOUT()
+            st.session_state.clear()
             st.rerun()
 
-        st.markdown(f'## 환영합니다, 손님.')
-        myinfo, empty, orderList = st.columns(spec=[1,1,1], gap="small", vertical_alignment="center")
+        st.markdown(f'## 환영합니다.')
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
         myinfo = myinfo.button(
             label="마이페이지",
             type="tertiary",
@@ -229,10 +231,10 @@ with st.sidebar:
 
         # 회원 Like 상품 리스트
         st.markdown("## 내가 좋아한 상품:")
-        if st.session_state.userInfo['like'] == []:
+        if st.session_state.userInfo['like'].__len__() == 1:
             st.markdown("#### 좋아요한 상품이 없습니다.")
         else:
-            for likes in st.session_state.userInfo['like']:
+            for likes in st.session_state.userInfo['like'][1:]:
                 itemInfo = itemsInfoDict[likes]
                 likeThings = st.button(
                     label=f"### {itemInfo['name']}",
@@ -278,16 +280,16 @@ eventFilter = filter_3.segmented_control(
     )
 
 count_in_card = 0
-line = itemsInfoList.__len__()//5 + 1
+line = itemsInfoList.__len__()//4 + 1
 
 for l in range(line):
-    cards = st.columns(spec=5, gap="small", vertical_alignment="top")
+    cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
 for item in utils.items.itemsIdList():
     if (colorFilter == None or colorFilter == itemsInfoDict[item]['color']) and (categoryFilter == None or categoryFilter == itemsInfoDict[item]['category']) and (eventFilter == None or eventFilter == itemsInfoDict[item]['event']):
         with cards[count_in_card].container():
             showImage(itemsInfoDict[item]['paths'][0])
-            name, like = st.columns(spec=[3, 1], gap="small", vertical_alignment="center")
+            name, like = st.columns(spec=[3,2], gap="small", vertical_alignment="top")
             name.markdown(body=f"##### {itemsInfoDict[item]['name']}")
             likeBTN = like.button(
                 label=likeStatus(likedItem=item),
@@ -296,7 +298,9 @@ for item in utils.items.itemsIdList():
                 use_container_width=True
             )
             if likeBTN:
-                utils.items.itemsLike(id=st.session_state.userID, userInfo=st.session_state.userInfo, like=item)
+                likeResults = utils.items.itemsLike(id=st.session_state.userID, userInfo=st.session_state.userInfo, like=item)
+                st.session_state.userInfo['like'] = likeResults
+                st.rerun()
             viewBTN = st.button(
                 label="상세보기",
                 key=f"loop_item_{item}",
