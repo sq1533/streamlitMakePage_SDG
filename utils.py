@@ -1,14 +1,8 @@
 import streamlit as st
 import pyrebase
 from email_validator import validate_email, EmailNotValidError
-import smtplib
-from email.message import EmailMessage
 import re
-import requests.exceptions
-import json
-import firebase_admin
-from firebase_admin import auth, credentials, firestore
-
+import requests
 
 """
 # FireBase secret_keys
@@ -111,13 +105,6 @@ class guest(database):
         except Exception as e:
             print(f'로그인 실패 {e}')
             return False
-
-    # 로그아웃
-    def signOUT():
-        try:
-            st.session_state.clear
-        except Exception as e:
-            print(f'로그아웃 실패 {e}')
 
     def PWlaterChange(id : str, date : str):
         try:
@@ -230,114 +217,3 @@ def seachAddress(address : str):
                     return addrList
         except Exception as e:
             return [{'False':f'알 수 없는 오류 발생 {e}'}]
-
-"""
-# 인증 이메일 검증
-def sendEmail(userMail: str) -> bool:
-    SENDER_EMAIL = st.secrets["email_credentials"]["sender_email"]
-    SENDER_APP_PASSWORD = st.secrets["email_credentials"]["sender_password"]
-    SENDER_SERVER = st.secrets["email_credentials"]["smtp_server"]
-    SENDER_PORT = st.secrets["email_credentials"]["smtp_port"]
-    DEPLOYED_BASE_URL = st.secrets["email_credentials"]["base_url"]
-
-    settingCode = auth.ActionCodeSettings(
-        url=f"{DEPLOYED_BASE_URL}/success?email={userMail}",
-        handle_code_in_app=True
-    )
-
-    link = auth.generate_email_verification_link(
-        email=userMail,
-        action_code_settings=settingCode
-    )
-
-    msg = EmailMessage()
-    msg['Subject'] = "회원가입 이메일 인증"
-    msg['From'] = SENDER_EMAIL
-    msg['To'] = userMail
-    msg.set_content(f""
-안녕하세요!
-
-회원가입을 완료하려면 아래 링크를 클릭하여 이메일 주소를 인증해주세요:
-
-{link}
-
-이 링크는 일정 시간 후에 만료될 수 있습니다.
-
-감사합니다.
-"")
-    try:
-        with smtplib.SMTP(SENDER_SERVER, SENDER_PORT) as smtp_server:
-            smtp_server.ehlo() # 서버에 자신을 소개
-            smtp_server.starttls() # TLS 암호화 시작
-            smtp_server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
-            smtp_server.send_message(msg)
-        print(f"인증 이메일이 {userMail} 주소로 성공적으로 발송되었습니다.")
-        return True
-    except smtplib.SMTPAuthenticationError:
-        print("오류: SMTP 인증 실패.")
-        return False
-    except smtplib.SMTPServerDisconnected:
-        print("오류: SMTP 서버 연결 끊김.")
-        return False
-    except Exception:
-        print("오류: 이메일 발송 중 예상치 못한 오류")
-        return False
-
-
-# firestore 연결
-db = firestore.client()
-logoDB = db.collection('logo') # 로고 정보 가져오기
-itemsDB = db.collection('items') # items 컬렉션 연결
-userInfoDB = db.collection('userInfo')
-orderDB = db.collection('orderList')
-
-# 상품 추가 함수
-def addItem(item_data, item_id):
-    try:
-        if item_id:
-            item_data_to_set = item_data.copy()
-            item_data_to_set['id'] = item_id
-            itemsDB.document(item_id).set(item_data_to_set)
-            print(f"상품 '{item_id}'이(가) Firestore에 성공적으로 설정되었습니다.")
-            return item_id
-        else:
-            print("상품 ID 미지정, 실패")
-            return None
-    except Exception as e:
-        print(f"Firestore에 상품을 추가/설정하는 중 오류 발생: {e}")
-        return None
-
-# 사용자 orders status 수정_배송중
-def deliveryStatus(orderStatus:list):
-    try:
-        allUsers = userInfoDB.stream()
-        for user in allUsers:
-            orderLists = user.get().to_dict()["orders"]
-            for orderList in orderLists:
-                if orderList in orderStatus:
-                    orderDelivery = orderList + "/" + "delivery"
-                    orderLists.remove(orderList)
-                    orderLists.append(orderDelivery)
-                else:
-                    pass
-            userInfoDB.document(user.id).update({"orders":orderLists})
-    except Exception:
-        print("배송 상태 업데이트 오류")
-
-# 사용자 orders status 수정_완료
-def completeStatus(orderStatus:list):
-    try:
-        allUsers = userInfoDB.stream()
-        for user in allUsers:
-            orderLists = user.get().to_dict()["orders"]
-            for orderList in orderLists:
-                if orderList in orderStatus:
-                    orderComplete = orderList.replace("delivery", "complete")
-                    orderLists.remove(orderList)
-                    orderLists.append(orderComplete)
-                else:
-                    pass
-            userInfoDB.document(user.id).update({"orders":orderLists})
-    except Exception:
-        print("완료 상태 업데이트 오류")
-"""

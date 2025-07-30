@@ -88,7 +88,8 @@ else:
                 # requests.post()
                 now = datetime.now(timezone.utc) + timedelta(hours=9)
                 orderTime = now.strftime("%Y%m%d%H%M%S")
-                orderInfo = orderTime + st.session_state.item + '/' + st.session_state.userID + '/' + addressTarget
+                pathID = st.session_state.userID.replace('@','__aA__').replace('.','__dD__')
+                orderInfo = orderTime + '/' + st.session_state.item + '/' + pathID + '/' + addressTarget
                 st.session_state.userInfo["orderList"].append(orderInfo)
                 order = utils.items.itemOrder(
                     id=st.session_state.userID,
@@ -97,7 +98,7 @@ else:
                     )
                 if order:
                     st.success(
-                        body=f"{itemInfo['name']} 구매가 완료되었습니다! (실제 결제 기능은 구현되지 않았습니다.)"
+                        body=f"{itemInfo['name']} 주문 진행 중입니다."
                         )
                     st.session_state.item = False # 구매 후 아이템 세션 초기화
                     time.sleep(3)
