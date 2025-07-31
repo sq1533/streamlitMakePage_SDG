@@ -58,7 +58,7 @@ class database:
 # guest 관리
 class guest(database):
     # 회원 가입 전 중복 이메일 검증
-    def emailCheck(id : str):
+    def emailCheck(id : str) -> dict:
         try:
             # 이메일 형식 확인
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
@@ -87,7 +87,7 @@ class guest(database):
             return False
     
     # 회원 가입 db 연동
-    def signUP(id : str, pw : str, userInfo):
+    def signUP(id : str, pw : str, userInfo) -> bool:
         try:
             pathID = id.replace('@','__aA__').replace('.','__dD__')
             database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
@@ -98,10 +98,10 @@ class guest(database):
             return False
 
     # 로그인
-    def signIN(id : str, pw : str):
+    def signIN(id : str, pw : str) -> bool:
         try:
-            user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            return user
+            database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+            return True
         except Exception as e:
             print(f'로그인 실패 {e}')
             return False

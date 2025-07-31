@@ -1,21 +1,14 @@
 import streamlit as st
+import utils
 import time
-from utils import pyrebase_auth
 
-if "user" not in st.session_state:
-    st.session_state.user = False
+# 회원 로그인 구분
+if "userID" not in st.session_state:
+    st.session_state.userID = False
+    st.session_state.userInfo = False
 
-# 사용자 로그인
-def myinfoPass(id,pw):
-    try:
-        pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-        return True
-    except Exception:
-        return False
+if not st.session_state.userID:
 
-if not st.session_state.user:
-    st.error("잘못된 접근 입니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:
@@ -35,14 +28,10 @@ else:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        st.write("본인확인 인증")
-        st.text_input(
-            label="Email",
-            value=st.session_state.user["email"],
-            key="myinfoAccessEmail",
-            type="default",
-            disabled=True
+        st.markdown(
+            body="본인임을 한번 더 인증해 주세요!"
         )
+
         PW = st.text_input(
             label="비밀번호",
             value=None,
@@ -55,8 +44,21 @@ else:
                 type="primary",
                 use_container_width=True
             )
+        allowCount = 0
         if access:
-            if myinfoPass(id=st.session_state.user["email"],pw=PW):
-                st.switch_page(page="pages/myPage.py")
+            signIN = utils.guest.signIN(id=st.session_state.userID, pw=PW)
+            if allowCount > 5:
+                st.markdown(
+                    body=f"인증을 다수 실패했습니다. 로그아웃 및 메인 페이지로 이동합니다."
+                )
+                time.sleep(2)
+                st.session_state.clear
+                st.switch_page("mainPage.py")
             else:
-                st.error("인증 실패")
+                if signIN:
+                    st.switch_page("pages/myPage.py")
+                else:
+                    allowCount += 1
+                    st.markdown(
+                        body=f"인증에 실패 했습니다. 인증 실패 {allowCount}회"
+                    )

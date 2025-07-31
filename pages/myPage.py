@@ -1,13 +1,11 @@
 import streamlit as st
+import utils
 import time
-import re
-import requests
-from utils import pyrebase_auth, userInfoDB
 
-if "user" not in st.session_state:
-    st.session_state.user = False
-
-user_doc = userInfoDB.document(st.session_state.user["id"]).get()
+# 회원 로그인 구분
+if "userID" not in st.session_state:
+    st.session_state.userID = False
+    st.session_state.userInfo = False
 
 st.markdown(
     """
@@ -21,59 +19,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
-
-# 사용자 주소 검색 팝업, API 신청시 유효 url 입력 필요
-@st.dialog("address")
-def addressPOP(address):
-    if re.search(r"[\]\[%;<>=]", address):
-        st.error(body="특수문자는 포함할 수 없습니다.")
-    elif any(i in address.upper() for i in sqlInjection):
-        st.error(body="포함할 수 없는 단어가 존재합니다.")
-    else:
-        addressKey = {
-            "confmKey" : st.secrets["address_search"]["keys"],
-            "currentPage" : 1,
-            "countPerPage" : 20,
-            "keyword" : address,
-            "resultType" : "json"
-        }
-        try:
-            response = requests.post("https://business.juso.go.kr/addrlink/addrLinkApi.do", data=addressKey)
-            if response.status_code == 200:
-                addrLen = response.json()["results"]["juso"].__len__()
-                if addrLen == 0:
-                    st.error(body="검색 결과가 없습니다.")
-                else:
-                    for i in range(addrLen):
-                        st.write(response.json()["results"]["juso"][i]["zipNo"])
-                        st.write(response.json()["results"]["juso"][i]["roadAddr"])
-                        moreAddr = st.text_input(
-                            label="상세주소",
-                            value=None,
-                            key=f"moreAddr{i}",
-                            type="default"
-                        )
-                        choise = st.button(
-                            label="선택",
-                            key=f"choise{i}"
-                        )
-                        if choise:
-                            st.session_state.address = f"{response.json()['results']['juso'][i]['roadAddr']} {moreAddr}"
-                            st.rerun()
-        except Exception as e:
-            print(e)
-            st.error("주소 검색 중 오류 발생")
-
-# 사용자 로그인
-def myinfoPass(id,pw):
-    try:
-        pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-        return True
-    except Exception:
-        return False
-
-# 주소지 삭제
+# 비밀번호 변경
+# 대표 배송지 설정
+# 배송지 삭제
 def deleteAddress(address):
     st.session_state.user["address"].remove(address)
     user_doc.reference.update({"address": st.session_state.user["address"]})

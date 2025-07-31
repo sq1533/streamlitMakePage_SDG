@@ -151,15 +151,15 @@ with st.sidebar:
             use_container_width=True
         )
         if login:
-            if not utils.guest.signIN(id=ID, pw=PW):
+            if utils.guest.signIN(id=ID, pw=PW):
+                userKey = ID.replace('@','__aA__').replace('.','__dD__')
+                st.session_state.userID = ID
+                st.session_state.userInfo = utils.database().pyrebase_db_user.child(userKey).get().val()
+                st.rerun()
+            else:
                 st.error(
                     body='로그인 실패, 계정정보를 확인해주세요.'
                 )
-            else:
-                st.session_state.userID = ID
-                userKey = ID.replace('@','__aA__').replace('.','__dD__')
-                st.session_state.userInfo = utils.database().pyrebase_db_user.child(userKey).get().val()
-                st.rerun()
         if signup:
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
