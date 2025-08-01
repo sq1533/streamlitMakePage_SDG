@@ -112,7 +112,6 @@ if st.session_state.signup_step:
             'phoneNumber':phone,
             'address':[address],
             'createPW':nowDay,
-            'like':['-'],
             'orderList':['-']
         }
 

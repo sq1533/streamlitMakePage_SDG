@@ -29,4 +29,4 @@ USER appuser
 EXPOSE 8080
 
 # 컨테이너 실행 시 Streamlit 애플리케이션을 실행합니다.
-CMD ["streamlit", "run", "mainPage.py"]
+CMD ["bash", "-c", "echo export STREAMLIT_KEYS=$(python -c 'import secrets; print(secrets.token_hex(32))') && streamlit run mainPage.py"]

@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime, timezone, timedelta
-# import streamlit_js_eval
+from streamlit_js_eval import streamlit_js_eval
 import utils
 
 # 페이지 기본 설정
@@ -10,6 +10,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+
+# 페이지 진입 초기 너비 감지
+screen_width = streamlit_js_eval(js_expressions='screen.width', key='screen_width_key')
 
 # items 데이터 호출 list > key : values
 itemsInfoList = utils.database().pyrebase_db_items.get().each()
@@ -32,6 +35,9 @@ if "item" not in st.session_state:
 st.markdown(
     """
     <style>
+    .block-container {
+        padding-top: 2rem;
+    }
     video::-webkit-media-controls {
         display: none !important;
     }
@@ -44,8 +50,7 @@ st.markdown(
         display: none !important;
     }
     div[aria-label="dialog"][role="dialog"] {
-        width: 80% !important;
-        max-width: 800px !important;
+        width: 75% !important;
     }
     </style>
     """,
@@ -53,20 +58,6 @@ st.markdown(
 )
 
 # UX function
-# like 상태변화
-def likeStatus(likedItem : str) -> str:
-    if not st.session_state.userID:
-        icon = "like :grey_question:"
-        return icon
-    else:
-        if likedItem in st.session_state.userInfo['like']:
-            icon = "like :heart:"
-            return icon
-        else:
-            icon = "like :grey_question:"
-            return icon
-        
-
 # 이미지 고정 설정
 def showImage(path : str):
     if path:
@@ -229,28 +220,18 @@ with st.sidebar:
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
 
-        # 회원 Like 상품 리스트
-        st.markdown("## 내가 좋아한 상품:")
-        if st.session_state.userInfo['like'].__len__() == 1:
-            st.markdown("#### 좋아요한 상품이 없습니다.")
-        else:
-            for likes in st.session_state.userInfo['like'][1:]:
-                itemInfo = itemsInfoDict[likes]
-                likeThings = st.button(
-                    label=f"### {itemInfo['name']}",
-                    key=f"liked_{likes}",
-                    type="primary",
-                    use_container_width=True
-                )
-                if likeThings:
-                    showItem(item=likes)
-
 # 상품 카테고리
 itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
 itemCategory = list(set([item.val()['category'] for item in itemsInfoList]))
 itemEvent = list(set([item.val()['event'] for item in itemsInfoList]))
 
-filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
+if screen_width >= 700:
+    # 아이템 필터 배치
+    filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
+    lineCount = 4
+else:
+    filter_1, filter_2, filter_3 = st.columns(spec=3, gap="small", vertical_alignment="top")
+    lineCount = 2
 
 colorFilter = filter_1.segmented_control(
     label = "컬러",
@@ -280,27 +261,16 @@ eventFilter = filter_3.segmented_control(
     )
 
 count_in_card = 0
-line = itemsInfoList.__len__()//4 + 1
+line = itemsInfoList.__len__()//lineCount + 1
 
 for l in range(line):
-    cards = st.columns(spec=4, gap="small", vertical_alignment="top")
+    cards = st.columns(spec=lineCount, gap="small", vertical_alignment="top")
 
 for item in utils.items.itemsIdList():
     if (colorFilter == None or colorFilter == itemsInfoDict[item]['color']) and (categoryFilter == None or categoryFilter == itemsInfoDict[item]['category']) and (eventFilter == None or eventFilter == itemsInfoDict[item]['event']):
         with cards[count_in_card].container():
             showImage(itemsInfoDict[item]['paths'][0])
-            name, like = st.columns(spec=[3,2], gap="small", vertical_alignment="top")
-            name.markdown(body=f"##### {itemsInfoDict[item]['name']}")
-            likeBTN = like.button(
-                label=likeStatus(likedItem=item),
-                key=f"liked_item_{item}",
-                type="tertiary",
-                use_container_width=True
-            )
-            if likeBTN:
-                likeResults = utils.items.itemsLike(id=st.session_state.userID, userInfo=st.session_state.userInfo, like=item)
-                st.session_state.userInfo['like'] = likeResults
-                st.rerun()
+            st.markdown(body=f"##### {itemsInfoDict[item]['name']}")
             viewBTN = st.button(
                 label="상세보기",
                 key=f"loop_item_{item}",
@@ -310,7 +280,7 @@ for item in utils.items.itemsIdList():
             if viewBTN:
                 showItem(item=item)
         count_in_card += 1
-        if count_in_card == 5:
+        if count_in_card == lineCount:
             count_in_card = 0
         else:
             pass
