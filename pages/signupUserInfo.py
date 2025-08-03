@@ -53,7 +53,7 @@ def addrDialog():
                 use_container_width=False
             )
             if choice:
-                st.session_state.address = list(i.keys())[0] + list(i.values())[0]
+                st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
                 st.rerun()
 
         return st.session_state.address
@@ -105,7 +105,7 @@ if st.session_state.signup_step:
             type="default"
         )
         
-        address = st.session_state.address + detailAddr
+        address = st.session_state.address + ' ' + detailAddr
 
         infomation = {
             'name':name,

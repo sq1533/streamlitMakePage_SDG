@@ -5,8 +5,8 @@ import utils
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMU-redo",
-    page_icon=":shark:",
+    page_title="amuredo",
+    page_icon=":flying_disc:",
     layout="wide",
     initial_sidebar_state="auto"
 )
@@ -118,21 +118,21 @@ st.html(
 with st.sidebar:
     if not st.session_state.userID:
         ID = st.text_input(
-            label="이메일",
+            label="email",
             value=None,
             key="textID",
             type="default",
             placeholder=None
         )
         PW = st.text_input(
-            label="비밀번호",
+            label="password",
             value=None,
             key="textPW",
             type="password",
             placeholder=None
         )
         login = st.button(
-            label="log-IN",
+            label="signIN",
             type="primary",
             use_container_width=True
         )
@@ -141,7 +141,7 @@ with st.sidebar:
             type="secondary",
             use_container_width=True
         )
-        if login:
+        if (ID and PW) or login:
             if utils.guest.signIN(id=ID, pw=PW):
                 userKey = ID.replace('@','__aA__').replace('.','__dD__')
                 st.session_state.userID = ID
@@ -220,45 +220,42 @@ with st.sidebar:
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
 
-# 상품 카테고리
-itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
-itemCategory = list(set([item.val()['category'] for item in itemsInfoList]))
-itemEvent = list(set([item.val()['event'] for item in itemsInfoList]))
+    # 상품 카테고리
+    itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
+    itemCategory = list(set([item.val()['category'] for item in itemsInfoList]))
+    itemEvent = list(set([item.val()['event'] for item in itemsInfoList]))
+
+    colorFilter = st.segmented_control(
+        label = "컬러",
+        options = itemColor,
+        selection_mode = "single",
+        default = None,
+        key="itemColor",
+        label_visibility="visible"
+        )
+
+    categoryFilter = st.segmented_control(
+        label = "카테고리",
+        options = itemCategory,
+        selection_mode = "single",
+        default = None,
+        key="itemCategory",
+        label_visibility="visible"
+        )
+
+    eventFilter = st.segmented_control(
+        label = "이벤트",
+        options = itemEvent,
+        selection_mode = "single",
+        default = None,
+        key="itemEvent",
+        label_visibility="visible"
+        )
 
 if screen_width >= 700:
-    # 아이템 필터 배치
-    filter_1, filter_2, filter_3, empty = st.columns(spec=4, gap="small", vertical_alignment="top")
     lineCount = 4
 else:
-    filter_1, filter_2, filter_3 = st.columns(spec=3, gap="small", vertical_alignment="top")
     lineCount = 2
-
-colorFilter = filter_1.segmented_control(
-    label = "컬러",
-    options = itemColor,
-    selection_mode = "single",
-    default = None,
-    key="itemColor",
-    label_visibility="visible"
-    )
-
-categoryFilter = filter_2.segmented_control(
-    label = "카테고리",
-    options = itemCategory,
-    selection_mode = "single",
-    default = None,
-    key="itemCategory",
-    label_visibility="visible"
-    )
-
-eventFilter = filter_3.segmented_control(
-    label = "이벤트",
-    options = itemEvent,
-    selection_mode = "single",
-    default = None,
-    key="itemEvent",
-    label_visibility="visible"
-    )
 
 count_in_card = 0
 line = itemsInfoList.__len__()//lineCount + 1
