@@ -5,7 +5,14 @@ import time
 # 회원 로그인 구분
 if "userID" not in st.session_state:
     st.session_state.userID = False
-    st.session_state.userInfo = False
+
+# 회원 허용 유무
+if "userAllow" not in st.session_state:
+    st.session_state.userAllow = False
+
+# 고객 주소 정보
+if "address" not in st.session_state:
+    st.session_state.address = '배송지 입력하기'
 
 st.markdown(
     """
@@ -20,16 +27,43 @@ st.markdown(
 )
 
 # 비밀번호 변경
-# 대표 배송지 설정
+
+# 배송지 추가
+@st.dialog(title='주소 검색')
+def addrDialog():
+    dialogAddr = st.text_input(
+        label="주소",
+        value=None,
+        key="addrTrue",
+        type="default",
+        disabled=False
+    )
+    if dialogAddr == None:
+        st.markdown(
+            body="검색창에 찾을 주소를 입력해주세요."
+        )
+    else:
+        for i in utils.seachAddress(dialogAddr):
+            addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
+            addrNo.markdown(
+                body=list(i.keys())[0]
+            )
+            addrStr.markdown(
+                body=list(i.values())[0]
+            )
+            choice = btn.button(
+                label="선택",
+                key=list(i.values())[0],
+                type="primary",
+                use_container_width=False
+            )
+            if choice:
+                st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
+                st.rerun()
+        return st.session_state.address
 # 배송지 삭제
-def deleteAddress(address):
-    st.session_state.user["address"].remove(address)
-    user_doc.reference.update({"address": st.session_state.user["address"]})
-    st.rerun()
 
 if not st.session_state.user:
-    st.error("잘못된 접근 입니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:

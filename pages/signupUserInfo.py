@@ -43,7 +43,6 @@ def addrDialog():
                 body=list(i.keys())[0]
             )
             addrStr.markdown(
-
                 body=list(i.values())[0]
             )
             choice = btn.button(
@@ -55,7 +54,6 @@ def addrDialog():
             if choice:
                 st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
                 st.rerun()
-
         return st.session_state.address
 
 if st.session_state.signup_step:
@@ -111,8 +109,7 @@ if st.session_state.signup_step:
             'name':name,
             'phoneNumber':phone,
             'address':[address],
-            'createPW':nowDay,
-            'orderList':['-']
+            'createPW':nowDay
         }
 
         sendEmail = st.button(

@@ -5,10 +5,12 @@ import time
 # 회원 로그인 구분
 if "userID" not in st.session_state:
     st.session_state.userID = False
-    st.session_state.userInfo = False
+
+# 회원 허용 유무
+if "userAllow" not in st.session_state:
+    st.session_state.userAllow = False
 
 if not st.session_state.userID:
-
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:
@@ -46,7 +48,7 @@ else:
             )
         allowCount = 0
         if access:
-            signIN = utils.guest.signIN(id=st.session_state.userID, pw=PW)
+            signIN = utils.guest.signIN(id=st.session_state.user.email, pw=PW)
             if allowCount > 5:
                 st.markdown(
                     body=f"인증을 다수 실패했습니다. 로그아웃 및 메인 페이지로 이동합니다."

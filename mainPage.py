@@ -25,7 +25,10 @@ if "signup_step" not in st.session_state:
 # 회원 로그인 구분
 if "userID" not in st.session_state:
     st.session_state.userID = False
-    st.session_state.userInfo = False
+
+# 회원 허용 유무
+if "userAllow" not in st.session_state:
+    st.session_state.userAllow = False
 
 # 상품 구매 페이지
 if "item" not in st.session_state:
@@ -105,8 +108,11 @@ def showItem(item): # item == itemId로 검색
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            st.session_state.item = item
-            st.switch_page(page="pages/orderPage.py")
+            if not st.session_state.userAllow:
+                st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
+            else:
+                st.session_state.item = item
+                st.switch_page(page="pages/orderPage.py")
 
 # 메인 페이지
 # 페이지 제목
@@ -142,10 +148,9 @@ with st.sidebar:
             use_container_width=True
         )
         if (ID and PW) or login:
-            if utils.guest.signIN(id=ID, pw=PW):
-                userKey = ID.replace('@','__aA__').replace('.','__dD__')
-                st.session_state.userID = ID
-                st.session_state.userInfo = utils.database().pyrebase_db_user.child(userKey).get().val()
+            goSignIn = utils.guest.signIN(id=ID, pw=PW)
+            if goSignIn['allow']:
+                st.session_state.userID = goSignIn['result']
                 st.rerun()
             else:
                 st.error(
@@ -163,6 +168,14 @@ with st.sidebar:
         if logoutB:
             st.session_state.clear()
             st.rerun()
+        
+        # 이메일 검증 유무 확인
+        emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user.idToken)
+        email_verified = emailVer['users'][0]['emailVerified']
+        if email_verified:
+            st.session_state.userAllow = True
+        else:
+            pass
 
         st.markdown(f'## 환영합니다.')
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -180,7 +193,8 @@ with st.sidebar:
         )
 
         # 회원 비밀번호 생성기간 확인
-        createPW = st.session_state.userInfo['createPW']
+        userInfo = utils.database().pyrebase_db_user.child(st.session_state.userID.uid).get().val()
+        createPW = userInfo['createPW']
         now = datetime.now(timezone.utc) + timedelta(hours=9)
         nowDay = now.strftime('%Y-%m-%d')
         orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
@@ -206,8 +220,7 @@ with st.sidebar:
             if pwChange:
                 st.switch_page(page="pages/myPageChangePW.py")
             if laterChange:
-                st.session_state.userInfo['createPW'] = now.strftime("%Y-%m-%d")
-                utils.guest.PWlaterChange(id=st.session_state.userID, date=st.session_state.userInfo['createPW'])
+                utils.guest.PWlaterChange(id=st.session_state.userID, date=now.strftime("%Y-%m-%d"))
                 st.rerun()
         else:
             pass

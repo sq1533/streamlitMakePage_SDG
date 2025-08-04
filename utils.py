@@ -87,15 +87,14 @@ class guest(database):
             return False
     
     # 회원 가입 db 연동
-    def signUP(id : str, pw : str, userInfo) -> bool:
+    def signUP(id : str, pw : str, userInfo) -> dict:
         try:
-            pathID = id.replace('@','__aA__').replace('.','__dD__')
-            database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
-            database().pyrebase_db_user.child(pathID).set(userInfo)
-            return True
+            user = database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            database().pyrebase_db_user.child(user.uid).set(userInfo)
+            return {'allow':True, 'result':user}
         except Exception as e:
-            print(f"가입 시도 중 예상치 못한 오류 발생: {e}")
-            return False
+            print(e)
+            return {'allow':False, 'result':'가입 시도 중 예기치 못한 오류 발생'}
 
     # 로그인
     def signIN(id : str, pw : str) -> bool:
@@ -106,13 +105,12 @@ class guest(database):
             print(f'로그인 실패 {e}')
             return False
 
-    def PWlaterChange(id : str, date : str):
+    def PWlaterChange(uid : str, date : str) -> bool:
         try:
-            pathID = id.replace('@','__aA__').replace('.','__dD__')
             results = {
                 'createPW' : date
             }
-            database().pyrebase_db_user.child(pathID).update(results)
+            database().pyrebase_db_user.child(uid).update(results)
             return True
         except Exception as e:
             print(f'비밀번호 연장 실패 {e}')
@@ -125,13 +123,13 @@ class guest(database):
 
 class items(database):
     # 아이템 수량 및 상태    
-    def itemStatus(itemId : str):
+    def itemStatus(itemId : str) -> dict:
         try:
             itemStatus = database().pyrebase_db_itemStatus.child(itemId).get().val() # 아이템 상태 조회
-            return itemStatus
+            return {'allow':True, 'result':itemStatus}
         except Exception as e:
-            print(f'아이템 상태 조회 실패 {e}')
-            return False
+            print(e)
+            return {'allow':False, 'result':'아이템 조회 실패'}
     
     # 아이템 ID 리스트
     def itemsIdList():
@@ -139,36 +137,10 @@ class items(database):
         itemsId = list(itemsId_dict.keys()) # 아이템 키값 list
         return itemsId
 
-    # 아이템 like 상태 (고객 info로 따라감)
-    def itemsLike(id : str, userInfo : dict, like : str):
-        try:
-            pathID = id.replace('@','__aA__').replace('.','__dD__')
-            if like in userInfo['like']:
-                userInfo['like'].remove(like)
-                results = {
-                    'like' : userInfo['like']
-                }
-                database().pyrebase_db_user.child(pathID).update(results)
-                return userInfo['like']
-            else:
-                userInfo['like'].append(like)
-                results = {
-                    'like' : userInfo['like']
-                }
-                database().pyrebase_db_user.child(pathID).update(results)
-                return userInfo['like']
-        except Exception as e:
-            print(f'like 실패 {e}')
-            return False
-
     # 아이템 구매 및 상태 변경
-    def itemOrder(id : str, itemID : str, orderList : list):
+    def itemOrder(uid : str, itemID : str, orderInfo : dict) -> bool:
         try:
-            pathID = id.replace('@','__aA__').replace('.','__dD__')
-            results = {
-                'orderList' : orderList
-            }
-            database().pyrebase_db_user.child(pathID).update(results)
+            database().pyrebase_db_user.child(uid).child('orderList').push(orderInfo)
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get().val() # 아이템 수량 변경
             countResults = int(itemStatus['count']) - 1
             if countResults < 4:
