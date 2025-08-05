@@ -23,8 +23,8 @@ if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
 # 회원 로그인 구분
-if "userID" not in st.session_state:
-    st.session_state.userID = False
+if "user" not in st.session_state:
+    st.session_state.user = False
 
 # 회원 허용 유무
 if "userAllow" not in st.session_state:
@@ -104,7 +104,7 @@ def showItem(item): # item == itemId로 검색
         st.markdown(body=f"{itemInfo['detail']}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
-        if not st.session_state.userID:
+        if not st.session_state.user:
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
@@ -122,7 +122,7 @@ st.html(
 
 # siderbar 정의
 with st.sidebar:
-    if not st.session_state.userID:
+    if not st.session_state.user:
         ID = st.text_input(
             label="email",
             value=None,
@@ -150,7 +150,7 @@ with st.sidebar:
         if (ID and PW) or login:
             goSignIn = utils.guest.signIN(id=ID, pw=PW)
             if goSignIn['allow']:
-                st.session_state.userID = goSignIn['result']
+                st.session_state.user = goSignIn['result']
                 st.rerun()
             else:
                 st.error(
@@ -166,11 +166,11 @@ with st.sidebar:
             use_container_width=True
         )
         if logoutB:
-            st.session_state.clear()
+            st.session_state.clear
             st.rerun()
         
         # 이메일 검증 유무 확인
-        emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user.idToken)
+        emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user['idToken'])
         email_verified = emailVer['users'][0]['emailVerified']
         if email_verified:
             st.session_state.userAllow = True
@@ -193,7 +193,7 @@ with st.sidebar:
         )
 
         # 회원 비밀번호 생성기간 확인
-        userInfo = utils.database().pyrebase_db_user.child(st.session_state.userID.uid).get().val()
+        userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
         createPW = userInfo['createPW']
         now = datetime.now(timezone.utc) + timedelta(hours=9)
         nowDay = now.strftime('%Y-%m-%d')
@@ -220,7 +220,7 @@ with st.sidebar:
             if pwChange:
                 st.switch_page(page="pages/myPageChangePW.py")
             if laterChange:
-                utils.guest.PWlaterChange(id=st.session_state.userID, date=now.strftime("%Y-%m-%d"))
+                utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
                 st.rerun()
         else:
             pass

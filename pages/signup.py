@@ -8,7 +8,7 @@ if "signup_step" not in st.session_state:
 
 # 가입 이메일 정보
 if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+    st.session_state.signup_email = False
 
 # 세션 정보 검증 및 이메일 검증
 if st.session_state.signup_step:

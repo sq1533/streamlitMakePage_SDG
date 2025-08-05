@@ -63,10 +63,9 @@ class guest(database):
             # 이메일 형식 확인
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
                 # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
-                pathID = id.replace('@','__aA__').replace('.','__dD__')
-                lookUPemail = database().pyrebase_db_user.child(pathID).get().val()
-                if lookUPemail is None or not lookUPemail:
-                    return {'allow' : True, 'result' : pathID}
+                emailCheck = database().pyrebase_auth.fetch_providers_for_email(id)
+                if emailCheck == []:
+                    return {'allow' : True, 'result' : id}
                 else:
                     return {'allow' : False, 'result' : '이미 가입한 이메일입니다.'}
             else:
@@ -77,34 +76,34 @@ class guest(database):
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
     
     # 인증 메일 전송
-    def sendEmail(id : str, pw : str) -> bool:
+    def sendEmail(userToken : str) -> bool:
         try:
-            user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            database().pyrebase_auth.send_email_verification(user['idToken'])
+            database().pyrebase_auth.send_email_verification(userToken)
             return True
         except Exception as e:
             print(f"회원가입 또는 이메일 인증 메일 전송 중 오류 발생: {e}")
             return False
     
     # 회원 가입 db 연동
-    def signUP(id : str, pw : str, userInfo) -> dict:
+    def signUP(id : str, pw : str, userInfo) -> bool:
         try:
             user = database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
-            database().pyrebase_db_user.child(user.uid).set(userInfo)
+            database().pyrebase_db_user.child(user['localId']).set(userInfo)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    # 로그인
+    def signIN(id : str, pw : str) -> dict:
+        try:
+            user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
             return {'allow':True, 'result':user}
         except Exception as e:
             print(e)
-            return {'allow':False, 'result':'가입 시도 중 예기치 못한 오류 발생'}
+            return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
 
-    # 로그인
-    def signIN(id : str, pw : str) -> bool:
-        try:
-            database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            return True
-        except Exception as e:
-            print(f'로그인 실패 {e}')
-            return False
-
+    # 비밀번호 연장
     def PWlaterChange(uid : str, date : str) -> bool:
         try:
             results = {
@@ -119,6 +118,26 @@ class guest(database):
     # 회원 탈퇴
     def guestOUT():
         pass
+
+    # 사용자 주소 추가
+    def addAddr(uid : str, addAddr : str) -> bool:
+        try:
+            addrInfo = database().pyrebase_db_user.child(uid).child('address').get().val()
+            database().pyrebase_db_user.child(uid).update({'address':addrInfo.append(addAddr)})
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    # 사용자 주소 삭제
+    def delAddr(uid : str, delAddr : str) -> bool:
+        try:
+            addrInfo = database().pyrebase_db_user.child(uid).child('address').get().val()
+            database().pyrebase_db_user.child(uid).update({'address':addrInfo.remove(delAddr)})
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 
 class items(database):

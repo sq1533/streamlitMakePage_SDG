@@ -10,11 +10,11 @@ if "signup_step" not in st.session_state:
 
 # 가입 이메일 정보
 if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+    st.session_state.signup_email = False
 
 # 가입 이메일 정보
 if "password" not in st.session_state:
-    st.session_state.password = None
+    st.session_state.password = False
 
 # 고객 주소 정보
 if "address" not in st.session_state:
@@ -106,6 +106,7 @@ if st.session_state.signup_step:
         address = st.session_state.address + ' ' + detailAddr
 
         infomation = {
+            'email':st.session_state.signup_email,
             'name':name,
             'phoneNumber':phone,
             'address':[address],

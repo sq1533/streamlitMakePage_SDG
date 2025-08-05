@@ -8,18 +8,19 @@ if "signup_step" not in st.session_state:
 
 # 가입 이메일 정보
 if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+    st.session_state.signup_email = False
 
 # 가입 이메일 정보
 if "password" not in st.session_state:
-    st.session_state.password = None
+    st.session_state.password = False
 
 # 세션 검증 및 이메일 검증
 if st.session_state.signup_step:
     with st.sidebar:
         st.title("환영합니다.")
 
-    sendResult = utils.guest.sendEmail(id=st.session_state.signup_email, pw=st.session_state.password)
+    user = utils.database().pyrebase_auth.sign_in_with_email_and_password(email=st.session_state.signup_email, password=st.session_state.password)
+    sendResult = utils.guest.sendEmail(userToken=user['idToken'])
 
     if sendResult:
         empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
@@ -33,8 +34,7 @@ if st.session_state.signup_step:
             )
             with st.spinner(text="메인 페이지 이동중...", show_time=True):
                 time.sleep(3)
-                st.switch_page(page="mainPage.py")
+                st.session_state.clear
+                st.rerun()
 else:
-    st.error("올바른 접근이 아닙니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")

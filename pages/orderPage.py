@@ -5,8 +5,8 @@ import time
 from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
-if "userID" not in st.session_state:
-    st.session_state.userID = False
+if "user" not in st.session_state:
+    st.session_state.user = False
 
 # 회원 허용 유무
 if "userAllow" not in st.session_state:
@@ -29,8 +29,6 @@ st.markdown(
 
 if st.session_state.userAllow:
     if not st.session_state.item:
-        st.error(body="올바른 접근이 아닙니다. 메인페이지 이동중...")
-        time.sleep(2)
         st.switch_page(page="mainPage.py")
     else:
         with st.sidebar:
@@ -69,7 +67,8 @@ if st.session_state.userAllow:
                 st.markdown(
                     body="##### **배송비 :** 무료"
                     )
-            userAddr = utils.database().pyrebase_db_user.child(st.session_state.user.uid).get().val()['address']
+
+            userAddr = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()['address']
             addressTarget = st.radio(
                 label="상품 배송지",
                 options=userAddr,
@@ -94,7 +93,7 @@ if st.session_state.userAllow:
                         'address' : addressTarget
                         }
                     order = utils.items.itemOrder(
-                        uid=st.session_state.user.uid,
+                        uid=st.session_state.user['localId'],
                         itemID=st.session_state.item,
                         orderInfo=orderInfo
                         )
@@ -109,10 +108,8 @@ if st.session_state.userAllow:
                         st.warning(
                             body='주문 중 오류가 발생했습니다. 다시 시도해주세요.'
                         )
-                        st.session_state.item = False # 구매 후 아이템 세션 초기화
                         time.sleep(3)
-                        st.switch_page("mainPage.py")
+                        st.session_state.item = False # 구매 후 아이템 세션 초기화
+                        st.rerun()
 else:
-    st.error(body="올바른 접근이 아닙니다. 메인페이지 이동중...")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")

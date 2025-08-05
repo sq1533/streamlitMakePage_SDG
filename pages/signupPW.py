@@ -9,11 +9,11 @@ if "signup_step" not in st.session_state:
 
 # 가입 이메일 정보
 if "signup_email" not in st.session_state:
-    st.session_state.signup_email = None
+    st.session_state.signup_email = False
 
 # 가입 이메일 정보
 if "password" not in st.session_state:
-    st.session_state.password = None
+    st.session_state.password = False
 
 # 회원 비밀번호 설정
 if st.session_state.signup_step:

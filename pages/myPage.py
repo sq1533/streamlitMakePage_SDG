@@ -3,8 +3,8 @@ import utils
 import time
 
 # 회원 로그인 구분
-if "userID" not in st.session_state:
-    st.session_state.userID = False
+if "user" not in st.session_state:
+    st.session_state.user = False
 
 # 회원 허용 유무
 if "userAllow" not in st.session_state:
@@ -25,8 +25,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# 비밀번호 변경
 
 # 배송지 추가
 @st.dialog(title='주소 검색')
@@ -61,8 +59,8 @@ def addrDialog():
                 st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
                 st.rerun()
         return st.session_state.address
-# 배송지 삭제
 
+# 페이지
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
@@ -76,6 +74,9 @@ else:
         )
         if signOut:
             st.switch_page(page="pages/signOut.py")
+
+    # 사용자 정보 불러오기
+    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -92,9 +93,10 @@ else:
             st.switch_page(page="mainPage.py")
 
         email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
+
         email.text_input(
             label="Email",
-            value=st.session_state.user["email"],
+            value=userInfo['email'],
             key="myinfoEmail",
             type="default",
             disabled=True
@@ -107,21 +109,22 @@ else:
         )
         if passwardBTN:
             st.switch_page(page="pages/myPageChangePW.py")
+
         st.text_input(
             label="이름",
-            value=st.session_state.user["name"],
+            value=userInfo['name'],
             key="myinfoName",
             type="default",
             disabled=True
         )
         st.text_input(
             label="휴대폰 번호",
-            value=st.session_state.user["phone"],
+            value=userInfo['phone'],
             key="myinfoPhone",
             type="default",
             disabled=True
         )
-        for address in st.session_state.user["address"]:
+        for address in userInfo['address']:
             addr, deleteB, empty = st.columns(spec=[3,1,2], gap="small", vertical_alignment="center")
             addr.markdown(body=f"###### {address}")
             deleteBTN = deleteB.button(
@@ -131,7 +134,9 @@ else:
                 use_container_width=False
                 )
             if deleteBTN:
-                deleteAddress(address=address)
+                utils.guest.delAddr(uid=st.session_state.user['localId'], delAddr=address)
+                st.rerun()
+
         addAddress = st.text_input(
             label="추가 주소지",
             key="myinfoAddAddress",
@@ -144,8 +149,9 @@ else:
             use_container_width=True
         )
         if addAddressBTN:
-            addressPOP(addAddress)
-            #if st.session_state.user["address"].__len__() <= 5:
-            #    addressPOP(addAddress)
-            #else:
-            #    st.warning(body="등록 가능한 주소지는 5개입니다.")
+            if userInfo['address'].__len__() > 5:
+                st.warning(body="등록 가능한 주소지는 5개입니다.")
+            else:
+                addAddr = addrDialog()
+                utils.guest.addAddr(uid=st.session_state.user['localId'], addAddr=addAddr)
+                st.rerun()
