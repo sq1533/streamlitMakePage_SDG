@@ -86,11 +86,13 @@ if st.session_state.userAllow:
                 with st.spinner(text="결제 승인 요청 중...", show_time=False):
                     # requests.post()
                     now = datetime.now(timezone.utc) + timedelta(hours=9)
-                    orderTime = now.strftime("%Y%m%d%H%M%S")
+                    orderTime = now.strftime("%y%m%d%H%M%S")
                     orderInfo = {
+                        'user' : st.session_state.user['localId'],
                         'time' : orderTime,
                         'item' : st.session_state.item,
-                        'address' : addressTarget
+                        'address' : addressTarget,
+                        'status' : '상품 제작 중...'
                         }
                     order = utils.items.itemOrder(
                         uid=st.session_state.user['localId'],

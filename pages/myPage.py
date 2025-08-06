@@ -1,6 +1,5 @@
 import streamlit as st
 import utils
-import time
 
 # 회원 로그인 구분
 if "user" not in st.session_state:
@@ -96,7 +95,7 @@ else:
 
         email.text_input(
             label="Email",
-            value=userInfo['email'],
+            value=userInfo.get('email'),
             key="myinfoEmail",
             type="default",
             disabled=True
@@ -112,19 +111,19 @@ else:
 
         st.text_input(
             label="이름",
-            value=userInfo['name'],
+            value=userInfo.get('name'),
             key="myinfoName",
             type="default",
             disabled=True
         )
         st.text_input(
             label="휴대폰 번호",
-            value=userInfo['phone'],
+            value=userInfo.get('phone'),
             key="myinfoPhone",
             type="default",
             disabled=True
         )
-        for address in userInfo['address']:
+        for address in userInfo.get('address'):
             addr, deleteB, empty = st.columns(spec=[3,1,2], gap="small", vertical_alignment="center")
             addr.markdown(body=f"###### {address}")
             deleteBTN = deleteB.button(
@@ -149,7 +148,7 @@ else:
             use_container_width=True
         )
         if addAddressBTN:
-            if userInfo['address'].__len__() > 5:
+            if userInfo.get('address').__len__() > 5:
                 st.warning(body="등록 가능한 주소지는 5개입니다.")
             else:
                 addAddr = addrDialog()

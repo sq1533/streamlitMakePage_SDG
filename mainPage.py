@@ -194,7 +194,7 @@ with st.sidebar:
 
         # 회원 비밀번호 생성기간 확인
         userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
-        createPW = userInfo['createPW']
+        createPW = userInfo.get('createPW')
         now = datetime.now(timezone.utc) + timedelta(hours=9)
         nowDay = now.strftime('%Y-%m-%d')
         orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()

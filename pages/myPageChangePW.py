@@ -1,6 +1,5 @@
 import streamlit as st
-import time
-from utils import auth
+import utils
 import re
 
 # 세션 정의
@@ -9,8 +8,6 @@ if "user" not in st.session_state:
 
 # 사용자 정보 저장
 if not st.session_state.user:
-    st.error(body="사용자 정보가 없습니다. 메인페이지 이동중")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:
@@ -44,8 +41,10 @@ else:
             type="password",
             placeholder="비밀번호와 동일하게 입력해주세요."
         )
+
         length, eng, num, special, check = "gray", "gray", "gray", "gray", "gray"
         lengthC, engC, numC, specialC, checkC = False, False, False, False, False
+
         if pw:
             if 8 <= len(pw) <= 20:
                 length = "green"
@@ -107,11 +106,7 @@ else:
             )
             if next:
                 try:
-                    auth.update_user(
-                        uid=st.session_state.user.get("id"),
-                        password=pw
-                    )
-                    st.session_state.clear()
-                    st.switch_page(page="mainPage.py")
+                    utils.guest.PWChange(token=st.session_state.user['idToken'], newPW=pw)
+                    st.session_state.clear
                 except Exception as e:
                     st.error(body="비밀번호 설정 실패")

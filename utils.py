@@ -81,7 +81,7 @@ class guest(database):
             database().pyrebase_auth.send_email_verification(userToken)
             return True
         except Exception as e:
-            print(f"회원가입 또는 이메일 인증 메일 전송 중 오류 발생: {e}")
+            print(f"인증 메일 전송 오류 : {e}")
             return False
     
     # 회원 가입 db 연동
@@ -91,7 +91,7 @@ class guest(database):
             database().pyrebase_db_user.child(user['localId']).set(userInfo)
             return True
         except Exception as e:
-            print(e)
+            print(f"회원가입 실패 : {e}")
             return False
 
     # 로그인
@@ -100,8 +100,17 @@ class guest(database):
             user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
             return {'allow':True, 'result':user}
         except Exception as e:
-            print(e)
+            print(f"로그인 실패 : {e}")
             return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
+
+    # 비밀번호 변경
+    def PWChange(token : str, newPW : str) -> bool:
+        try:
+            database().pyrebase_auth.change_password(token, newPW)
+            return True
+        except Exception as e:
+            print(f"비밀번호 변경 오류 : {e}")
+            return False
 
     # 비밀번호 연장
     def PWlaterChange(uid : str, date : str) -> bool:
