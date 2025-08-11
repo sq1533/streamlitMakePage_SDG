@@ -60,21 +60,23 @@ class guest(database):
     # 회원 가입 전 중복 이메일 검증
     def emailCheck(id : str) -> dict:
         try:
-            # 이메일 형식 확인
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
-                # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
-                emailCheck = database().pyrebase_auth.fetch_providers_for_email(id)
-                if emailCheck == []:
-                    return {'allow' : True, 'result' : id}
-                else:
+                try:
+                    # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
+                    database().pyrebase_auth.fetch_providers_for_email(id)
                     return {'allow' : False, 'result' : '이미 가입한 이메일입니다.'}
+                except requests.exceptions.HTTPError as httpE:
+                    if httpE['error']['message'] == 'USER_NOT_FOUND':
+                        return {'allow' : True, 'result' : id}
+                    else:
+                        return {'allow' : False, 'result' : httpE}
             else:
                 return {'allow' : False, 'result' : '이메일 형식이 잘못되었습니다.'}
         except EmailNotValidError as e:
             return {'allow' : False, 'result' : f'이메일 검증 오류 {e}'}
         except Exception as e:
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
-    
+
     # 인증 메일 전송
     def sendEmail(userToken : str) -> bool:
         try:

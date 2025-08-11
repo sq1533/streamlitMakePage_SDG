@@ -62,56 +62,17 @@ else:
                 itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
 
                 with st.exception(exception=f'주문 시간 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
-                    itemImage, itemInfo = st.columns(spec=2, gap="small", vertical_alignment="center")
-                orderImage.image(
-                    image=itemInfo.get("paths")[0],
-                    caption=None,
-                    use_container_width=True,
-                    clamp=False,
-                    output_format="auto"
-                    )
-                orderInfo.markdown(
-                    body=f"상품명 : {itemInfo.get('name')} // 주문 날짜 : {orderTime}"
-                    )
-                if "/cancel" in order:
-                    orderStatus.markdown(body="취소")
-                    cancel.button(
-                        label="취소 완료",
-                        key=f"cancel_{order}_complete",
-                        type="secondary",
+                    image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="center")
+                    image.image(
+                        image=itemInfo.get("paths")[0],
+                        caption=None,
                         use_container_width=True,
-                        disabled=True
-                    )
-                elif "/delivery" in order:
-                    orderStatus.markdown(body="배송중")
-                    cancelBTN = cancel.button(
-                        label="취소 요청하기",
-                        key=f"cancel_{order}_request",
-                        type="secondary",
-                        use_container_width=True,
-                        disabled=False
-                    )
-                    if cancelBTN:
-                        checkCancel(order)
-                elif "/complete" in order:
-                    orderStatus.markdown(body="배송 완료")
-                    cancelBTN = cancel.button(
-                        label="교환/환불",
-                        key=f"return_{order}",
-                        type="secondary",
-                        use_container_width=True,
-                        disabled=False
-                    )
-                    if cancelBTN:
-                        checkCancel(order)
-                else:
-                    orderStatus.markdown(body="상품 준비중")
-                    cancelBTN = cancel.button(
-                        label="취소",
-                        key=f"cancel_{order}",
-                        type="secondary",
-                        use_container_width=True,
-                        disabled=False
-                    )
-                    if cancelBTN:
-                        checkCancel(order)
+                        clamp=False,
+                        output_format="auto"
+                        )
+                    info.markdown(
+                        body=f"""
+                        상품명 : {itemInfo.get('name')}\n\n
+                        주문 날짜 : {orderTime}
+                        """
+                        )
