@@ -121,6 +121,4 @@ if st.session_state.signup_step:
                 except Exception:
                     st.error(body="비밀번호 설정 실패")
 else:
-    st.error("올바른 접근이 아닙니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")

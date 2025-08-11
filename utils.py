@@ -2,7 +2,10 @@ import streamlit as st
 import pyrebase
 from email_validator import validate_email, EmailNotValidError
 import re
+import json
 import requests
+from requests.exceptions import HTTPError
+import secrets
 
 """
 # FireBase secret_keys
@@ -57,24 +60,17 @@ class database:
 
 # guest 관리
 class guest(database):
-    # 회원 가입 전 중복 이메일 검증
+    # 이메일 형식 검증
     def emailCheck(id : str) -> dict:
         try:
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
-                try:
-                    # 가입 유무 확인 > 미가입, 가입 미인증, 가입 인증
-                    database().pyrebase_auth.fetch_providers_for_email(id)
-                    return {'allow' : False, 'result' : '이미 가입한 이메일입니다.'}
-                except requests.exceptions.HTTPError as httpE:
-                    if httpE['error']['message'] == 'USER_NOT_FOUND':
-                        return {'allow' : True, 'result' : id}
-                    else:
-                        return {'allow' : False, 'result' : httpE}
+                return {'allow' : True, 'result' : id}
             else:
                 return {'allow' : False, 'result' : '이메일 형식이 잘못되었습니다.'}
-        except EmailNotValidError as e:
-            return {'allow' : False, 'result' : f'이메일 검증 오류 {e}'}
+        except EmailNotValidError as emailError:
+            return {'allow' : False, 'result' : f'이메일 검증 오류 {emailError}'}
         except Exception as e:
+            print(e)
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
 
     # 인증 메일 전송
