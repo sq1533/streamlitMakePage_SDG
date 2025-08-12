@@ -60,8 +60,8 @@ class database:
 
 # guest 관리
 class guest(database):
-    # 이메일 형식 검증
-    def emailCheck(id : str) -> dict:
+    # 이메일 유효성 검사
+    def emailCK(id : str) -> dict:
         try:
             if validate_email(id, check_deliverability=True, timeout=5)['email'] == id:
                 return {'allow' : True, 'result' : id}
@@ -73,6 +73,16 @@ class guest(database):
             print(e)
             return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
 
+    # 중복 회원 검증
+    def userOverlapCK(id : str, pw : str) -> bool:
+        try:
+            database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            return True
+        except HTTPError as error:
+            errorMessage = json.loads(error.args[1])['error']['message']
+            print(f'{id} // {errorMessage}')
+            return False
+
     # 인증 메일 전송
     def sendEmail(userToken : str) -> bool:
         try:
@@ -83,14 +93,13 @@ class guest(database):
             return False
     
     # 회원 가입 db 연동
-    def signUP(id : str, pw : str, userInfo) -> bool:
+    def signUP(email:str, pw:str, userInfo) -> dict:
         try:
-            user = database().pyrebase_auth.create_user_with_email_and_password(email=id, password=pw)
+            user = database().pyrebase_auth.sign_in_with_email_and_password(email=email, password=pw)
             database().pyrebase_db_user.child(user['localId']).set(userInfo)
-            return True
+            return {'allow' : True, 'result' : user}
         except Exception as e:
-            print(f"회원가입 실패 : {e}")
-            return False
+            return {'allow' : False, 'result' : f'회원가입 실패 {e}'}
 
     # 로그인
     def signIN(id : str, pw : str) -> dict:

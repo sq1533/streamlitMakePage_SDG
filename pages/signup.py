@@ -49,7 +49,7 @@ if st.session_state.signup_step:
             if email:
                 with st.spinner(text="이메일을 확인해볼게요", show_time=True):
                     try:
-                        userEmail = utils.guest.emailCheck(id=email)
+                        userEmail = utils.guest.emailCK(id=email)
                         if userEmail['allow']: # 신규 회원일 경우
                             checkEmail = st.button(
                                 label="다음",

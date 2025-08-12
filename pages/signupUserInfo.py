@@ -12,9 +12,9 @@ if "signup_step" not in st.session_state:
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = False
 
-# 가입 이메일 정보
-if "password" not in st.session_state:
-    st.session_state.password = False
+# 회원가입 비밀번호
+if "pw" not in st.session_state:
+    st.session_state.pw = False
 
 # 고객 주소 정보
 if "address" not in st.session_state:
@@ -125,18 +125,23 @@ if st.session_state.signup_step:
             else:
                 try:
                     endStep = utils.guest.signUP(
-                        id=st.session_state.signup_email,
-                        pw=st.session_state.password,
+                        email=st.session_state.signup_email,
+                        pw=st.session_state.pw,
                         userInfo=infomation
                         )
-                    if endStep:
+                    if endStep['allow']:
                         st.info(body="인증 메일을 보내는 중이에요.")
-                        time.sleep(2)
-                        st.switch_page(page="pages/signupAccess.py")
+                        sendResult = utils.guest.sendEmail(userToken=endStep['result']['idToken'])
+                        if sendResult:
+                            st.switch_page(page="pages/signupAccess.py")
+                        else:
+                            st.warning(
+                                body="이메일 인증 실패"
+                                )
                     else:
-                        st.warning(body="입력하신 정보에 오류가 있어요. 확인해주세요")
-                        time.sleep(3)
-                        st.rerun()
+                        st.warning(
+                            body="입력하신 정보에 오류가 있어요. 확인해주세요"
+                            )
                 except Exception:
                     st.error(body=f"회원가입 실패")
 else:

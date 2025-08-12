@@ -11,9 +11,9 @@ if "signup_step" not in st.session_state:
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = False
 
-# 가입 이메일 정보
-if "password" not in st.session_state:
-    st.session_state.password = False
+# 회원가입 비밀번호
+if "pw" not in st.session_state:
+    st.session_state.pw = False
 
 # 회원 비밀번호 설정
 if st.session_state.signup_step:
@@ -115,10 +115,13 @@ if st.session_state.signup_step:
                 disabled=False
             )
             if next:
-                try:
-                    st.session_state.password = pw
+                signUpUser = utils.guest.userOverlapCK(id=st.session_state.signup_email, pw=pw)
+                if signUpUser:
+                    st.session_state.pw = pw
                     st.switch_page(page="pages/signupUserInfo.py")
-                except Exception:
-                    st.error(body="비밀번호 설정 실패")
+                else:
+                    st.warning(
+                        body='가입 중 오류발생, 이메일과 비밀번호를 확인해주세요.'
+                    )
 else:
     st.switch_page(page="mainPage.py")
