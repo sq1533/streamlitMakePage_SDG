@@ -1,7 +1,7 @@
 import streamlit as st
+import utils
 from datetime import datetime, timezone, timedelta
 from streamlit_js_eval import streamlit_js_eval
-import utils
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -168,7 +168,7 @@ with st.sidebar:
         if logoutB:
             st.session_state.clear
             st.rerun()
-        
+
         # 이메일 검증 유무 확인
         emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user['idToken'])
         email_verified = emailVer['users'][0]['emailVerified']
@@ -193,37 +193,42 @@ with st.sidebar:
         )
 
         # 회원 비밀번호 생성기간 확인
-        userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
-        createPW = userInfo.get('createPW')
-        now = datetime.now(timezone.utc) + timedelta(hours=9)
-        nowDay = now.strftime('%Y-%m-%d')
-        orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
-        nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
-        elapsed = (nowDay_d - orderDay_d).days
-        if elapsed > 90:
-            st.warning(
-                body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.'
+        userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
+        if userInfo['allow']:
+            createPW = userInfo['result'].get('createPW')
+            now = datetime.now(timezone.utc) + timedelta(hours=9)
+            nowDay = now.strftime('%Y-%m-%d')
+            orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
+            nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
+            elapsed = (nowDay_d - orderDay_d).days
+            if elapsed > 90:
+                st.warning(
+                    body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.'
+                    )
+                YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
+                pwChange = YES.button(
+                    label="변경하기",
+                    type="tertiary",
+                    key="pwChange",
+                    use_container_width=True
                 )
-            YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
-            pwChange = YES.button(
-                label="변경하기",
-                type="tertiary",
-                key="pwChange",
-                use_container_width=True
-            )
-            laterChange = NO.button(
-                label="나중에..",
-                type="secondary",
-                key="laterChange",
-                use_container_width=True
-            )
-            if pwChange:
-                st.switch_page(page="pages/myPageChangePW.py")
-            if laterChange:
-                utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
-                st.rerun()
+                laterChange = NO.button(
+                    label="나중에..",
+                    type="secondary",
+                    key="laterChange",
+                    use_container_width=True
+                )
+                if pwChange:
+                    st.switch_page(page="pages/myPageChangePW.py")
+                if laterChange:
+                    utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
+                    st.rerun()
+            else:
+                pass
         else:
-            pass
+            st.warning(
+                body=userInfo['result']
+            )
 
         # 마이페이지
         if myinfo:

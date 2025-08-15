@@ -109,6 +109,15 @@ class guest(database):
         except Exception as e:
             print(f"로그인 실패 : {e}")
             return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
+        
+    # 회원 정보 호출
+    def showUserInfo(uid : str, token):
+        try:
+            userInfo = database().pyrebase_db_user.child(uid).get(token=token).val()
+            return {'allow':True, 'result':userInfo}
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':f'정보 불러오기 실패 {e}'}
 
     # 비밀번호 변경
     def PWChange(token : str, newPW : str) -> bool:
