@@ -75,7 +75,7 @@ else:
             st.switch_page(page="pages/signOut.py")
 
     # 사용자 정보 불러오기
-    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
+    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -133,7 +133,7 @@ else:
                 use_container_width=False
                 )
             if deleteBTN:
-                utils.guest.delAddr(uid=st.session_state.user['localId'], delAddr=address)
+                utils.guest.delAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], delAddr=address)
                 st.rerun()
 
         addAddress = st.text_input(
@@ -152,5 +152,5 @@ else:
                 st.warning(body="등록 가능한 주소지는 5개입니다.")
             else:
                 addAddr = addrDialog()
-                utils.guest.addAddr(uid=st.session_state.user['localId'], addAddr=addAddr)
+                utils.guest.addAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], addAddr=addAddr)
                 st.rerun()

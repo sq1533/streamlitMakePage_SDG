@@ -13,7 +13,7 @@ else:
         st.title(body="마이페이지")
 
     # email 정보 불러오기
-    email = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).child('email').get().val()
+    email = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).child('email').get(token=st.session_state.user['idToken']).val()
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 

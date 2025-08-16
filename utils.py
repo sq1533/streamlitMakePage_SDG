@@ -145,20 +145,20 @@ class guest(database):
         pass
 
     # 사용자 주소 추가
-    def addAddr(uid : str, addAddr : str) -> bool:
+    def addAddr(uid : str, token : str, addAddr : str) -> bool:
         try:
-            addrInfo = database().pyrebase_db_user.child(uid).child('address').get().val()
-            database().pyrebase_db_user.child(uid).update({'address':addrInfo.append(addAddr)})
+            addrInfo = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
+            database().pyrebase_db_user.child(uid).update(data={'address':addrInfo.append(addAddr)}, token=token)
             return True
         except Exception as e:
             print(e)
             return False
 
     # 사용자 주소 삭제
-    def delAddr(uid : str, delAddr : str) -> bool:
+    def delAddr(uid : str, token : str, delAddr : str) -> bool:
         try:
-            addrInfo = database().pyrebase_db_user.child(uid).child('address').get().val()
-            database().pyrebase_db_user.child(uid).update({'address':addrInfo.remove(delAddr)})
+            addrInfo = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
+            database().pyrebase_db_user.child(uid).update(data={'address':addrInfo.remove(delAddr)}, token=token)
             return True
         except Exception as e:
             print(e)
@@ -182,9 +182,9 @@ class items(database):
         return itemsId
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(uid : str, itemID : str, orderInfo : dict) -> bool:
+    def itemOrder(uid : str, token : str, itemID : str, orderInfo : dict) -> bool:
         try:
-            database().pyrebase_db_user.child(uid).child('orderList').push(orderInfo)
+            database().pyrebase_db_user.child(uid).child('orderList').push(data=orderInfo, token=token)
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get().val() # 아이템 수량 변경
             countResults = int(itemStatus['count']) - 1
             if countResults < 4:
