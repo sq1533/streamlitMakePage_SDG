@@ -9,9 +9,10 @@ if "user" not in st.session_state:
 if "userAllow" not in st.session_state:
     st.session_state.userAllow = False
 
-# 고객 주소 정보
-if "address" not in st.session_state:
-    st.session_state.address = '배송지 입력하기'
+# 상세 주소 선택 구분
+if "selectAddr" not in st.session_state:
+    st.session_state.selectAddr = None
+
 
 st.markdown(
     """
@@ -35,29 +36,48 @@ def addrDialog():
         type="default",
         disabled=False
     )
-    if dialogAddr == None:
+    if dialogAddr:
+        if st.session_state.selectAddr:
+            st.markdown(
+                body=f'### {st.session_state.selectAddr}'
+            )
+            detailAddress = st.text_input(
+                label="상세 주소지",
+                key="myinfoAddAddress",
+                type="default"
+            )
+            addAddrToFirebase = st.button(
+                label="추가하기",
+                key="addrToFirebase",
+                type="primary",
+                use_container_width=True
+            )
+            if detailAddress or addAddrToFirebase:
+                newAddr = st.session_state.selectAddr + detailAddress
+                utils.guest.addAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], addAddr=newAddr)
+                st.session_state.selectAddr = None
+                st.rerun()
+        else:
+            for i in utils.seachAddress(dialogAddr):
+                addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
+                addrNo.markdown(
+                    body=list(i.keys())[0]
+                )
+                addrStr.markdown(
+                    body=list(i.values())[0]
+                )
+                choice = btn.button(
+                    label="선택",
+                    key=list(i.values())[0],
+                    type="primary",
+                    use_container_width=False
+                )
+                if choice:
+                    st.session_state.selectAddr = f'{list(i.keys())[0]} {list(i.values())[0]}'
+    else:
         st.markdown(
             body="검색창에 찾을 주소를 입력해주세요."
         )
-    else:
-        for i in utils.seachAddress(dialogAddr):
-            addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
-            addrNo.markdown(
-                body=list(i.keys())[0]
-            )
-            addrStr.markdown(
-                body=list(i.values())[0]
-            )
-            choice = btn.button(
-                label="선택",
-                key=list(i.values())[0],
-                type="primary",
-                use_container_width=False
-            )
-            if choice:
-                st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
-                st.rerun()
-        return st.session_state.address
 
 # 페이지
 if not st.session_state.user:
@@ -118,12 +138,15 @@ else:
         )
         st.text_input(
             label="휴대폰 번호",
-            value=userInfo.get('phone'),
+            value=userInfo.get('phoneNumber'),
             key="myinfoPhone",
             type="default",
             disabled=True
         )
-        for address in userInfo.get('address'):
+        
+        st.markdown(body=f"###### {userInfo.get('address')[0]} 주 배송지")
+
+        for address in userInfo.get('address')[1:]:
             addr, deleteB, empty = st.columns(spec=[3,1,2], gap="small", vertical_alignment="center")
             addr.markdown(body=f"###### {address}")
             deleteBTN = deleteB.button(
@@ -136,21 +159,15 @@ else:
                 utils.guest.delAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], delAddr=address)
                 st.rerun()
 
-        addAddress = st.text_input(
-            label="추가 주소지",
-            key="myinfoAddAddress",
-            type="default"
-        )
         addAddressBTN = st.button(
             label="배송지 검색",
             key="myinfoAddress",
             type="primary",
             use_container_width=True
         )
+
         if addAddressBTN:
             if userInfo.get('address').__len__() > 5:
                 st.warning(body="등록 가능한 주소지는 5개입니다.")
             else:
-                addAddr = addrDialog()
-                utils.guest.addAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], addAddr=addAddr)
-                st.rerun()
+                addrDialog()
