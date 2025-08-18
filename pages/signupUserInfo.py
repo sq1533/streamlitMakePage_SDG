@@ -109,7 +109,9 @@ if st.session_state.signup_step:
             'email':st.session_state.signup_email,
             'name':name,
             'phoneNumber':phone,
-            'address':[address],
+            'address':{
+                0:address
+                },
             'createPW':nowDay
         }
 

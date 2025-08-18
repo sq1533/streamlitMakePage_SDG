@@ -145,20 +145,26 @@ class guest(database):
         pass
 
     # 사용자 주소 추가
-    def addAddr(uid : str, token : str, addAddr : str) -> bool:
+    def addAddr(uid : str, token : str, addAddr : dict) -> bool:
         try:
-            addrInfo = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
-            database().pyrebase_db_user.child(uid).update(data={'address':addrInfo.append(addAddr)}, token=token)
+            database().pyrebase_db_user.child(uid).child('address').update(data=addAddr, token=token)
             return True
         except Exception as e:
             print(e)
             return False
 
     # 사용자 주소 삭제
-    def delAddr(uid : str, token : str, delAddr : str) -> bool:
+    def delAddr(uid : str, token : str, addrIndex : dict) -> bool:
         try:
-            addrInfo = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
-            database().pyrebase_db_user.child(uid).update(data={'address':addrInfo.remove(delAddr)}, token=token)
+            database().pyrebase_db_user.child(uid).child('address').child(addrIndex).remove(token=token)
+            address = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
+            address[addrIndex]
+            indexNumber = 0
+            result = {}
+            for i in address:
+                result[indexNumber] = i
+                indexNumber += 1
+            database().pyrebase_db_user.child(uid).child('address').set(data=result, token=token)
             return True
         except Exception as e:
             print(e)
@@ -209,9 +215,9 @@ class items(database):
 def seachAddress(address : str):
     sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
     if re.search(r"[\]\[%;<>=]", address):
-        return [{'False':'특수문자는 포함할 수 없습니다.'}]
+        return {'allow':False, 'result':'특수문자는 포함할 수 없습니다.'}
     elif any(i in address.upper() for i in sqlInjection):
-        return [{'False':'포함할 수 없는 단어가 존재합니다.'}]
+        return {'allow':False, 'result':'포함할 수 없는 단어가 존재합니다.'}
     else:
         addressKey = {
             "confmKey" : st.secrets["address_search"]["keys"],
@@ -225,11 +231,11 @@ def seachAddress(address : str):
             if response.status_code == 200:
                 addrLen = response.json()["results"]["juso"].__len__()
                 if addrLen == 0:
-                    return [{'None':'검색 결과가 없습니다. 주소를 다시 확인해주세요.'}]
+                    return {'allow':False, 'result':'주소가 없습니다.'}
                 else:
                     addrList = []
                     for i in range(addrLen):
                         addrList.append({response.json()["results"]["juso"][i]["zipNo"] : response.json()["results"]["juso"][i]["roadAddr"]})
-                    return addrList
-        except Exception as e:
-            return [{'False':f'알 수 없는 오류 발생 {e}'}]
+                    return {'allow':True, 'result':addrList}
+        except Exception:
+            return {'allow':False, 'result':'주소 검색 실패, 다시 시도해주세요.'}

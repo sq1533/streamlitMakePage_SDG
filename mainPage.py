@@ -24,7 +24,7 @@ if "signup_step" not in st.session_state:
 
 # 회원 로그인 구분
 if "user" not in st.session_state:
-    st.session_state.user = False
+    st.session_state.user = None
 
 # 회원 허용 유무
 if "userAllow" not in st.session_state:
@@ -122,51 +122,14 @@ st.html(
 
 # siderbar 정의
 with st.sidebar:
-    if not st.session_state.user:
-        ID = st.text_input(
-            label="email",
-            value=None,
-            key="textID",
-            type="default",
-            placeholder=None
-        )
-        PW = st.text_input(
-            label="password",
-            value=None,
-            key="textPW",
-            type="password",
-            placeholder=None
-        )
-        login = st.button(
-            label="signIN",
-            type="primary",
-            use_container_width=True
-        )
-        signup = st.button(
-            label="회원가입",
-            type="secondary",
-            use_container_width=True
-        )
-        if (ID and PW) or login:
-            goSignIn = utils.guest.signIN(id=ID, pw=PW)
-            if goSignIn['allow']:
-                st.session_state.user = goSignIn['result']
-                st.rerun()
-            else:
-                st.error(
-                    body='로그인 실패, 계정정보를 확인해주세요.'
-                )
-        if signup:
-            st.session_state.signup_step = True
-            st.switch_page(page="pages/signup.py")
-    else:
+    if st.session_state.user:
         logoutB = st.button(
             label="log-OUT",
             type="secondary",
             use_container_width=True
         )
         if logoutB:
-            st.session_state.clear
+            st.session_state.user = None
             st.rerun()
 
         # 이메일 검증 유무 확인
@@ -237,6 +200,43 @@ with st.sidebar:
         # 주문 내역 페이지
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
+    else:
+        ID = st.text_input(
+            label="email",
+            value=None,
+            key="textID",
+            type="default",
+            placeholder=None
+        )
+        PW = st.text_input(
+            label="password",
+            value=None,
+            key="textPW",
+            type="password",
+            placeholder=None
+        )
+        login = st.button(
+            label="signIN",
+            type="primary",
+            use_container_width=True
+        )
+        signup = st.button(
+            label="회원가입",
+            type="secondary",
+            use_container_width=True
+        )
+        if (ID and PW) or login:
+            goSignIn = utils.guest.signIN(id=ID, pw=PW)
+            if goSignIn['allow']:
+                st.session_state.user = goSignIn['result']
+                st.rerun()
+            else:
+                st.error(
+                    body='로그인 실패, 계정정보를 확인해주세요.'
+                )
+        if signup:
+            st.session_state.signup_step = True
+            st.switch_page(page="pages/signup.py")
 
     # 상품 카테고리
     itemColor = list(set([item.val()['color'] for item in itemsInfoList]))

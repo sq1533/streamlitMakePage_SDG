@@ -30,7 +30,7 @@ else:
             st.switch_page(page="mainPage.py")
 
         st.markdown(
-            body="본인임을 한번 더 인증해 주세요!"
+            body="인증해 주세요!"
         )
 
         PW = st.text_input(
