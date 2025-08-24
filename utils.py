@@ -154,11 +154,10 @@ class guest(database):
             return False
 
     # 사용자 주소 삭제
-    def delAddr(uid : str, token : str, addrIndex : dict) -> bool:
+    def delAddr(uid : str, token : str, delAddr : str) -> bool:
         try:
-            database().pyrebase_db_user.child(uid).child('address').child(addrIndex).remove(token=token)
+            database().pyrebase_db_user.child(uid).child('address').child(delAddr).remove(token=token)
             address = database().pyrebase_db_user.child(uid).child('address').get(token=token).val()
-            address[addrIndex]
             indexNumber = 0
             result = {}
             for i in address:

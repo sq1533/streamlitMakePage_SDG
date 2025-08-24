@@ -158,7 +158,7 @@ else:
 
         if addrLen != 1:
             for address in userInfo.get('address'):
-                addr, deleteB, empty = st.columns(spec=[3,1,2], gap="small", vertical_alignment="center")
+                addr, deleteB = st.columns(spec=[3,1], gap="small", vertical_alignment="center")
                 addr.markdown(body=f"###### {address}")
                 deleteBTN = deleteB.button(
                     label="삭제",
