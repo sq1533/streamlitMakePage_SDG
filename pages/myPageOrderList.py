@@ -1,8 +1,6 @@
 import streamlit as st
 import utils
-from datetime import datetime, timezone, timedelta
-import time
-import requests
+from datetime import datetime
 
 # 회원 로그인 구분
 if 'user' not in st.session_state:
@@ -50,12 +48,17 @@ else:
         if userInfo.get('orderList') == None:
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
+            showStatus = {
+                'ready':'상품 제작 중...',
+                'delivery':'상품 배송 중...',
+                'complete':'배송 완료'
+            }
             for key, order in reversed(userInfo.get('orderList').items()):
                 # 주문 정보
                 orderTime = order.get('time')
                 itemID = order.get('item')
                 address = order.get('address')
-                status = order.get('status')
+                status = showStatus[order.get('status')]
 
                 # 아이템 정보
                 itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
@@ -75,3 +78,50 @@ else:
                         {address}
                         """
                         )
+                    
+                    changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
+
+                    if order.get('status') == 'ready':
+                        btnStatus = {
+                            'addressChange':False,
+                            'statusChange':'주문 취소',
+                            'switchPagePath':'pages/userCancel.py'
+                        }
+                    else:
+                        btnStatus = {
+                            'addressChange':True,
+                            'statusChange':'환불 요청',
+                            'switchPagePath':'pages/userRefund.py'
+                        }
+
+                    changeAddrB = changeAddr.button(
+                        label='배송지 변경',
+                        key=f'address_{key}',
+                        type='primary',
+                        disabled=btnStatus['addressChange'],
+                        use_container_width=True
+                    )
+                    if changeAddrB:
+                        resultAddr = st.radio(
+                            label="상품 배송지",
+                            options=userInfo.get('address').values(),
+                            index=0,
+                            key=f'changeAddr_{key}',
+                            horizontal=False,
+                            label_visibility="visible"
+                            )
+
+                    aboutItem.button(
+                        label='상품 상세',
+                        key=f'item_{key}',
+                        type='primary',
+                        use_container_width=True
+                    )
+
+
+                    changeStatus.button(
+                        label=btnStatus['statusChange'],
+                        key=f'order_{key}',
+                        type='primary',
+                        use_container_width=True
+                    )

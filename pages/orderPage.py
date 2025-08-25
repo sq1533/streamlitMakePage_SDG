@@ -92,7 +92,7 @@ if st.session_state.userAllow:
                         'time' : orderTime,
                         'item' : st.session_state.item,
                         'address' : addressTarget,
-                        'status' : '상품 제작 중...'
+                        'status' : 'ready'
                         }
                     order = utils.items.itemOrder(
                         uid=st.session_state.user['localId'],
