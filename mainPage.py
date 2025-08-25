@@ -253,7 +253,7 @@ with st.sidebar:
         )
 
     categoryFilter = st.segmented_control(
-        label = "카테고리",
+        label = "시리즈",
         options = itemCategory,
         selection_mode = "single",
         default = None,

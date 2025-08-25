@@ -23,11 +23,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if not st.session_state.userID:
+if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
 
-    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()
+    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(st.session_state.user['idToken']).val()
 
     with st.sidebar:
         st.title(body="주문내역")
@@ -50,8 +50,7 @@ else:
         if userInfo.get('orderList') == None:
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
-            orderList = [i for i in userInfo.get('orderList').values()]
-            for order in reversed(orderList):
+            for key, order in reversed(userInfo.get('orderList').items()):
                 # 주문 정보
                 orderTime = order.get('time')
                 itemID = order.get('item')
@@ -61,8 +60,8 @@ else:
                 # 아이템 정보
                 itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
 
-                with st.exception(exception=f'주문 시간 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
-                    image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="center")
+                with st.expander(label=f'주문 시간 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
+                    image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     image.image(
                         image=itemInfo.get("paths")[0],
                         caption=None,
@@ -73,6 +72,6 @@ else:
                     info.markdown(
                         body=f"""
                         상품명 : {itemInfo.get('name')}\n\n
-                        주문 날짜 : {orderTime}
+                        {address}
                         """
                         )

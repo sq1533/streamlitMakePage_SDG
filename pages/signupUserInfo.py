@@ -110,7 +110,7 @@ if st.session_state.signup_step:
             'name':name,
             'phoneNumber':phone,
             'address':{
-                0:address
+                'home':address
                 },
             'createPW':nowDay
         }

@@ -68,10 +68,10 @@ if st.session_state.userAllow:
                     body="##### **배송비 :** 무료"
                     )
 
-            userAddr = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get().val()['address']
+            address = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()['address']['home']
             addressTarget = st.radio(
                 label="상품 배송지",
-                options=userAddr,
+                options=address,
                 index=0,
                 key="targetAdd",
                 horizontal=False,
@@ -96,6 +96,7 @@ if st.session_state.userAllow:
                         }
                     order = utils.items.itemOrder(
                         uid=st.session_state.user['localId'],
+                        token=st.session_state.user['idToken'],
                         itemID=st.session_state.item,
                         orderInfo=orderInfo
                         )

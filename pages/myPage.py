@@ -32,7 +32,7 @@ def addrSession(addr : str):
 
 # 배송지 추가
 @st.dialog(title='주소 검색')
-def addrDialog(addrLen : int):
+def addrDialog():
     dialogAddr = st.text_input(
         label="주소",
         value=None,
@@ -57,7 +57,7 @@ def addrDialog(addrLen : int):
                 use_container_width=True
             )
             if addAddrToFirebase:
-                newAddr = {addrLen : st.session_state.selectAddr + ' ' + detailAddress}
+                newAddr = st.session_state.selectAddr + ' ' + detailAddress
                 utils.guest.addAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], addAddr=newAddr)
                 st.session_state.selectAddr = None
                 st.rerun()
@@ -154,21 +154,45 @@ else:
             disabled=True
         )
         addrLen = userInfo.get('address').__len__()
-        st.markdown(body=f"###### {userInfo.get('address')[0]} 주 배송지")
+        st.markdown(body='##### 주 배송지')
+        st.markdown(body=f"###### {userInfo.get('address')['home']}")
 
+        st.markdown(body='##### 주소 리스트')
         if addrLen != 1:
-            for address in userInfo.get('address'):
-                addr, deleteB = st.columns(spec=[3,1], gap="small", vertical_alignment="center")
-                addr.markdown(body=f"###### {address}")
-                deleteBTN = deleteB.button(
-                    label="삭제",
-                    key=f"delete_{address}",
-                    type="secondary",
-                    use_container_width=False
-                    )
-                if deleteBTN:
-                    utils.guest.delAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], delAddr=address)
-                    st.rerun()
+            for key, address in userInfo.get('address').items():
+                if key == 'home':
+                    pass
+                else:
+                    st.markdown(body=f"###### {address}")
+                    empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
+                    deleteBTN = deleteB.button(
+                        label="삭제",
+                        key=f"delete_{key}",
+                        type="secondary",
+                        use_container_width=False
+                        )
+                    if deleteBTN:
+                        utils.guest.delAddr(
+                            uid=st.session_state.user['localId'],
+                            token=st.session_state.user['idToken'],
+                            delAddr=key
+                            )
+                        st.rerun()
+                    homeAddrBTN = homeAddrB.button(
+                        label="주 배송지로 변경",
+                        key=f"home_{key}",
+                        type="secondary",
+                        use_container_width=False
+                        )
+                    if homeAddrBTN:
+                        utils.guest.homeAddr(
+                            uid=st.session_state.user['localId'],
+                            token=st.session_state.user['idToken'],
+                            addr=address,
+                            delAddr=key
+                        )
+                        st.rerun()
+                    
         else:
             pass
 
@@ -180,7 +204,7 @@ else:
         )
 
         if addAddressBTN:
-            if userInfo.get('address').__len__() > 5:
-                st.warning(body="등록 가능한 주소지는 5개입니다.")
+            if userInfo.get('address').__len__() >= 4:
+                st.warning(body="추가 등록할 수 없습니다.")
             else:
-                addrDialog(addrLen=addrLen)
+                addrDialog()
