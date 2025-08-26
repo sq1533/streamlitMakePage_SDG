@@ -42,9 +42,9 @@ if st.session_state.userAllow:
         with main.container():
             # 홈으로 이동
             goHome = st.button(
-                label="홈으로 이동",
-                key="goHomeFromOrderPage",
-                type="primary",
+                label='HOME',
+                key='goHOME',
+                type='primary',
                 use_container_width=False,
                 disabled=False
             )

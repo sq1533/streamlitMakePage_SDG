@@ -179,23 +179,23 @@ class items(database):
     # 아이템 수량 및 상태    
     def itemStatus(itemId : str) -> dict:
         try:
-            itemStatus = database().pyrebase_db_itemStatus.child(itemId).get().val() # 아이템 상태 조회
+            itemStatus = database().pyrebase_db_itemStatus.child(itemId).get().val()
             return {'allow':True, 'result':itemStatus}
         except Exception as e:
             print(e)
             return {'allow':False, 'result':'아이템 조회 실패'}
-    
+
     # 아이템 ID 리스트
     def itemsIdList():
-        itemsId_dict = database().pyrebase_db_items.get().val() # 아이템 키값 dict {'items1':True}
-        itemsId = list(itemsId_dict.keys()) # 아이템 키값 list
+        itemsId_dict = database().pyrebase_db_items.get().val()
+        itemsId = list(itemsId_dict.keys())
         return itemsId
 
     # 아이템 구매 및 상태 변경
     def itemOrder(uid : str, token : str, itemID : str, orderInfo : dict) -> bool:
         try:
             database().pyrebase_db_user.child(uid).child('orderList').push(data=orderInfo, token=token)
-            itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val() # 아이템 수량 변경
+            itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) - 1
             if countResults < 4:
                 itemResults = {
@@ -213,7 +213,16 @@ class items(database):
         except Exception as e:
             print(f'상품 주문 실패 {e}')
             return False
-        
+
+    # 배송지 변경
+    def cgAddr(uid : str, token : str, key : str, addr : str) -> bool:
+        try:
+            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'address':addr}, token=token)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
     # 주문 취소 및 환불
     def orderCancel():
         pass

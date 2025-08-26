@@ -10,6 +10,6 @@ if st.query_params:
     time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
-    st.success("인증이 완료되었습니다. 회원가입을 이어서 해주세요.")
+    st.success("인증이 완료되었습니다. 환영합니다.")
     time.sleep(2)
     st.switch_page(page="mainPage.py")

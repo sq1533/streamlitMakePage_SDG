@@ -18,9 +18,9 @@ else:
     with main.container():
         # 홈으로 이동
         goHome = st.button(
-            label="홈으로 이동",
-            key="goHome",
-            type="primary",
+            label='HOME',
+            key='goHOME',
+            type='primary',
             use_container_width=False,
             disabled=False
         )

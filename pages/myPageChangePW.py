@@ -18,9 +18,9 @@ else:
     with main.container():
         # 홈으로 이동
         goHome = st.button(
-            label="홈으로 이동",
-            key="goHomeFromOrderPage",
-            type="primary",
+            label='HOME',
+            key='goHOME',
+            type='primary',
             use_container_width=False,
             disabled=False
         )
@@ -28,17 +28,17 @@ else:
             st.switch_page(page="mainPage.py")
 
         pw = st.text_input(
-            label="비밀번호",
+            label='비밀번호',
             value=None,
-            key="userPW",
-            type="password",
+            key='userPW',
+            type='password',
             placeholder="08 ~ 20, 영문, 숫자, 특수문자 포함"
         )
         pwCheck = st.text_input(
-            label="비밀번호 확인",
+            label='비밀번호 확인',
             value=None,
-            key="userPWcheck",
-            type="password",
+            key='userPWcheck',
+            type='password',
             placeholder="비밀번호와 동일하게 입력해주세요."
         )
 
@@ -51,26 +51,31 @@ else:
                 lengthC = True
             else:
                 length = "gray"
+
             if re.search(r'[a-zA-Z]', pw):
                 eng = "green"
                 engC = True
             else:
                 eng = "gray"
+
             if re.search(r'[0-9]', pw):
                 num = "green"
                 numC = True
             else:
                 num = "gray"
+
             if re.search(r"[!@#$%^&*(),.?:<>'/]", pw):
                 special = "green"
                 specialC = True
             else:
                 special = "gray"
+
             if pw == pwCheck:
                 check = "green"
                 checkC = True
             else:
                 check = "gray"
+
         st.badge(
             label="비밀번호 08 ~ 20 자리",
             icon=None,

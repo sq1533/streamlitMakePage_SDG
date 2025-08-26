@@ -20,9 +20,9 @@ else:
     with main.container():
         # 홈으로 이동
         goHome = st.button(
-            label="홈으로 이동",
-            key="goHome",
-            type="primary",
+            label='HOME',
+            key='goHome',
+            type='primary',
             use_container_width=False,
             disabled=False
         )
@@ -42,11 +42,11 @@ else:
         )
 
         access = st.button(
-                label="인증",
-                type="primary",
+                label='인증',
+                key='access',
+                type='primary',
                 use_container_width=True
             )
-
         allowCount = 0
         if access:
             signIN = utils.guest.signIN(id=email, pw=PW)

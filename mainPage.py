@@ -18,10 +18,6 @@ screen_width = streamlit_js_eval(js_expressions='screen.width', key='screen_widt
 itemsInfoList = utils.database().pyrebase_db_items.get().each()
 itemsInfoDict = utils.database().pyrebase_db_items.get().val()
 
-# 회원 가입 구분
-if "signup_step" not in st.session_state:
-    st.session_state.signup_step = False
-
 # 회원 로그인 구분
 if "user" not in st.session_state:
     st.session_state.user = None
@@ -49,7 +45,7 @@ st.markdown(
         aspect-ratio: 20 / 9;
         object-fit: fill;
     }
-    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+    div[data-testid="stElementToolbar"] {
         display: none !important;
     }
     div[aria-label="dialog"][role="dialog"] {
@@ -124,7 +120,8 @@ st.html(
 with st.sidebar:
     if st.session_state.user:
         logoutB = st.button(
-            label="log-OUT",
+            label="signOut",
+            key='signOut',
             type="secondary",
             use_container_width=True
         )
@@ -135,35 +132,40 @@ with st.sidebar:
         # 이메일 검증 유무 확인
         emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user['idToken'])
         email_verified = emailVer['users'][0]['emailVerified']
+
         if email_verified:
             st.session_state.userAllow = True
         else:
             pass
 
         st.markdown(f'## 환영합니다.')
+
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
         myinfo = myinfo.button(
-            label="마이페이지",
-            type="tertiary",
-            key="myPage",
+            label='마이페이지',
+            key='myPage',
+            type='tertiary',
             use_container_width=True
         )
         orderL = orderList.button(
-            label="주문내역",
-            type="tertiary",
-            key="orderList",
+            label='주문내역',
+            key='orderList',
+            type='tertiary',
             use_container_width=True
         )
 
         # 회원 비밀번호 생성기간 확인
         userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
+
         if userInfo['allow']:
             createPW = userInfo['result'].get('createPW')
             now = datetime.now(timezone.utc) + timedelta(hours=9)
             nowDay = now.strftime('%Y-%m-%d')
+
             orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
             nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
             elapsed = (nowDay_d - orderDay_d).days
+
             if elapsed > 90:
                 st.warning(
                     body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.'
@@ -201,42 +203,14 @@ with st.sidebar:
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
     else:
-        ID = st.text_input(
-            label="email",
-            value=None,
-            key="textID",
-            type="default",
-            placeholder=None
-        )
-        PW = st.text_input(
-            label="password",
-            value=None,
-            key="textPW",
-            type="password",
-            placeholder=None
-        )
-        login = st.button(
-            label="signIN",
-            type="primary",
+        signIn = st.button(
+            label='sign in / 회원가입',
+            key='signIn',
+            type='primary',
             use_container_width=True
         )
-        signup = st.button(
-            label="회원가입",
-            type="secondary",
-            use_container_width=True
-        )
-        if (ID and PW) or login:
-            goSignIn = utils.guest.signIN(id=ID, pw=PW)
-            if goSignIn['allow']:
-                st.session_state.user = goSignIn['result']
-                st.rerun()
-            else:
-                st.error(
-                    body='로그인 실패, 계정정보를 확인해주세요.'
-                )
-        if signup:
-            st.session_state.signup_step = True
-            st.switch_page(page="pages/signup.py")
+        if signIn:
+            st.switch_page(page="pages/signIn.py")
 
     # 상품 카테고리
     itemColor = list(set([item.val()['color'] for item in itemsInfoList]))

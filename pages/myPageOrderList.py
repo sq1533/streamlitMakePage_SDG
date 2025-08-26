@@ -6,15 +6,18 @@ from datetime import datetime
 if 'user' not in st.session_state:
     st.session_state.user = False
 
+# 주문 상품 정보
+if 'orderItem' not in st.session_state:
+    st.session_state.orderItem = False
+
 st.markdown(
     body="""
     <style>
-    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+    div[data-testid="stElementToolbar"] {
         display: none !important;
     }
     div[aria-label="dialog"][role="dialog"] {
-        width: 80% !important;
-        max-width: 800px !important;
+        width: 75% !important;
     }
     </style>
     """,
@@ -35,9 +38,9 @@ else:
     with main.container():
         # 홈으로 이동
         goHome = st.button(
-            label="홈으로 이동",
-            key="goHomeFromOrderPage",
-            type="primary",
+            label='HOME',
+            key='goHOME',
+            type='primary',
             use_container_width=False,
             disabled=False
         )
@@ -63,7 +66,7 @@ else:
                 # 아이템 정보
                 itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
 
-                with st.expander(label=f'주문 시간 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
+                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     image.image(
                         image=itemInfo.get("paths")[0],
@@ -102,14 +105,8 @@ else:
                         use_container_width=True
                     )
                     if changeAddrB:
-                        resultAddr = st.radio(
-                            label="상품 배송지",
-                            options=userInfo.get('address').values(),
-                            index=0,
-                            key=f'changeAddr_{key}',
-                            horizontal=False,
-                            label_visibility="visible"
-                            )
+                        st.session_state.orderItem = [key, order]
+                        st.switch_page(page='pages/userCgAddr.py')
 
                     aboutItem.button(
                         label='상품 상세',
@@ -119,9 +116,12 @@ else:
                     )
 
 
-                    changeStatus.button(
+                    chagneStatusB = changeStatus.button(
                         label=btnStatus['statusChange'],
                         key=f'order_{key}',
                         type='primary',
                         use_container_width=True
                     )
+                    if chagneStatusB:
+                        st.session_state.orderItem = [key, order]
+                        st.switch_page(page=btnStatus['switchPagePath'])

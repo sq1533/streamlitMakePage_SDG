@@ -18,8 +18,7 @@ st.markdown(
     """
     <style>
     div[aria-label="dialog"][role="dialog"] {
-        width: 80% !important;
-        max-width: 800px !important;
+        width: 75% !important;
     }
     </style>
     """,
@@ -112,7 +111,7 @@ else:
     with main.container():
         # 홈으로 이동
         goHome = st.button(
-            label="홈으로 이동",
+            label="HOME",
             key="goHome",
             type="primary",
             use_container_width=False,
@@ -202,7 +201,6 @@ else:
             type="primary",
             use_container_width=True
         )
-
         if addAddressBTN:
             if userInfo.get('address').__len__() >= 4:
                 st.warning(body="추가 등록할 수 없습니다.")
