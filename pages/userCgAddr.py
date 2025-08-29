@@ -35,11 +35,12 @@ def changeAddr(key : str):
         key='cgAddr_select',
         placeholder='주소를 선택해 주세요.'
     )
-    empty, btn = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
+    empty, btn = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
     goBtn = btn.button(
         label='확인',
         key=f'cgAddr_check',
         type='primary',
+        use_container_width=True
     )
     if goBtn:
         func = utils.items.cgAddr(
@@ -61,9 +62,6 @@ else:
     if not st.session_state.orderItem:
         st.switch_page(page="mainPage.py")
     else:
-
-        #userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(st.session_state.user['idToken']).val()
-
         with st.sidebar:
             st.title(body="배송지 변경")
 
@@ -100,22 +98,22 @@ else:
             # 아이템 정보
             itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
 
-            image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-            image.image(
-                image=itemInfo.get("paths")[0],
-                caption=None,
-                use_container_width=True,
-                clamp=False,
-                output_format="auto"
-                )
-            info.markdown(
-                body=f"""
-                상품명 : {itemInfo.get('name')}\n\n
-                주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')}\n\n
-                주문 상태 : {status}\n\n
-                {address}
-                """
-                )
+            with st.container(height=250, border=True, key='changeAddress'):
+                image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
+                image.image(
+                    image=itemInfo.get("paths")[0],
+                    caption=None,
+                    clamp=False,
+                    output_format="auto"
+                    )
+                info.markdown(
+                    body=f"""
+                    상품명 : {itemInfo.get('name')}\n\n
+                    주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')}\n\n
+                    주문 상태 : {status}\n\n
+                    {address}
+                    """
+                    )
 
             empty, cgAddr = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
             changeAddrB = cgAddr.button(

@@ -43,17 +43,14 @@ else:
             type="password",
             placeholder=None
         )
-        login = st.button(
+
+        signUp, signIn = st.columns(spec=2, gap='small', vertical_alignment='center')
+        signInB = signIn.button(
             label="signIN",
             type="primary",
             use_container_width=True
         )
-        signup = st.button(
-            label="회원가입",
-            type="secondary",
-            use_container_width=True
-        )
-        if (ID and PW) or login:
+        if (ID and PW) or signInB:
             goSignIn = utils.guest.signIN(id=ID, pw=PW)
             if goSignIn['allow']:
                 st.session_state.user = goSignIn['result']
@@ -62,6 +59,12 @@ else:
                 st.error(
                     body='로그인 실패, 계정정보를 확인해주세요.'
                 )
-        if signup:
+
+        signUpB = signUp.button(
+            label="회원가입",
+            type="secondary",
+            use_container_width=True
+        )
+        if signUpB:
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")

@@ -54,7 +54,8 @@ else:
             showStatus = {
                 'ready':'상품 제작 중...',
                 'delivery':'상품 배송 중...',
-                'complete':'배송 완료'
+                'complete':'배송 완료',
+                'cancel':'취소 완료'
             }
             for key, order in reversed(userInfo.get('orderList').items()):
                 # 주문 정보
@@ -88,13 +89,22 @@ else:
                         btnStatus = {
                             'addressChange':False,
                             'statusChange':'주문 취소',
-                            'switchPagePath':'pages/userCancel.py'
+                            'switchPagePath':'pages/userCancel.py',
+                            'cancelB':False
+                        }
+                    elif order.get('status') == 'cancel':
+                        btnStatus = {
+                            'addressChange':True,
+                            'statusChange':'취소 완료',
+                            'switchPagePath':'pages/userCancel.py',
+                            'cancelB':True
                         }
                     else:
                         btnStatus = {
                             'addressChange':True,
                             'statusChange':'환불 요청',
-                            'switchPagePath':'pages/userRefund.py'
+                            'switchPagePath':'pages/userRefund.py',
+                            'cancelB':False
                         }
 
                     changeAddrB = changeAddr.button(
@@ -120,6 +130,7 @@ else:
                         label=btnStatus['statusChange'],
                         key=f'order_{key}',
                         type='primary',
+                        disabled=btnStatus['cancelB'],
                         use_container_width=True
                     )
                     if chagneStatusB:

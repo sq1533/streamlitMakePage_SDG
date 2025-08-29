@@ -19,7 +19,7 @@ if "item" not in st.session_state:
 st.markdown(
     """
     <style>
-    button[data-testid="stBaseButton-elementToolbar"][aria-label="Fullscreen"] {
+    div[data-testid="stElementToolbar"] {
         display: none !important;
     }
     </style>

@@ -197,7 +197,7 @@ class items(database):
             database().pyrebase_db_user.child(uid).child('orderList').push(data=orderInfo, token=token)
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) - 1
-            if countResults < 4:
+            if countResults <= 10:
                 itemResults = {
                     'count' : countResults,
                     'enable' : False
@@ -224,8 +224,30 @@ class items(database):
             return False
 
     # 주문 취소 및 환불
-    def orderCancel():
-        pass
+    def orderCancel(uid : str, token : str, key : str, itemID : str):
+        try:
+            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'cancel'}, token=token)
+            itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
+            countResults = int(itemStatus['count']) + 1
+            if itemStatus['enable']:
+                itemResults = {
+                    'count' : countResults
+                }
+            else:
+                if countResults > 10:
+                    itemResults = {
+                        'count' : countResults,
+                        'enable' : True
+                    }
+                else:
+                    itemResults = {
+                        'count' : countResults
+                    }
+            database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults, token=token)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     # 교환
     def orderChange():
