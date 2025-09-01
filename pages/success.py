@@ -5,7 +5,18 @@ import time
 if "email" not in st.query_params:
     st.query_params.email = False
 
-if st.query_params:
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+if st.query_params.email:
     st.switch_page(page="mainPage.py")
 else:
     st.success("인증이 완료되었습니다. 환영합니다.")

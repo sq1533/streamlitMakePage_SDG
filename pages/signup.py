@@ -10,6 +10,17 @@ if "signup_step" not in st.session_state:
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 세션 정보 검증 및 이메일 검증
 if st.session_state.signup_step:
     # 사이드바 내용

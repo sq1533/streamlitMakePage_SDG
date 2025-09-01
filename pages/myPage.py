@@ -20,6 +20,9 @@ st.markdown(
     div[aria-label="dialog"][role="dialog"] {
         width: 75% !important;
     }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True

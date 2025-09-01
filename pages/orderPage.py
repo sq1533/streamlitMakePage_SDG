@@ -17,9 +17,12 @@ if "item" not in st.session_state:
     st.session_state.item = False
 
 st.markdown(
-    """
+    body="""
     <style>
     div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
     </style>

@@ -56,6 +56,14 @@ class database:
         self.pyrebase_db_itemStatus = firebase.database().child('itemStatus') # itemStatus 정보 db
         self.pyrebase_db_orderList = firebase.database().child('orderList') # orderList 정보 db
         self.pyrebase_db_UIUX = firebase.database().child('UIUX') # UIUX 정보 db
+        self.showStatus = {
+                'ready':'상품 제작 중...',
+                'delivery':'상품 배송 중...',
+                'complete':'배송 완료',
+                'cancel':'취소 완료',
+                'refund':'환불 요청 완료',
+                'refunded':'환불 완료'
+            }
 
 
 # guest 관리
@@ -249,9 +257,14 @@ class items(database):
             print(e)
             return False
 
-    # 교환
-    def orderChange():
-        pass
+    # 환불 요청
+    def orderRefund(uid : str, token : str, key : str) -> bool:
+        try:
+            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'refund'}, token=token)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 
 # 주소 검색

@@ -5,6 +5,17 @@ from utils import auth
 if "user" not in st.session_state:
     st.session_state.user = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 if not st.session_state.user:
     st.error("잘못된 접근 입니다.")
     time.sleep(2)

@@ -3,7 +3,6 @@ import utils
 import time
 from datetime import datetime, timezone, timedelta
 
-
 # 회원 가입 step 검증
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
@@ -19,6 +18,17 @@ if "pw" not in st.session_state:
 # 고객 주소 정보
 if "address" not in st.session_state:
     st.session_state.address = '배송지 입력하기'
+
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 now = datetime.now(timezone.utc) + timedelta(hours=9)
 nowDay = now.strftime('%Y-%m-%d')

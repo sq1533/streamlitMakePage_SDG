@@ -5,6 +5,17 @@ import utils
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 회원 로그인 구분
 if "user" not in st.session_state:
     st.session_state.user = None

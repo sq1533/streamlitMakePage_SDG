@@ -15,6 +15,17 @@ if "signup_email" not in st.session_state:
 if "pw" not in st.session_state:
     st.session_state.pw = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 회원 비밀번호 설정
 if st.session_state.signup_step:
     with st.sidebar:

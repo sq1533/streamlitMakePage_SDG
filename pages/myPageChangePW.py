@@ -6,6 +6,17 @@ import re
 if "user" not in st.session_state:
     st.session_state.user = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 사용자 정보 저장
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")

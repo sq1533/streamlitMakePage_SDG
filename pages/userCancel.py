@@ -21,6 +21,9 @@ st.markdown(
     div[aria-label="dialog"][role="dialog"] {
         width: 50% !important;
     }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -47,6 +50,7 @@ def cancelOrder(key : str, itemID : str):
         if func:
             st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
             time.sleep(2)
+            st.session_state.orderItem = False
             st.switch_page(page='pages/myPageOrderList.py')
         else:
             st.warning(body='주문 취소 실패, 다시 시도해주세요.')
@@ -74,12 +78,6 @@ else:
             if goHome:
                 st.switch_page(page="mainPage.py")
 
-            showStatus = {
-                'ready':'상품 제작 중...',
-                'delivery':'상품 배송 중...',
-                'complete':'배송 완료'
-            }
-
             st.markdown(body="### 주문 취소")
 
             key = st.session_state.orderItem[0]
@@ -88,7 +86,7 @@ else:
             orderTime = itemInfo.get('time')
             itemID = itemInfo.get('item')
             address = itemInfo.get('address')
-            status = showStatus[itemInfo.get('status')]
+            status = utils.database().showStatus[itemInfo.get('status')]
 
             # 아이템 정보
             itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()

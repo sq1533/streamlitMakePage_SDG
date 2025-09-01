@@ -19,6 +19,9 @@ st.markdown(
     div[aria-label="dialog"][role="dialog"] {
         width: 75% !important;
     }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -51,18 +54,12 @@ else:
         if userInfo.get('orderList') == None:
             st.markdown(body="아직 주문내역이 없습니다.")
         else:
-            showStatus = {
-                'ready':'상품 제작 중...',
-                'delivery':'상품 배송 중...',
-                'complete':'배송 완료',
-                'cancel':'취소 완료'
-            }
             for key, order in reversed(userInfo.get('orderList').items()):
                 # 주문 정보
                 orderTime = order.get('time')
                 itemID = order.get('item')
                 address = order.get('address')
-                status = showStatus[order.get('status')]
+                status = utils.database().showStatus[order.get('status')]
 
                 # 아이템 정보
                 itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()

@@ -6,6 +6,17 @@ import time
 if "user" not in st.session_state:
     st.session_state.user = False
 
+st.markdown(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
