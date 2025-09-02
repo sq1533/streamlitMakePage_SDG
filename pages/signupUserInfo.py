@@ -25,6 +25,9 @@ st.markdown(
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
+    div[aria-label="dialog"][role="dialog"] {
+        width: 75% !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -47,24 +50,23 @@ def addrDialog():
             body="검색창에 찾을 주소를 입력해주세요."
         )
     else:
-        for i in utils.seachAddress(dialogAddr):
-            addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
-            addrNo.markdown(
-                body=list(i.keys())[0]
-            )
-            addrStr.markdown(
-                body=list(i.values())[0]
-            )
-            choice = btn.button(
-                label="선택",
-                key=list(i.values())[0],
-                type="primary",
-                use_container_width=False
-            )
-            if choice:
-                st.session_state.address = list(i.keys())[0] + ' ' + list(i.values())[0]
-                st.rerun()
-        return st.session_state.address
+        findAddr = utils.seachAddress(dialogAddr)
+        if findAddr['allow']:
+            for i in findAddr['result']:
+                addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
+                addrNo.markdown(
+                    body=i
+                )
+                choice = btn.button(
+                    label="선택",
+                    key=i,
+                    type="primary",
+                    use_container_width=True
+                )
+                if choice:
+                    st.session_state.address = i
+                    st.rerun()
+            return st.session_state.address
 
 if st.session_state.signup_step:
     with st.sidebar:

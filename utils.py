@@ -28,7 +28,6 @@ class database:
         self.pyrebase_db_items = firebase.database().child('items') # items 정보 db
         self.pyrebase_db_itemStatus = firebase.database().child('itemStatus') # itemStatus 정보 db
         self.pyrebase_db_orderList = firebase.database().child('orderList') # orderList 정보 db
-        self.pyrebase_db_UIUX = firebase.database().child('UIUX') # UIUX 정보 db
         self.showStatus = {
                 'ready':'상품 제작 중...',
                 'delivery':'상품 배송 중...',
@@ -173,9 +172,16 @@ class items(database):
         return itemsId
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(uid : str, token : str, itemID : str, orderInfo : dict) -> bool:
+    def itemOrder(uid : str, token : str, itemID : str, orderTime : str, address : str) -> bool:
         try:
-            database().pyrebase_db_user.child(uid).child('orderList').push(data=orderInfo, token=token)
+            database().pyrebase_db_orderList.child(f'{uid}{orderTime}').set(
+                data={
+                    'item':itemID,
+                    'address' : address,
+                    'status' : 'ready'
+                    },
+                token=token
+            )
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) - 1
             if countResults <= 10:
@@ -195,10 +201,20 @@ class items(database):
             print(f'상품 주문 실패 {e}')
             return False
 
+    # 주문 내역 불러오기
+    def showOrderList(uid : str, token : str) -> dict:
+        try:
+            myOrderQuery = database().pyrebase_db_orderList.order_by_value().start_at(start=uid)
+            myOrder = myOrderQuery.get(token=token)
+            return {'allow':True, 'result':myOrder}
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':f'주문 내역 조회 실패 {e}'}
+
     # 배송지 변경
     def cgAddr(uid : str, token : str, key : str, addr : str) -> bool:
         try:
-            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'address':addr}, token=token)
+            database().pyrebase_db_orderList.child(uid).child('orderList').child(key).update(data={'address':addr}, token=token)
             return True
         except Exception as e:
             print(e)
@@ -264,7 +280,7 @@ def seachAddress(address : str):
                 else:
                     addrList = []
                     for i in range(addrLen):
-                        addrList.append({response.json()["results"]["juso"][i]["zipNo"] : response.json()["results"]["juso"][i]["roadAddr"]})
+                        addrList.append(response.json()["results"]["juso"][i]["zipNo"] + ' ' + response.json()["results"]["juso"][i]["roadAddr"])
                     return {'allow':True, 'result':addrList}
         except Exception:
             return {'allow':False, 'result':'주소 검색 실패, 다시 시도해주세요.'}

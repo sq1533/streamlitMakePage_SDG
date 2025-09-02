@@ -64,22 +64,11 @@ if st.session_state.userAllow:
 
             with col2:
                 st.title(body=itemInfo['name'])
-                st.markdown(
-                    body=f"##### **가격 :** {itemInfo['price']}원"
-                    )
-                st.markdown(
-                    body="##### **배송비 :** 무료"
-                    )
+                st.markdown(body=f"##### **가격 :** {itemInfo['price']}원")
+                st.markdown(body="##### **배송비 :** 무료")
 
             address = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()['address']['home']
-            addressTarget = st.radio(
-                label="상품 배송지",
-                options=address,
-                index=0,
-                key="targetAdd",
-                horizontal=False,
-                label_visibility="visible"
-                )
+            addressTarget = st.markdown(body=f'##### {address}')
             buyBTN = st.button(
                 label="결제하기",
                 type="primary",
@@ -90,18 +79,12 @@ if st.session_state.userAllow:
                     # requests.post()
                     now = datetime.now(timezone.utc) + timedelta(hours=9)
                     orderTime = now.strftime("%y%m%d%H%M%S")
-                    orderInfo = {
-                        'user' : st.session_state.user['localId'],
-                        'time' : orderTime,
-                        'item' : st.session_state.item,
-                        'address' : addressTarget,
-                        'status' : 'ready'
-                        }
                     order = utils.items.itemOrder(
                         uid=st.session_state.user['localId'],
                         token=st.session_state.user['idToken'],
                         itemID=st.session_state.item,
-                        orderInfo=orderInfo
+                        orderTime=orderTime,
+                        address=address
                         )
                     if order:
                         st.success(

@@ -33,7 +33,7 @@ if st.session_state.signup_step:
         )
         with st.spinner(text='메인 페이지 이동중', show_time=True):
             st.session_state.clear
-            time.sleep(1)
+            time.sleep(2)
             st.switch_page(page="mainPage.py")
 else:
     st.switch_page(page="mainPage.py")

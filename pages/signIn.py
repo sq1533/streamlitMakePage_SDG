@@ -5,6 +5,10 @@ import utils
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
+# 회원 로그인 구분
+if "user" not in st.session_state:
+    st.session_state.user = None
+
 st.markdown(
     body="""
     <style>
@@ -15,10 +19,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# 회원 로그인 구분
-if "user" not in st.session_state:
-    st.session_state.user = None
 
 if st.session_state.user:
     st.switch_page(page="mainPage.py")
