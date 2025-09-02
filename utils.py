@@ -6,32 +6,6 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-"""
-# FireBase secret_keys
-secretKeyPath = {
-    "type" : st.secrets["firebaseKey"]["type"],
-    "project_id" : st.secrets["firebaseKey"]["project_id"],
-    "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
-    "private_key" : st.secrets["firebaseKey"]["private_key"],
-    "client_email" : st.secrets["firebaseKey"]["client_email"],
-    "client_id" : st.secrets["firebaseKey"]["client_id"],
-    "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
-    "token_uri" : st.secrets["firebaseKey"]["token_uri"],
-    "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
-    "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
-    "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
-    }
-
-# Firebase 앱이 이미 초기화되었는지 확인
-if not firebase_admin._apps:
-    try:
-        path = credentials.Certificate(cert=secretKeyPath)
-        firebase_admin.initialize_app(credential=path)
-        print("FireBase Admin SDK 앱 초기화 완료 (from utils.py)")
-    except Exception as e:
-        print(f"Firebase Admin SDK 초기화 오류 in utils.py: {e}")
-"""
-
 # Firebase 사용자 keys
 firebaseWebConfig = {
     "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
@@ -40,7 +14,7 @@ firebaseWebConfig = {
     "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
     "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
     "appId" : st.secrets["firebaseWebConfig"]["appId"],
-    "databaseURL" : "https://shop-demo-5d78e-default-rtdb.firebaseio.com"
+    "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
     }
 
 # pyrebase - firebase 연결

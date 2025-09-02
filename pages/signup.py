@@ -42,45 +42,43 @@ if st.session_state.signup_step:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        if "signupStep" not in st.query_params:
-            st.progress(
-                value=0,
-                text="이메일 입력 입력"
-            )
-            email = st.text_input(
-                label="아이디",
-                value=None,
-                max_chars=40,
-                key="createID",
-                type="default",
-                help=None,
-                placeholder="id@email.com"
-            )
+        st.progress(
+            value=0,
+            text="이메일 입력 입력"
+        )
 
-            if email:
-                with st.spinner(text="이메일을 확인해볼게요", show_time=True):
-                    try:
-                        userEmail = utils.guest.emailCK(id=email)
-                        if userEmail['allow']: # 신규 회원일 경우
-                            checkEmail = st.button(
-                                label="다음",
-                                key="goMakePW",
-                                type="primary",
-                                use_container_width=True
-                            )
-                            if checkEmail:
-                                st.session_state.signup_email = email
-                                st.switch_page(page="pages/signupPW.py")
-                        else:
-                            st.error(
-                                body=userEmail['result']
-                            )
-                    except Exception as e:
-                        print(e)
-                        st.error(
-                            body=e
+        email = st.text_input(
+            label="아이디",
+            value=None,
+            max_chars=40,
+            key="createID",
+            type="default",
+            help=None,
+            placeholder="id@email.com"
+        )
+
+        if email:
+            with st.spinner(text="이메일을 확인해볼게요", show_time=True):
+                try:
+                    userEmail = utils.guest.emailCK(id=email)
+                    if userEmail['allow']: # 신규 회원일 경우
+                        checkEmail = st.button(
+                            label="다음",
+                            key="goMakePW",
+                            type="primary",
+                            use_container_width=True
                         )
+                        if checkEmail:
+                            st.session_state.signup_email = email
+                            st.switch_page(page="pages/signupPW.py")
+                    else:
+                        st.error(
+                            body=userEmail['result']
+                        )
+                except Exception as e:
+                    print(e)
+                    st.error(
+                        body=e
+                    )
 else:
-    st.error("올바른 접근이 아닙니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
