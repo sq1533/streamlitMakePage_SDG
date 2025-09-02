@@ -5,7 +5,6 @@ import re
 import json
 import requests
 from requests.exceptions import HTTPError
-import secrets
 
 """
 # FireBase secret_keys
