@@ -37,7 +37,6 @@ class database:
                 'refunded':'환불 완료'
             }
 
-
 # guest 관리
 class guest(database):
     # 이메일 유효성 검사
@@ -64,9 +63,9 @@ class guest(database):
             return False
 
     # 인증 메일 전송
-    def sendEmail(userToken : str) -> bool:
+    def sendEmail(token : str) -> bool:
         try:
-            database().pyrebase_auth.send_email_verification(userToken)
+            database().pyrebase_auth.send_email_verification(token)
             return True
         except Exception as e:
             print(f"인증 메일 전송 오류 : {e}")
@@ -241,7 +240,7 @@ class items(database):
     # 배송지 변경
     def cgAddr(uid : str, token : str, key : str, addr : str) -> bool:
         try:
-            database().pyrebase_db_orderList.child(uid).child('orderList').child(key).update(data={'address':addr}, token=token)
+            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'address':addr}, token=token)
             return True
         except Exception as e:
             print(e)

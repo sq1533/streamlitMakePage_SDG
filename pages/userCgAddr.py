@@ -35,8 +35,7 @@ def changeAddr(key : str):
     result = st.selectbox(
         label='주소 선택',
         options=addrDict.values(),
-        key='cgAddr_select',
-        placeholder='주소를 선택해 주세요.'
+        key='cgAddr_select'
     )
     empty, btn = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
     goBtn = btn.button(

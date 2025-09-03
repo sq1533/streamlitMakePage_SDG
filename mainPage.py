@@ -96,7 +96,7 @@ def showItem(item): # item == itemId로 검색
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.markdown(body=f"{itemInfo['detail']}")
+        st.html(body=f"{itemInfo['detail']}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:
@@ -237,13 +237,14 @@ line = category['key'].__len__()//lineCount + 1
 
 for l in range(line):
     cards = st.columns(spec=lineCount, gap="small", vertical_alignment="top")
+    st.divider()
 
 for item in category['key']:
     itemCard = utils.items.itemInfo(itemId=item)['result']
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
             showImage(itemCard['paths'][0])
-            st.markdown(body=f"##### {itemCard['name']}")
+            st.markdown(body=f"###### {itemCard['name']}")
             viewBTN = st.button(
                 label="상세보기",
                 key=f"loop_item_{item}",
@@ -259,3 +260,5 @@ for item in category['key']:
             pass
     else:
         pass
+
+st.write('통신판매업을 위한 정보 기입')

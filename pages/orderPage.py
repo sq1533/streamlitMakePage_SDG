@@ -88,11 +88,11 @@ if st.session_state.userAllow:
                         )
                     if order:
                         st.success(
-                            body=f"{itemInfo['name']} 주문 진행 중입니다."
+                            body=f"{itemInfo['name']} 주문이 완료 되었습니다. 주문 내역으로 이동합니다."
                             )
                         st.session_state.item = False # 구매 후 아이템 세션 초기화
                         time.sleep(2)
-                        st.switch_page("mainPage.py") # 구매 완료 후 주문완료 페이지 전환
+                        st.switch_page("pages/myPageOrderList.py")
                     else:
                         st.warning(
                             body='주문 중 오류가 발생했습니다. 다시 시도해주세요.'

@@ -27,6 +27,61 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# 이미지 고정 설정
+def showImage(path : str):
+    if path:
+        st.image(
+            image=path,
+            caption=None,
+            use_container_width=True,
+            clamp=False,
+            output_format="auto"
+            )
+    else:
+        st.warning("이미지 경로가 없습니다.")
+
+# 상품 상세페이지 dialog
+@st.dialog("상세 페이지")
+def showItem(item): # item == itemId로 검색
+    itemInfo = utils.items.itemInfo(itemId=item)['result']
+    # 이미지 2X2 배치
+    row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
+    row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
+    with row1.container():
+        showImage(path=itemInfo['paths'][0])
+    with row2.container():
+        showImage(path=itemInfo['paths'][0])
+    with row3.container():
+        showImage(path=itemInfo['paths'][0])
+    with row4.container():
+        showImage(path=itemInfo['paths'][0])
+    # 상품 이름
+    st.markdown(f"# {itemInfo['name']}")
+    # 상품 가격 및 구매 버튼
+    price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
+    price.markdown(f"#### 상품 가격 : {itemInfo['price']} 원 / 배송비 : 무료")
+    buyBTN = buy.button(
+        label="구매하기",
+        key=f"buyItem_{item}",
+        type="primary",
+        use_container_width=True
+    )
+    with st.expander(label="상품 세부정보"):
+        st.html(body=f"{itemInfo['detail']}")
+    if buyBTN:
+        # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
+        if not st.session_state.user:
+            st.error("구매하려면 로그인이 필요합니다.")
+        # 로그인 정보 있을 경우, 구매 페이지 스왑
+        else:
+            if st.session_state.userAllow:
+                st.session_state.item = item
+                st.switch_page(page="pages/orderPage.py")
+            elif st.session_state.userAllow == 'session-out':
+                st.info("세션 경과, 다시 로그인 해주세요.")
+            else:
+                st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
+
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
@@ -113,12 +168,14 @@ else:
                         st.session_state.orderItem = [key, order]
                         st.switch_page(page='pages/userCgAddr.py')
 
-                    aboutItem.button(
+                    aboutItemB = aboutItem.button(
                         label='상품 상세',
                         key=f'item_{key}',
                         type='primary',
                         use_container_width=True
                     )
+                    if aboutItemB:
+                        showItem(item=itemID)
 
                     chagneStatusB = changeStatus.button(
                         label=btnStatus['statusChange'],

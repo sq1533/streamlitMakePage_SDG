@@ -145,7 +145,7 @@ if st.session_state.signup_step:
                         )
                     if endStep['allow']:
                         st.info(body="인증 메일을 보내는 중이에요.")
-                        sendResult = utils.guest.sendEmail(userToken=endStep['result']['idToken'])
+                        sendResult = utils.guest.sendEmail(token=endStep['result']['idToken'])
                         if sendResult:
                             st.switch_page(page="pages/signupAccess.py")
                         else:
@@ -159,6 +159,4 @@ if st.session_state.signup_step:
                 except Exception:
                     st.error(body=f"회원가입 실패")
 else:
-    st.error("올바른 접근이 아닙니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
