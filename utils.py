@@ -51,7 +51,7 @@ class guest(database):
             return {'allow' : False, 'result' : f'이메일 검증 오류 {emailError}'}
         except Exception as e:
             print(e)
-            return {'allow' : False, 'result' : f'예기치 못한 오류 {e}'}
+            return {'allow' : False, 'result' : f'예기치 못한 오류'}
 
     # 중복 회원 검증
     def userOverlapCK(id : str, pw : str) -> bool:
@@ -79,7 +79,8 @@ class guest(database):
             database().pyrebase_db_user.child(user['localId']).set(userInfo)
             return {'allow' : True, 'result' : user}
         except Exception as e:
-            return {'allow' : False, 'result' : f'회원가입 실패 {e}'}
+            print(f'회원가입 실패 {e}')
+            return {'allow' : False, 'result' : f'회원가입 실패'}
 
     # 로그인
     def signIN(id : str, pw : str) -> dict:
@@ -89,15 +90,24 @@ class guest(database):
         except Exception as e:
             print(f"로그인 실패 : {e}")
             return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
-        
+
+    # 회원 이메일 인증 확인
+    def showUserEmailCK(token : str):
+        try:
+            emailVer = database().pyrebase_auth.get_account_info(id_token=token)['users'][0]['emailVerified']
+            return emailVer
+        except Exception as e:
+            print(e)
+            return 'session-out'
+
     # 회원 정보 호출
-    def showUserInfo(uid : str, token):
+    def showUserInfo(uid : str, token : str) -> dict:
         try:
             userInfo = database().pyrebase_db_user.child(uid).get(token=token).val()
             return {'allow':True, 'result':userInfo}
         except Exception as e:
             print(e)
-            return {'allow':False, 'result':f'정보 불러오기 실패 {e}'}
+            return {'allow':False, 'result':'session-out'}
 
     # 비밀번호 변경
     def PWChange(token : str, newPW : str) -> bool:
@@ -156,6 +166,10 @@ class guest(database):
 
 
 class items(database):
+    # 아이템 id 리스트
+    def itemsIdList():
+        database().pyrebase_db_items.order_by_child(order='color').get().val()
+
     # 아이템 수량 및 상태    
     def itemStatus(itemId : str) -> dict:
         try:
@@ -163,22 +177,32 @@ class items(database):
             return {'allow':True, 'result':itemStatus}
         except Exception as e:
             print(e)
-            return {'allow':False, 'result':'아이템 조회 실패'}
+            return {'allow':False, 'result':'아이템 상태 조회 실패'}
 
-    # 아이템 ID 리스트
-    def itemsIdList():
-        itemsId_dict = database().pyrebase_db_items.get().val()
-        itemsId = list(itemsId_dict.keys())
-        return itemsId
+    # 아이템 ID 정보 조회
+    def itemInfo(itemId : str) -> dict:
+        try:
+            itemIF = database().pyrebase_db_items.child(itemId).get().val()
+            return {'allow':True, 'result':itemIF}
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':'아이템 조회 실패'}
 
     # 아이템 구매 및 상태 변경
     def itemOrder(uid : str, token : str, itemID : str, orderTime : str, address : str) -> bool:
         try:
-            database().pyrebase_db_orderList.child(f'{uid}{orderTime}').set(
+            database().pyrebase_db_user.child(uid).child('orderList').child(orderTime).set(
                 data={
                     'item':itemID,
                     'address' : address,
                     'status' : 'ready'
+                    },
+                token=token
+            )
+            database().pyrebase_db_orderList.child('newOrder').push(
+                data={
+                    'date':orderTime,
+                    'info':uid+'_'+itemID+'_'+address
                     },
                 token=token
             )
@@ -200,16 +224,6 @@ class items(database):
         except Exception as e:
             print(f'상품 주문 실패 {e}')
             return False
-
-    # 주문 내역 불러오기
-    def showOrderList(uid : str, token : str) -> dict:
-        try:
-            myOrderQuery = database().pyrebase_db_orderList.order_by_value().start_at(start=uid)
-            myOrder = myOrderQuery.get(token=token)
-            return {'allow':True, 'result':myOrder}
-        except Exception as e:
-            print(e)
-            return {'allow':False, 'result':f'주문 내역 조회 실패 {e}'}
 
     # 배송지 변경
     def cgAddr(uid : str, token : str, key : str, addr : str) -> bool:

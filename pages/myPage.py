@@ -66,19 +66,16 @@ def addrDialog():
         else:
             if utils.seachAddress(dialogAddr)['allow']:
                 for i in utils.seachAddress(dialogAddr)['result']:
-                    addrNo, addrStr, btn = st.columns(spec=[1,4,1], gap='small', vertical_alignment='center')
+                    addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
                     addrNo.markdown(
-                        body=list(i.keys())[0]
-                    )
-                    addrStr.markdown(
-                        body=list(i.values())[0]
+                        body=i
                     )
                     btn.button(
                         label="선택",
-                        key=list(i.values())[0],
-                        on_click=addrSession(f'{list(i.keys())[0]} {list(i.values())[0]}'),
+                        key=i,
+                        on_click=addrSession(i),
                         type="primary",
-                        use_container_width=False
+                        use_container_width=True
                     )
             else:
                 st.warning(

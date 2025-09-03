@@ -14,10 +14,6 @@ st.set_page_config(
 # 페이지 진입 초기 너비 감지
 screen_width = streamlit_js_eval(js_expressions='screen.width', key='screen_width_key')
 
-# items 데이터 호출 list > key : values
-itemsInfoList = utils.database().pyrebase_db_items.get().each()
-itemsInfoDict = utils.database().pyrebase_db_items.get().val()
-
 # 회원 로그인 구분
 if "user" not in st.session_state:
     st.session_state.user = None
@@ -59,6 +55,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# 아이템 정보 호출
+itemInfo = utils.items.itemInfo()
+
 # UX function
 # 이미지 고정 설정
 def showImage(path : str):
@@ -76,7 +75,7 @@ def showImage(path : str):
 # 상품 상세페이지 dialog
 @st.dialog("상세 페이지")
 def showItem(item): # item == itemId로 검색
-    itemInfo = itemsInfoDict[item]
+    itemInfo = utils.items.itemInfo(itemId=item)
     # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -107,11 +106,13 @@ def showItem(item): # item == itemId로 검색
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            if not st.session_state.userAllow:
-                st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
-            else:
+            if st.session_state.userAllow:
                 st.session_state.item = item
                 st.switch_page(page="pages/orderPage.py")
+            elif st.session_state.userAllow == 'session-out':
+                st.info("세션 경과, 다시 로그인 해주세요.")
+            else:
+                st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
 
 # 메인 페이지
 # 페이지 제목
@@ -132,14 +133,7 @@ with st.sidebar:
             st.session_state.user = None
             st.rerun()
 
-        # 이메일 검증 유무 확인
-        emailVer = utils.database().pyrebase_auth.get_account_info(st.session_state.user['idToken'])
-        email_verified = emailVer['users'][0]['emailVerified']
-
-        if email_verified:
-            st.session_state.userAllow = True
-        else:
-            pass
+        st.session_state.userAllow = utils.guest.showUserEmailCK(token=st.session_state.user['idToken'])
 
         st.markdown(f'## 환영합니다.')
 
@@ -217,8 +211,7 @@ with st.sidebar:
 
     # 상품 카테고리
     itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
-    itemCategory = list(set([item.val()['category'] for item in itemsInfoList]))
-    itemEvent = list(set([item.val()['event'] for item in itemsInfoList]))
+    series = list(set([item.val()['series'] for item in itemsInfoList]))
 
     colorFilter = st.segmented_control(
         label = "컬러",

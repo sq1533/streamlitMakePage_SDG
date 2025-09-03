@@ -30,12 +30,10 @@ st.markdown(
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
-
-    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(st.session_state.user['idToken']).val()
-    orderList = utils.items.showOrderList(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
-
     with st.sidebar:
         st.title(body="주문내역")
+
+    userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -53,16 +51,16 @@ else:
         
         st.markdown(body="주문 내역")
 
-        if orderList['allow']:
-            for key, order in reversed(orderList['result']):
+        if userInfo['allow']:
+            for key, order in reversed(userInfo['result']['orderList'].items()):
                 # 주문 정보
-                orderTime = key[-12:]
+                orderTime = key
                 itemID = order.get('item')
                 address = order.get('address')
                 status = utils.database().showStatus[order.get('status')]
 
             # 아이템 정보
-            itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
+            itemInfo = utils.items.itemInfo(itemId=itemID)['result']
 
             with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
                 image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
