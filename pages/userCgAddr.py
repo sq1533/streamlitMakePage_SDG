@@ -31,7 +31,7 @@ st.markdown(
 # 배송지 변경 dialog
 @st.dialog(title='배송지 변경')
 def changeAddr(key : str):
-    addrDict = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).child('address').get(token=st.session_state.user['idToken']).val()
+    addrDict = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']['address']
     result = st.selectbox(
         label='주소 선택',
         options=addrDict.values(),
@@ -91,15 +91,15 @@ else:
             st.markdown(body="배송지 변경 요청")
 
             key = st.session_state.orderItem[0]
-            itemInfo = st.session_state.orderItem[1]
+            orderInfo = st.session_state.orderItem[1]
             
-            orderTime = itemInfo.get('time')
-            itemID = itemInfo.get('item')
-            address = itemInfo.get('address')
-            status = showStatus[itemInfo.get('status')]
+            orderTime = key
+            itemID = orderInfo.get('item')
+            address = orderInfo.get('address')
+            status = showStatus[orderInfo.get('status')]
 
             # 아이템 정보
-            itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
+            itemInfo = utils.items.itemInfo(itemId=itemID)['result']
 
             with st.container(height=250, border=True, key='changeAddress'):
                 image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")

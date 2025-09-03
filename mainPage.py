@@ -55,9 +55,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 아이템 정보 호출
-itemInfo = utils.items.itemInfo()
-
 # UX function
 # 이미지 고정 설정
 def showImage(path : str):
@@ -75,7 +72,7 @@ def showImage(path : str):
 # 상품 상세페이지 dialog
 @st.dialog("상세 페이지")
 def showItem(item): # item == itemId로 검색
-    itemInfo = utils.items.itemInfo(itemId=item)
+    itemInfo = utils.items.itemInfo(itemId=item)['result']
     # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -210,33 +207,23 @@ with st.sidebar:
             st.switch_page(page="pages/signIn.py")
 
     # 상품 카테고리
-    itemColor = list(set([item.val()['color'] for item in itemsInfoList]))
-    series = list(set([item.val()['series'] for item in itemsInfoList]))
+    category = utils.items.itemCategory()
 
     colorFilter = st.segmented_control(
         label = "컬러",
-        options = itemColor,
+        options = category['color'],
         selection_mode = "single",
         default = None,
         key="itemColor",
         label_visibility="visible"
         )
 
-    categoryFilter = st.segmented_control(
+    seriesFilter = st.segmented_control(
         label = "시리즈",
-        options = itemCategory,
+        options = category['series'],
         selection_mode = "single",
         default = None,
-        key="itemCategory",
-        label_visibility="visible"
-        )
-
-    eventFilter = st.segmented_control(
-        label = "이벤트",
-        options = itemEvent,
-        selection_mode = "single",
-        default = None,
-        key="itemEvent",
+        key="itemSeries",
         label_visibility="visible"
         )
 
@@ -246,16 +233,17 @@ else:
     lineCount = 2
 
 count_in_card = 0
-line = itemsInfoList.__len__()//lineCount + 1
+line = category['key'].__len__()//lineCount + 1
 
 for l in range(line):
     cards = st.columns(spec=lineCount, gap="small", vertical_alignment="top")
 
-for item in utils.items.itemsIdList():
-    if (colorFilter == None or colorFilter == itemsInfoDict[item]['color']) and (categoryFilter == None or categoryFilter == itemsInfoDict[item]['category']) and (eventFilter == None or eventFilter == itemsInfoDict[item]['event']):
+for item in category['key']:
+    itemCard = utils.items.itemInfo(itemId=item)['result']
+    if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
-            showImage(itemsInfoDict[item]['paths'][0])
-            st.markdown(body=f"##### {itemsInfoDict[item]['name']}")
+            showImage(itemCard['paths'][0])
+            st.markdown(body=f"##### {itemCard['name']}")
             viewBTN = st.button(
                 label="상세보기",
                 key=f"loop_item_{item}",

@@ -85,15 +85,14 @@ else:
                 st.switch_page(page="mainPage.py")
 
             key = st.session_state.orderItem[0]
-            itemInfo = st.session_state.orderItem[1]
-            
-            orderTime = itemInfo.get('time')
-            itemID = itemInfo.get('item')
-            address = itemInfo.get('address')
-            status = utils.database().showStatus[itemInfo.get('status')]
+            orderInfo = st.session_state.orderItem[1]
+
+            itemID = orderInfo.get('item')
+            address = orderInfo.get('address')
+            status = utils.database().showStatus[orderInfo.get('status')]
 
             # 아이템 정보
-            itemInfo = utils.database().pyrebase_db_items.child(itemID).get().val()
+            itemInfo = utils.items.itemInfo(itemId=itemID)['result']
 
             with st.container(height=250, border=True, key='refundItem'):
                 image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
@@ -106,7 +105,7 @@ else:
                 info.markdown(
                     body=f"""
                     상품명 : {itemInfo.get('name')}\n\n
-                    주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')}\n\n
+                    주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
                     주문 상태 : {status}\n\n
                     {address}
                     """

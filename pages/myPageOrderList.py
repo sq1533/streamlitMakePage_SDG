@@ -59,77 +59,76 @@ else:
                 address = order.get('address')
                 status = utils.database().showStatus[order.get('status')]
 
-            # 아이템 정보
-            itemInfo = utils.items.itemInfo(itemId=itemID)['result']
+                # 아이템 정보
+                itemInfo = utils.items.itemInfo(itemId=itemID)['result']
 
-            with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
-                image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-                image.image(
-                    image=itemInfo.get("paths")[0],
-                    caption=None,
-                    use_container_width=True,
-                    clamp=False,
-                    output_format="auto"
+                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
+                    image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
+                    image.image(
+                        image=itemInfo.get("paths")[0],
+                        caption=None,
+                        use_container_width=True,
+                        clamp=False,
+                        output_format="auto"
+                        )
+                    info.markdown(
+                        body=f"""
+                        상품명 : {itemInfo.get('name')}\n\n
+                        {address}
+                        """
+                        )
+                    
+                    changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
+
+                    if order.get('status') == 'ready':
+                        btnStatus = {
+                            'addressChange':False,
+                            'statusChange':'주문 취소',
+                            'switchPagePath':'pages/userCancel.py',
+                            'cancelB':False
+                        }
+                    elif order.get('status') == 'cancel':
+                        btnStatus = {
+                            'addressChange':True,
+                            'statusChange':'취소 완료',
+                            'switchPagePath':'pages/userCancel.py',
+                            'cancelB':True
+                        }
+                    else:
+                        btnStatus = {
+                            'addressChange':True,
+                            'statusChange':'환불 요청',
+                            'switchPagePath':'pages/userRefund.py',
+                            'cancelB':False
+                        }
+
+                    changeAddrB = changeAddr.button(
+                        label='배송지 변경',
+                        key=f'address_{key}',
+                        type='primary',
+                        disabled=btnStatus['addressChange'],
+                        use_container_width=True
                     )
-                info.markdown(
-                    body=f"""
-                    상품명 : {itemInfo.get('name')}\n\n
-                    {address}
-                    """
+                    if changeAddrB:
+                        st.session_state.orderItem = [key, order]
+                        st.switch_page(page='pages/userCgAddr.py')
+
+                    aboutItem.button(
+                        label='상품 상세',
+                        key=f'item_{key}',
+                        type='primary',
+                        use_container_width=True
                     )
-                
-                changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
 
-                if order.get('status') == 'ready':
-                    btnStatus = {
-                        'addressChange':False,
-                        'statusChange':'주문 취소',
-                        'switchPagePath':'pages/userCancel.py',
-                        'cancelB':False
-                    }
-                elif order.get('status') == 'cancel':
-                    btnStatus = {
-                        'addressChange':True,
-                        'statusChange':'취소 완료',
-                        'switchPagePath':'pages/userCancel.py',
-                        'cancelB':True
-                    }
-                else:
-                    btnStatus = {
-                        'addressChange':True,
-                        'statusChange':'환불 요청',
-                        'switchPagePath':'pages/userRefund.py',
-                        'cancelB':False
-                    }
-
-                changeAddrB = changeAddr.button(
-                    label='배송지 변경',
-                    key=f'address_{key}',
-                    type='primary',
-                    disabled=btnStatus['addressChange'],
-                    use_container_width=True
-                )
-                if changeAddrB:
-                    st.session_state.orderItem = [key, order]
-                    st.switch_page(page='pages/userCgAddr.py')
-
-                aboutItem.button(
-                    label='상품 상세',
-                    key=f'item_{key}',
-                    type='primary',
-                    use_container_width=True
-                )
-
-
-                chagneStatusB = changeStatus.button(
-                    label=btnStatus['statusChange'],
-                    key=f'order_{key}',
-                    type='primary',
-                    disabled=btnStatus['cancelB'],
-                    use_container_width=True
-                )
-                if chagneStatusB:
-                    st.session_state.orderItem = [key, order]
-                    st.switch_page(page=btnStatus['switchPagePath'])
+                    chagneStatusB = changeStatus.button(
+                        label=btnStatus['statusChange'],
+                        key=f'order_{key}',
+                        type='primary',
+                        disabled=btnStatus['cancelB'],
+                        use_container_width=True
+                    )
+                    if chagneStatusB:
+                        st.session_state.orderItem = [key, order]
+                        st.switch_page(page=btnStatus['switchPagePath'])
         else:
             st.info(body="주문내역 확인 불가")

@@ -166,11 +166,25 @@ class guest(database):
 
 
 class items(database):
-    # 아이템 id 리스트
-    def itemsIdList():
-        database().pyrebase_db_items.order_by_child(order='color').get().val()
+    # 모든 아이템의 category 호출
+    def itemCategory():
+        try:
+            keys = []
+            color = []
+            series = []
+            allItems = database().pyrebase_db_items.get().val()
+            for key, values in allItems.items():
+                keys.append(key)
+                color.append(values['color'])
+                series.append(values['series'])
+            colorResult = list(set(color))
+            seriesResult = list(set(series))
+            return {'allow':True, 'key':keys, 'color':colorResult, 'series':seriesResult}
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':'컬러 및 시리즈 조회 실패'}
 
-    # 아이템 수량 및 상태    
+    # 특정 아이템 수량 및 상태    
     def itemStatus(itemId : str) -> dict:
         try:
             itemStatus = database().pyrebase_db_itemStatus.child(itemId).get().val()
@@ -179,7 +193,7 @@ class items(database):
             print(e)
             return {'allow':False, 'result':'아이템 상태 조회 실패'}
 
-    # 아이템 ID 정보 조회
+    # 특정 아이템 ID 정보 조회
     def itemInfo(itemId : str) -> dict:
         try:
             itemIF = database().pyrebase_db_items.child(itemId).get().val()
@@ -199,16 +213,15 @@ class items(database):
                     },
                 token=token
             )
-            database().pyrebase_db_orderList.child('newOrder').push(
+            database().pyrebase_db_orderList.child('newOrder').child(orderTime+'_'+uid).set(
                 data={
-                    'date':orderTime,
-                    'info':uid+'_'+itemID+'_'+address
+                    'info':orderTime+'_'+uid
                     },
                 token=token
             )
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) - 1
-            if countResults <= 10:
+            if countResults < 10:
                 itemResults = {
                     'count' : countResults,
                     'enable' : False
@@ -237,7 +250,17 @@ class items(database):
     # 주문 취소 및 환불
     def orderCancel(uid : str, token : str, key : str, itemID : str):
         try:
+            # admin data 처리
+            database().pyrebase_db_orderList.child('newOrder').child(key+'_'+uid).remove(token=token)
+            database().pyrebase_db_orderList.child('cancel').child(key+'_'+uid).set(
+                data={
+                    'info':key+'_'+uid
+                    },
+                token=token
+            )
+            # 고객 data 처리
             database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'cancel'}, token=token)
+            # 상품 상태 변경
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) + 1
             if itemStatus['enable']:
@@ -245,7 +268,7 @@ class items(database):
                     'count' : countResults
                 }
             else:
-                if countResults > 10:
+                if countResults >= 10:
                     itemResults = {
                         'count' : countResults,
                         'enable' : True
@@ -263,6 +286,15 @@ class items(database):
     # 환불 요청
     def orderRefund(uid : str, token : str, key : str) -> bool:
         try:
+            # admin data 처리
+            database().pyrebase_db_orderList.child('newOrder').child(key+'_'+uid).remove(token=token)
+            database().pyrebase_db_orderList.child('refund').child(key+'_'+uid).set(
+                data={
+                    'info':key+'_'+uid
+                    },
+                token=token
+            )
+            # 고객 data 처리
             database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'refund'}, token=token)
             return True
         except Exception as e:
