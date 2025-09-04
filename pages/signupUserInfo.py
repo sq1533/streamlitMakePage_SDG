@@ -119,6 +119,7 @@ if st.session_state.signup_step:
 
         infomation = {
             'email':st.session_state.signup_email,
+            'emailCK':False,
             'name':name,
             'phoneNumber':phone,
             'address':{

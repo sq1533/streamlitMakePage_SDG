@@ -32,7 +32,7 @@ if st.session_state.signup_step:
             body="회원가입이 완료되었습니다. 원활한 이용을 위해 이메일 인증을 완료해 주세요."
         )
         with st.spinner(text='메인 페이지 이동중', show_time=True):
-            st.session_state.clear
+            st.session_state.clear()
             time.sleep(2)
             st.switch_page(page="mainPage.py")
 else:

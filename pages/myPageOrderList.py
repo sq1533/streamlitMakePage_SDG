@@ -149,6 +149,13 @@ else:
                             'switchPagePath':'pages/userCancel.py',
                             'cancelB':True
                         }
+                    elif order.get('status') == 'refund':
+                        btnStatus = {
+                            'addressChange':True,
+                            'statusChange':'환불 진행 중..',
+                            'switchPagePath':'pages/userCancel.py',
+                            'cancelB':True
+                        }
                     else:
                         btnStatus = {
                             'addressChange':True,

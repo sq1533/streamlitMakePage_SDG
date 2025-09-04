@@ -130,7 +130,8 @@ with st.sidebar:
             st.session_state.user = None
             st.rerun()
 
-        st.session_state.userAllow = utils.guest.showUserEmailCK(token=st.session_state.user['idToken'])
+        # 회원 정보 호출
+        userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
 
         st.markdown(f'## 환영합니다.')
 
@@ -148,10 +149,18 @@ with st.sidebar:
             use_container_width=True
         )
 
-        # 회원 비밀번호 생성기간 확인
-        userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
-
         if userInfo['allow']:
+            if userInfo['result'].get('emailCK'):
+                pass
+            else:
+                emailCheck = utils.guest.showUserEmailCK(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
+                if emailCheck == 'pass':
+                    pass
+                elif emailCheck == 'none':
+                    st.warning(body='이메일 인증을 완료해 주세요.')
+                elif emailCheck == 'session-out':
+                    st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
+
             createPW = userInfo['result'].get('createPW')
             now = datetime.now(timezone.utc) + timedelta(hours=9)
             nowDay = now.strftime('%Y-%m-%d')

@@ -91,10 +91,14 @@ class guest(database):
             return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
 
     # 회원 이메일 인증 확인
-    def showUserEmailCK(token : str):
+    def showUserEmailCK(uid : str, token : str):
         try:
             emailVer = database().pyrebase_auth.get_account_info(id_token=token)['users'][0]['emailVerified']
-            return emailVer
+            if emailVer:
+                database().pyrebase_db_user.child(uid).update(data={'emailCK':emailVer}, token=token)
+                return 'pass'
+            else:
+                return 'none'
         except Exception as e:
             print(e)
             return 'session-out'
@@ -103,7 +107,10 @@ class guest(database):
     def showUserInfo(uid : str, token : str) -> dict:
         try:
             userInfo = database().pyrebase_db_user.child(uid).get(token=token).val()
-            return {'allow':True, 'result':userInfo}
+            if userInfo == None:
+                return {'allow':False, 'result':userInfo}
+            else:
+                return {'allow':True, 'result':userInfo}
         except Exception as e:
             print(e)
             return {'allow':False, 'result':'session-out'}

@@ -123,6 +123,6 @@ else:
             if next:
                 try:
                     utils.guest.PWChange(token=st.session_state.user['idToken'], newPW=pw)
-                    st.session_state.clear
+                    st.session_state.clear()
                 except Exception as e:
                     st.error(body="비밀번호 설정 실패")
