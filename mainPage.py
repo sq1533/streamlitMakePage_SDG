@@ -18,9 +18,9 @@ screen_width = streamlit_js_eval(js_expressions='screen.width', key='screen_widt
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# 회원 허용 유무
-if "userAllow" not in st.session_state:
-    st.session_state.userAllow = False
+# 회원 이메일 인증 확인
+if "emailCK" not in st.session_state:
+    st.session_state.emailCK = False
 
 # 상품 구매 페이지
 if "item" not in st.session_state:
@@ -103,10 +103,10 @@ def showItem(item): # item == itemId로 검색
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            if st.session_state.userAllow:
+            if st.session_state.emailCK:
                 st.session_state.item = item
                 st.switch_page(page="pages/orderPage.py")
-            elif st.session_state.userAllow == 'session-out':
+            elif st.session_state.emailCK == 'session-out':
                 st.info("세션 경과, 다시 로그인 해주세요.")
             else:
                 st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
@@ -151,14 +151,18 @@ with st.sidebar:
 
         if userInfo['allow']:
             if userInfo['result'].get('emailCK'):
+                st.session_state.emailCK = True
                 pass
             else:
                 emailCheck = utils.guest.showUserEmailCK(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
                 if emailCheck == 'pass':
+                    st.session_state.emailCK = True
                     pass
                 elif emailCheck == 'none':
+                    st.session_state.emailCK = False
                     st.warning(body='이메일 인증을 완료해 주세요.')
                 elif emailCheck == 'session-out':
+                    st.session_state.emailCK = 'session-out'
                     st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
 
             createPW = userInfo['result'].get('createPW')

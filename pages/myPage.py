@@ -5,9 +5,9 @@ import utils
 if "user" not in st.session_state:
     st.session_state.user = False
 
-# 회원 허용 유무
-if "userAllow" not in st.session_state:
-    st.session_state.userAllow = False
+# 회원 이메일 인증 확인
+if "emailCK" not in st.session_state:
+    st.session_state.emailCK = False
 
 # 상세 주소 선택 구분
 if "selectAddr" not in st.session_state:
@@ -103,9 +103,6 @@ else:
         if signOut:
             st.switch_page(page="pages/signOut.py")
 
-    # 사용자 정보 불러오기
-    userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()
-
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
     with main.container():
@@ -120,89 +117,101 @@ else:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
+        if st.session_state.emailCK:
+            # 사용자 정보 불러오기
+            userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()
 
-        email.text_input(
-            label="Email",
-            value=userInfo.get('email'),
-            key="myinfoEmail",
-            type="default",
-            disabled=True
-        )
-        passwardBTN = passward.button(
-            label="비밀번호 변경",
-            key="myinfoPWbtn",
-            type="primary",
-            use_container_width=True
-        )
-        if passwardBTN:
-            st.switch_page(page="pages/myPageChangePW.py")
+            email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
 
-        st.text_input(
-            label="이름",
-            value=userInfo.get('name'),
-            key="myinfoName",
-            type="default",
-            disabled=True
-        )
-        st.text_input(
-            label="휴대폰 번호",
-            value=userInfo.get('phoneNumber'),
-            key="myinfoPhone",
-            type="default",
-            disabled=True
-        )
-        addrLen = userInfo.get('address').__len__()
-        st.markdown(body='##### 주 배송지')
-        st.markdown(body=f"###### {userInfo.get('address')['home']}")
+            email.text_input(
+                label="Email",
+                value=userInfo.get('email'),
+                key="myinfoEmail",
+                type="default",
+                disabled=True
+            )
+            passwardBTN = passward.button(
+                label="비밀번호 변경",
+                key="myinfoPWbtn",
+                type="primary",
+                use_container_width=True
+            )
+            if passwardBTN:
+                st.switch_page(page="pages/myPageChangePW.py")
 
-        st.markdown(body='##### 주소 리스트')
-        if addrLen != 1:
-            for key, address in userInfo.get('address').items():
-                if key == 'home':
-                    pass
-                else:
-                    st.markdown(body=f"###### {address}")
-                    empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
-                    deleteBTN = deleteB.button(
-                        label="삭제",
-                        key=f"delete_{key}",
-                        type="secondary",
-                        use_container_width=False
-                        )
-                    if deleteBTN:
-                        utils.guest.delAddr(
-                            uid=st.session_state.user['localId'],
-                            token=st.session_state.user['idToken'],
-                            delAddr=key
+            st.text_input(
+                label="이름",
+                value=userInfo.get('name'),
+                key="myinfoName",
+                type="default",
+                disabled=True
+            )
+            st.text_input(
+                label="휴대폰 번호",
+                value=userInfo.get('phoneNumber'),
+                key="myinfoPhone",
+                type="default",
+                disabled=True
+            )
+            addrLen = userInfo.get('address').__len__()
+            st.markdown(body='##### 주 배송지')
+            st.markdown(body=f"###### {userInfo.get('address')['home']}")
+
+            st.markdown(body='##### 주소 리스트')
+            if addrLen != 1:
+                for key, address in userInfo.get('address').items():
+                    if key == 'home':
+                        pass
+                    else:
+                        st.markdown(body=f"###### {address}")
+                        empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
+                        deleteBTN = deleteB.button(
+                            label="삭제",
+                            key=f"delete_{key}",
+                            type="secondary",
+                            use_container_width=False
                             )
-                        st.rerun()
-                    homeAddrBTN = homeAddrB.button(
-                        label="주 배송지로 변경",
-                        key=f"home_{key}",
-                        type="secondary",
-                        use_container_width=False
-                        )
-                    if homeAddrBTN:
-                        utils.guest.homeAddr(
-                            uid=st.session_state.user['localId'],
-                            token=st.session_state.user['idToken'],
-                            addr=address,
-                            delAddr=key
-                        )
-                        st.rerun()
-                    
-        else:
-            pass
-
-        addAddressBTN = st.button(
-            label="배송지 검색",
-            key="myinfoAddress",
-            type="primary",
-            use_container_width=True
-        )
-        if addAddressBTN:
-            if userInfo.get('address').__len__() >= 4:
-                st.warning(body="추가 등록할 수 없습니다.")
+                        if deleteBTN:
+                            utils.guest.delAddr(
+                                uid=st.session_state.user['localId'],
+                                token=st.session_state.user['idToken'],
+                                delAddr=key
+                                )
+                            st.rerun()
+                        homeAddrBTN = homeAddrB.button(
+                            label="주 배송지로 변경",
+                            key=f"home_{key}",
+                            type="secondary",
+                            use_container_width=False
+                            )
+                        if homeAddrBTN:
+                            utils.guest.homeAddr(
+                                uid=st.session_state.user['localId'],
+                                token=st.session_state.user['idToken'],
+                                addr=address,
+                                delAddr=key
+                            )
+                            st.rerun()
+                        
             else:
-                addrDialog()
+                pass
+
+            addAddressBTN = st.button(
+                label="배송지 검색",
+                key="myinfoAddress",
+                type="primary",
+                use_container_width=True
+            )
+            if addAddressBTN:
+                if userInfo.get('address').__len__() >= 4:
+                    st.warning(body="추가 등록할 수 없습니다.")
+                else:
+                    addrDialog()
+        else:
+            st.warning(body='이메일 인증이 완료되지 않았습니다. 이메일 인증을 진행해주세요.')
+            sendEmail = st.button(
+                label="이메일 인증 보내기",
+                key="sendEmail",
+                type="primary",
+                use_container_width=True
+            )

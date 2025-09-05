@@ -8,9 +8,9 @@ from datetime import datetime, timezone, timedelta
 if "user" not in st.session_state:
     st.session_state.user = False
 
-# 회원 허용 유무
-if "userAllow" not in st.session_state:
-    st.session_state.userAllow = False
+# 회원 이메일 인증 확인
+if "emailCK" not in st.session_state:
+    st.session_state.emailCK = False
 
 # 상품 구매 페이지
 if "item" not in st.session_state:
@@ -30,7 +30,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if st.session_state.userAllow:
+if st.session_state.emailCK:
     if not st.session_state.item:
         st.switch_page(page="mainPage.py")
     else:

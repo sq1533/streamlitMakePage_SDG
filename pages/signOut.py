@@ -1,6 +1,6 @@
 import streamlit as st
+import utils
 import time
-from utils import auth
 
 if "user" not in st.session_state:
     st.session_state.user = False
@@ -17,8 +17,6 @@ st.markdown(
 )
 
 if not st.session_state.user:
-    st.error("잘못된 접근 입니다.")
-    time.sleep(2)
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:
@@ -60,10 +58,6 @@ else:
                 st.switch_page(page="mainPage.py")
         if out:
             with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
-                auth.update_user(
-                    uid=st.session_state.user["id"],
-                    disabled=True
-                )
                 st.info(body="회원 탈퇴 완료")
                 st.session_state.clear()
                 time.sleep(2)
