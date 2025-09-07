@@ -75,7 +75,7 @@ class guest(database):
     def signUP(email:str, pw:str, userInfo) -> dict:
         try:
             user = database().pyrebase_auth.sign_in_with_email_and_password(email=email, password=pw)
-            database().pyrebase_db_user.child(user['localId']).set(userInfo)
+            database().pyrebase_db_user.child(user['localId']).set(data=userInfo, token=user['idToken'])
             return {'allow' : True, 'result' : user}
         except Exception as e:
             print(f'회원가입 실패 {e}')
@@ -137,8 +137,14 @@ class guest(database):
             return False
     
     # 회원 탈퇴
-    def guestOUT():
-        pass
+    def guestOUT(uid : str, token : str) -> bool:
+        try:
+            database().pyrebase_db_user.child(uid).remove(token=token)
+            database().pyrebase_auth.delete_user_account(id_token=token)
+            return True
+        except Exception as e:
+            print(f'회원탈퇴 실패 {e}')
+            return False
 
     # 사용자 주소 추가
     def addAddr(uid : str, token : str, addAddr : str) -> bool:

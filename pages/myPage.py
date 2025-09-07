@@ -1,5 +1,6 @@
 import streamlit as st
 import utils
+import time
 
 # 회원 로그인 구분
 if "user" not in st.session_state:
@@ -215,3 +216,9 @@ else:
                 type="primary",
                 use_container_width=True
             )
+            if sendEmail:
+                sent = utils.guest.sendEmail(token=st.session_state.user['idToken'])
+                if sent:
+                    st.info(body='인증메일을 전송했어요. 메일함을 확인해주세요.')
+                    time.sleep(2)
+                    st.session_state.clear()

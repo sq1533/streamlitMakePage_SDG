@@ -22,10 +22,6 @@ if "user" not in st.session_state:
 if "emailCK" not in st.session_state:
     st.session_state.emailCK = False
 
-# 상품 구매 페이지
-if "item" not in st.session_state:
-    st.session_state.item = False
-
 # 페이지 UI 변경 사항
 st.markdown(
     """

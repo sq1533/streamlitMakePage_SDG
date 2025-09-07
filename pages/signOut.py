@@ -36,7 +36,7 @@ else:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        st.title("회원을 탈퇴 하시겠습니까?")
+        st.markdown(body="#### 회원을 탈퇴 하시겠습니까?")
         NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
         
         DontOut = NO.button(
@@ -58,7 +58,8 @@ else:
                 st.switch_page(page="mainPage.py")
         if out:
             with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
+                utils.guest.guestOUT(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
                 st.info(body="회원 탈퇴 완료")
-                st.session_state.clear()
                 time.sleep(2)
+                st.session_state.clear()
                 st.switch_page(page="mainPage.py")
