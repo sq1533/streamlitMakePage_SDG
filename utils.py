@@ -233,16 +233,19 @@ class items(database):
             )
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) - 1
+            salesResults = int(itemStatus['sales']) + 1
             if countResults < 10:
                 itemResults = {
                     'count' : countResults,
-                    'enable' : False
+                    'enable' : False,
+                    'sales' : salesResults
                 }
                 database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults,token=token)
                 return True
             else:
                 itemResults = {
-                    'count' : countResults
+                    'count' : countResults,
+                    'sales' : salesResults
                 }
                 database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults,token=token)
                 return True
@@ -275,19 +278,23 @@ class items(database):
             # 상품 상태 변경
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) + 1
+            salesResults = int(itemStatus['sales']) - 1
             if itemStatus['enable']:
                 itemResults = {
-                    'count' : countResults
+                    'count' : countResults,
+                    'sales' : salesResults
                 }
             else:
                 if countResults >= 10:
                     itemResults = {
                         'count' : countResults,
-                        'enable' : True
+                        'enable' : True,
+                        'sales' : salesResults
                     }
                 else:
                     itemResults = {
-                        'count' : countResults
+                        'count' : countResults,
+                        'sales' : salesResults
                     }
             database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults, token=token)
             return True
