@@ -1,7 +1,6 @@
 import streamlit as st
 import utils
 from datetime import datetime, timezone, timedelta
-from streamlit_js_eval import streamlit_js_eval
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -10,9 +9,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
-
-# 페이지 진입 초기 너비 감지
-screen_width = streamlit_js_eval(js_expressions='screen.width', key='screen_width_key')
 
 # 회원 로그인 구분
 if "user" not in st.session_state:
@@ -41,7 +37,7 @@ st.markdown(
         object-fit: fill;
     }
     div[aria-label="dialog"][role="dialog"] {
-        width: 75% !important;
+        width: 70% !important;
     }
     [data-testid="stHeaderActionElements"] {
         display: none !important;
@@ -238,16 +234,11 @@ with st.sidebar:
         label_visibility="visible"
         )
 
-if screen_width >= 700:
-    lineCount = 4
-else:
-    lineCount = 2
-
 count_in_card = 0
-line = category['key'].__len__()//lineCount + 1
+line = category['key'].__len__()//4 + 1
 
 for l in range(line):
-    cards = st.columns(spec=lineCount, gap="small", vertical_alignment="top")
+    cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
 for item in category['key']:
     itemCard = utils.items.itemInfo(itemId=item)['result']
@@ -264,7 +255,7 @@ for item in category['key']:
             if viewBTN:
                 showItem(item=item)
         count_in_card += 1
-        if count_in_card == lineCount:
+        if count_in_card == 4:
             count_in_card = 0
         else:
             pass

@@ -3,6 +3,7 @@ email-validator==2.2.0
 GitPython==3.1.44
 numpy==2.0.2
 pandas==2.2.3
+setuptools
 pillow==11.2.1
 Pyrebase4==4.8.0
 requests==2.32.3
