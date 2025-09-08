@@ -135,33 +135,53 @@ else:
                     
                     changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
 
+                    # 상품 준비중
                     if order.get('status') == 'ready':
                         btnStatus = {
-                            'addressChange':False,
-                            'statusChange':'주문 취소',
-                            'switchPagePath':'pages/userCancel.py',
-                            'cancelB':False
+                            'addressChange':False, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'주문 취소', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'pages/userCancel.py', # 페이지 이동
                         }
+                    # 배송 완료 후 7일 경과
+                    elif order.get('status') == 'Done':
+                        btnStatus = {
+                            'addressChange':True, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':True, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'완료', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'mainPage.py', # 페이지 이동
+                        }
+                    # 상품 취소
                     elif order.get('status') == 'cancel':
                         btnStatus = {
-                            'addressChange':True,
-                            'statusChange':'취소 완료',
-                            'switchPagePath':'pages/userCancel.py',
-                            'cancelB':True
+                            'addressChange':True, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':True, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'취소 완료', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'mainPage.py', # 페이지 이동
                         }
+                    # 상품 환불 요청
                     elif order.get('status') == 'refund':
                         btnStatus = {
-                            'addressChange':True,
-                            'statusChange':'환불 진행 중..',
-                            'switchPagePath':'pages/userCancel.py',
-                            'cancelB':True
+                            'addressChange':True, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':True, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'환불 진행 중..', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'mainPage.py', # 페이지 이동
                         }
+                    # 상품 환불 완료
+                    elif order.get('status') == 'refunded':
+                        btnStatus = {
+                            'addressChange':True, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':True, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'환불 완료', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'mainPage.py', # 페이지 이동
+                        }
+                    #상품 배송중, 상품 배송완료( 7일 경과 전 )
                     else:
                         btnStatus = {
-                            'addressChange':True,
-                            'statusChange':'환불 요청',
-                            'switchPagePath':'pages/userRefund.py',
-                            'cancelB':False
+                            'addressChange':True, # 배송지 변경 버튼 활성화 여부
+                            'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
+                            'statusChange':'환불 요청', # 주문 상태 변경 버튼 멘트
+                            'switchPagePath':'pages/userRefund.py', # 페이지 이동
                         }
 
                     changeAddrB = changeAddr.button(
