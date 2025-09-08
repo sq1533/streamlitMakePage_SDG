@@ -31,7 +31,7 @@ st.markdown(
 
 # 환불 요청 dialog
 @st.dialog(title='환불 요청')
-def refundCall(key : str):
+def refundCall(key : str, item : str):
     st.markdown(body='### 환불 요청을 진행하시겠습니까?')
     st.warning(
         body="""
@@ -51,7 +51,8 @@ def refundCall(key : str):
         func = utils.items.orderRefund(
             uid=st.session_state.user['localId'],
             token=st.session_state.user['idToken'],
-            key=key
+            key=key,
+            itemID=item
             )
         if func:
             st.info(body='환불 요청 완료, 주문내역으로 이동합니다.')
@@ -60,6 +61,7 @@ def refundCall(key : str):
             st.switch_page(page='pages/myPageOrderList.py')
         else:
             st.warning(body='환불 요청 실패, 다시 시도해주세요.')
+
 
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
@@ -120,4 +122,4 @@ else:
             )
             if refundItemB:
                 #requests.post()
-                refundCall(key=key)
+                refundCall(key=key, item=itemID)

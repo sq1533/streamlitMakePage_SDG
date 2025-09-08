@@ -125,7 +125,8 @@ if st.session_state.signup_step:
             'address':{
                 'home':address
                 },
-            'createPW':nowDay
+            'createPW':nowDay,
+            'orderList':''
         }
 
         sendEmail = st.button(

@@ -106,7 +106,7 @@ else:
         
         st.markdown(body="주문 내역")
 
-        if userInfo['allow']:
+        if userInfo['allow'] and ('orderList' in userInfo['result']):
             for key, order in reversed(userInfo['result']['orderList'].items()):
                 # 주문 정보
                 orderTime = key

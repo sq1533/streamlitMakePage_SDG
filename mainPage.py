@@ -29,6 +29,9 @@ st.markdown(
     .block-container {
         padding-top: 2rem;
     }
+    div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
     video::-webkit-media-controls {
         display: none !important;
     }
@@ -36,9 +39,6 @@ st.markdown(
         width: 100% !important;
         aspect-ratio: 20 / 9;
         object-fit: fill;
-    }
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
     }
     div[aria-label="dialog"][role="dialog"] {
         width: 75% !important;
@@ -157,9 +157,11 @@ with st.sidebar:
                 elif emailCheck == 'none':
                     st.session_state.emailCK = False
                     st.warning(body='이메일 인증을 완료해 주세요.')
+                    pass
                 elif emailCheck == 'session-out':
                     st.session_state.emailCK = 'session-out'
                     st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
+                    pass
 
             createPW = userInfo['result'].get('createPW')
             now = datetime.now(timezone.utc) + timedelta(hours=9)
@@ -246,7 +248,6 @@ line = category['key'].__len__()//lineCount + 1
 
 for l in range(line):
     cards = st.columns(spec=lineCount, gap="small", vertical_alignment="top")
-    st.divider()
 
 for item in category['key']:
     itemCard = utils.items.itemInfo(itemId=item)['result']
@@ -270,4 +271,5 @@ for item in category['key']:
     else:
         pass
 
+st.divider()
 st.write('통신판매업을 위한 정보 기입')

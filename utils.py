@@ -227,7 +227,7 @@ class items(database):
             )
             database().pyrebase_db_orderList.child('newOrder').child(orderTime+'_'+uid).set(
                 data={
-                    'info':orderTime+'_'+uid
+                    'item':itemID
                     },
                 token=token
             )
@@ -269,12 +269,11 @@ class items(database):
             database().pyrebase_db_orderList.child('newOrder').child(key+'_'+uid).remove(token=token)
             database().pyrebase_db_orderList.child('cancel').child(key+'_'+uid).set(
                 data={
-                    'info':key+'_'+uid
+                    'item':itemID
                     },
                 token=token
             )
-            # 고객 data 처리
-            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'cancel'}, token=token)
+
             # 상품 상태 변경
             itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
             countResults = int(itemStatus['count']) + 1
@@ -297,22 +296,34 @@ class items(database):
                         'sales' : salesResults
                     }
             database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults, token=token)
+
+            # 고객 data 처리
+            database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'cancel'}, token=token)
             return True
         except Exception as e:
             print(e)
             return False
 
     # 환불 요청
-    def orderRefund(uid : str, token : str, key : str) -> bool:
+    def orderRefund(uid : str, token : str, key : str, itemID : str) -> bool:
         try:
             # admin data 처리
             database().pyrebase_db_orderList.child('newOrder').child(key+'_'+uid).remove(token=token)
             database().pyrebase_db_orderList.child('refund').child(key+'_'+uid).set(
                 data={
-                    'info':key+'_'+uid
+                    'item':itemID
                     },
                 token=token
             )
+
+            # 상품 상태 변경
+            itemStatus = database().pyrebase_db_itemStatus.child(itemID).get(token=token).val()
+            refundResults = int(itemStatus['refund']) + 1
+            itemResults = {
+                'refund' : refundResults
+            }
+            database().pyrebase_db_itemStatus.child(itemID).update(data=itemResults, token=token)
+
             # 고객 data 처리
             database().pyrebase_db_user.child(uid).child('orderList').child(key).update(data={'status':'refund'}, token=token)
             return True
