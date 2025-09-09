@@ -11,10 +11,6 @@ if "signup_step" not in st.session_state:
 if "signup_email" not in st.session_state:
     st.session_state.signup_email = False
 
-# 회원가입 비밀번호
-if "pw" not in st.session_state:
-    st.session_state.pw = False
-
 st.markdown(
     body="""
     <style>
@@ -131,8 +127,6 @@ if st.session_state.signup_step:
                     st.session_state.pw = pw
                     st.switch_page(page="pages/signupUserInfo.py")
                 else:
-                    st.warning(
-                        body='가입 중 오류발생, 이메일과 비밀번호를 확인해주세요.'
-                    )
+                    st.warning(body='가입 중 오류발생, 이메일과 비밀번호를 확인해주세요.')
 else:
     st.switch_page(page="mainPage.py")

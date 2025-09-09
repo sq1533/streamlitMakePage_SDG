@@ -17,8 +17,11 @@ firebaseWebConfig = {
     "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
     }
 
-# pyrebase - firebase 연결
-firebase = pyrebase.initialize_app(config=firebaseWebConfig)
+@st.cache_resource
+def initialize_firebase():
+    return pyrebase.initialize_app(config=firebaseWebConfig)
+
+firebase = initialize_firebase()
 
 # database
 class database:
@@ -86,7 +89,8 @@ class guest(database):
     def signIN(id : str, pw : str) -> dict:
         try:
             user = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            return {'allow':True, 'result':user}
+            userInfo = database().pyrebase_db_user.child(user['localId']).get(token=user['idToken']).val()
+            return {'allow':True, 'result':user, 'info':userInfo}
         except Exception as e:
             print(f"로그인 실패 : {e}")
             return {'allow':False, 'result':'로그인 시도 중 예기치 못한 오류 발생'}
@@ -104,17 +108,14 @@ class guest(database):
             print(e)
             return 'session-out'
 
-    # 회원 정보 호출
-    def showUserInfo(uid : str, token : str) -> dict:
+    # 회원 정보 재호출
+    def showUserInfo(uid : str, token : str):
         try:
             userInfo = database().pyrebase_db_user.child(uid).get(token=token).val()
-            if userInfo == None:
-                return {'allow':False, 'result':userInfo}
-            else:
-                return {'allow':True, 'result':userInfo}
+            return {'allow':True, 'result':userInfo}
         except Exception as e:
-            print(e)
-            return {'allow':False, 'result':'session-out'}
+            print(f'사용자 정보 호출 실패 {e}')
+            return {'allow':False, 'result':'사용자 정보 호출 실패'}
 
     # 비밀번호 변경
     def PWChange(token : str, newPW : str) -> bool:
@@ -180,6 +181,7 @@ class guest(database):
 
 class items(database):
     # 모든 아이템의 category 호출
+    @st.cache_data(ttl=36000)
     def itemCategory():
         try:
             keys = []
@@ -207,6 +209,7 @@ class items(database):
             return {'allow':False, 'result':'아이템 상태 조회 실패'}
 
     # 특정 아이템 ID 정보 조회
+    @st.cache_data(ttl=36000)
     def itemInfo(itemId : str) -> dict:
         try:
             itemIF = database().pyrebase_db_items.child(itemId).get().val()

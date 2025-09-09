@@ -13,10 +13,9 @@ st.set_page_config(
 # 회원 로그인 구분
 if "user" not in st.session_state:
     st.session_state.user = None
-
-# 회원 이메일 인증 확인
-if "emailCK" not in st.session_state:
-    st.session_state.emailCK = False
+# 회원 정보
+if "userInfo" not in st.session_state:
+    st.session_state.userInfo = None
 
 # 페이지 UI 변경 사항
 st.markdown(
@@ -95,19 +94,21 @@ def showItem(item): # item == itemId로 검색
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            if st.session_state.emailCK:
+            if st.session_state.userInfo.get('emailCK'):
                 st.session_state.item = item
-                st.switch_page(page="pages/orderPage.py")
-            elif st.session_state.emailCK == 'session-out':
-                st.info("세션 경과, 다시 로그인 해주세요.")
+                st.rerun()
             else:
                 st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
 
+# 상품 주문 페이지 전환
+if 'item' in st.session_state and st.session_state.item:
+    st.switch_page(page="pages/orderPage.py")
+else:
+    pass
+
 # 메인 페이지
 # 페이지 제목
-st.html(
-    body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>"
-    )
+st.html(body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>")
 
 # siderbar 정의
 with st.sidebar:
@@ -122,44 +123,23 @@ with st.sidebar:
             st.session_state.user = None
             st.rerun()
 
-        # 회원 정보 호출
-        userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
-
         st.markdown(f'## 환영합니다.')
 
-        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
-        myinfo = myinfo.button(
-            label='마이페이지',
-            key='myPage',
-            type='tertiary',
-            use_container_width=True
-        )
-        orderL = orderList.button(
-            label='주문내역',
-            key='orderList',
-            type='tertiary',
-            use_container_width=True
-        )
-
-        if userInfo['allow']:
-            if userInfo['result'].get('emailCK'):
-                st.session_state.emailCK = True
+        if st.session_state.userInfo.get('emailCK'):
+            pass
+        else:
+            emailCheck = utils.guest.showUserEmailCK(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
+            if emailCheck == 'pass':
+                st.session_state.userInfo['emailCK'] = True
+                st.rerun()
+            elif emailCheck == 'none':
+                st.warning(body='이메일 인증을 완료해 주세요.')
                 pass
-            else:
-                emailCheck = utils.guest.showUserEmailCK(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
-                if emailCheck == 'pass':
-                    st.session_state.emailCK = True
-                    pass
-                elif emailCheck == 'none':
-                    st.session_state.emailCK = False
-                    st.warning(body='이메일 인증을 완료해 주세요.')
-                    pass
-                elif emailCheck == 'session-out':
-                    st.session_state.emailCK = 'session-out'
-                    st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
-                    pass
+            elif emailCheck == 'session-out':
+                st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
+                pass
 
-            createPW = userInfo['result'].get('createPW')
+            createPW = st.session_state.userInfo.get('createPW')
             now = datetime.now(timezone.utc) + timedelta(hours=9)
             nowDay = now.strftime('%Y-%m-%d')
 
@@ -168,10 +148,10 @@ with st.sidebar:
             elapsed = (nowDay_d - orderDay_d).days
 
             if elapsed > 90:
-                st.warning(
-                    body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.'
-                    )
+                st.warning(body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.')
+
                 YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
+
                 pwChange = YES.button(
                     label="변경하기",
                     type="tertiary",
@@ -186,20 +166,31 @@ with st.sidebar:
                 )
                 if pwChange:
                     st.switch_page(page="pages/myPageChangePW.py")
+
                 if laterChange:
                     utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
+                    st.session_state.userInfo['createPW'] = now.strftime("%Y-%m-%d")
                     st.rerun()
             else:
                 pass
-        else:
-            st.warning(
-                body=userInfo['result']
-            )
 
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
+
+        myinfo = myinfo.button(
+            label='마이페이지',
+            key='myPage',
+            type='tertiary',
+            use_container_width=True
+        )
+        orderL = orderList.button(
+            label='주문내역',
+            key='orderList',
+            type='tertiary',
+            use_container_width=True
+        )
         # 마이페이지
         if myinfo:
             st.switch_page(page="pages/myPageAccess.py")
-
         # 주문 내역 페이지
         if orderL:
             st.switch_page(page="pages/myPageOrderList.py")
@@ -237,9 +228,11 @@ with st.sidebar:
 count_in_card = 0
 line = category['key'].__len__()//4 + 1
 
+# 아이템에 따른 행 갯수 수정
 for l in range(line):
     cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
+# 아이템 4열 배치
 for item in category['key']:
     itemCard = utils.items.itemInfo(itemId=item)['result']
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):

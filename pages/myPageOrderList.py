@@ -5,6 +5,9 @@ from datetime import datetime
 # 회원 로그인 구분
 if 'user' not in st.session_state:
     st.session_state.user = False
+# 회원 정보
+if "userInfo" not in st.session_state:
+    st.session_state.userInfo = None
 
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
@@ -74,21 +77,14 @@ def showItem(item): # item == itemId로 검색
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            if st.session_state.userAllow:
-                st.session_state.item = item
-                st.switch_page(page="pages/orderPage.py")
-            elif st.session_state.userAllow == 'session-out':
-                st.info("세션 경과, 다시 로그인 해주세요.")
-            else:
-                st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
+            st.session_state.item = item
+            st.switch_page(page="pages/orderPage.py")
 
 if not st.session_state.user:
     st.switch_page(page="mainPage.py")
 else:
     with st.sidebar:
         st.title(body="주문내역")
-
-    userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -106,8 +102,8 @@ else:
         
         st.markdown(body="주문 내역")
 
-        if userInfo['allow'] and ('orderList' in userInfo['result']):
-            for key, order in reversed(userInfo['result']['orderList'].items()):
+        if st.session_state.userInfo and ('orderList' in st.session_state.userInfo):
+            for key, order in reversed(st.session_state.userInfo.get('orderList').items()):
                 # 주문 정보
                 orderTime = key
                 itemID = order.get('item')

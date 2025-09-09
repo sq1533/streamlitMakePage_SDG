@@ -6,10 +6,6 @@ import utils
 if "signup_step" not in st.session_state:
     st.session_state.signup_step = False
 
-# 가입 이메일 정보
-if "signup_email" not in st.session_state:
-    st.session_state.signup_email = False
-
 st.markdown(
     body="""
     <style>
@@ -40,6 +36,7 @@ if st.session_state.signup_step:
             disabled=False
         )
         if goHome:
+            st.session_state.clear()
             st.switch_page(page="mainPage.py")
 
         st.progress(
@@ -58,10 +55,11 @@ if st.session_state.signup_step:
         )
 
         if email:
+            # email 유효성 검사
             with st.spinner(text="이메일을 확인해볼게요", show_time=True):
                 try:
                     userEmail = utils.guest.emailCK(id=email)
-                    if userEmail['allow']: # 신규 회원일 경우
+                    if userEmail['allow']:
                         checkEmail = st.button(
                             label="다음",
                             key="goMakePW",
@@ -78,7 +76,7 @@ if st.session_state.signup_step:
                 except Exception as e:
                     print(e)
                     st.error(
-                        body=e
+                        body=f'이메일 유효성 검시 실패, 다시 시도해주세요.'
                     )
 else:
     st.switch_page(page="mainPage.py")

@@ -1,6 +1,5 @@
 import streamlit as st
 import utils
-import time
 from datetime import datetime, timezone, timedelta
 
 # 회원 가입 step 검증
@@ -125,8 +124,7 @@ if st.session_state.signup_step:
             'address':{
                 'home':address
                 },
-            'createPW':nowDay,
-            'orderList':''
+            'createPW':nowDay
         }
 
         sendEmail = st.button(
@@ -151,13 +149,9 @@ if st.session_state.signup_step:
                         if sendResult:
                             st.switch_page(page="pages/signupAccess.py")
                         else:
-                            st.warning(
-                                body="이메일 인증 실패"
-                                )
+                            st.warning(body="이메일 인증 실패")
                     else:
-                        st.warning(
-                            body="입력하신 정보에 오류가 있어요. 확인해주세요"
-                            )
+                        st.warning(body="입력하신 정보에 오류가 있어요. 확인해주세요")
                 except Exception:
                     st.error(body=f"회원가입 실패")
 else:
