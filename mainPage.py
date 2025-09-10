@@ -19,9 +19,12 @@ if "userInfo" not in st.session_state:
 
 # 휘발성 세션 제거
 volatileSession = ["signup_step", "signup_email", "pw", "selectAddr", "allowCount", "orderItem", "item"]
-for sess in volatileSession:
-    if sess in st.session_state:
-        del st.session_state.sess
+
+for i in volatileSession:
+    if i in st.session_state:
+        del st.session_state[i]
+    elif i not in st.session_state:
+        pass
     else:
         pass
 
