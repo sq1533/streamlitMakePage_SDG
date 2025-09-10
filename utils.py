@@ -6,19 +6,18 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
-# Firebase 사용자 keys
-firebaseWebConfig = {
-    "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
-    "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
-    "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
-    "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
-    "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
-    "appId" : st.secrets["firebaseWebConfig"]["appId"],
-    "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
-    }
-
 @st.cache_resource
 def initialize_firebase():
+    # Firebase 사용자 keys
+    firebaseWebConfig = {
+        "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
+        "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
+        "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
+        "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
+        "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
+        "appId" : st.secrets["firebaseWebConfig"]["appId"],
+        "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
+        }
     return pyrebase.initialize_app(config=firebaseWebConfig)
 
 firebase = initialize_firebase()
