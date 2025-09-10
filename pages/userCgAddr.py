@@ -5,11 +5,13 @@ from datetime import datetime
 
 # 회원 로그인 구분
 if 'user' not in st.session_state:
-    st.session_state.user = False
+    st.session_state.user = None
+if 'userInfo' not in st.session_state:
+    st.session_state.userInfo = None
 
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = False
+    st.session_state.orderItem = None
 
 st.markdown(
     body="""
@@ -31,13 +33,14 @@ st.markdown(
 # 배송지 변경 dialog
 @st.dialog(title='배송지 변경')
 def changeAddr(key : str):
-    addrDict = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']['address']
     result = st.selectbox(
         label='주소 선택',
-        options=addrDict.values(),
+        options=st.session_state.userInfo.get('address'),
         key='cgAddr_select'
     )
+
     empty, btn = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
+
     goBtn = btn.button(
         label='확인',
         key=f'cgAddr_check',
@@ -53,17 +56,14 @@ def changeAddr(key : str):
             )
         if func:
             st.info(body='배송지 변경 완료, 주문내역으로 이동합니다.')
+            st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']
             time.sleep(2)
-            st.switch_page(page='pages/myPageOrderList.py')
+            st.session_state.orderItem = None
         else:
             st.warning(body='배송지 변경 실패, 다시 시도해주세요.')
 
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
-    if not st.session_state.orderItem:
-        st.switch_page(page="mainPage.py")
-    else:
+if st.session_state.user:
+    if st.session_state.orderItem:
         with st.sidebar:
             st.title(body="배송지 변경")
 
@@ -81,12 +81,6 @@ else:
             if goHome:
                 st.switch_page(page="mainPage.py")
 
-            showStatus = {
-                'ready':'상품 제작 중...',
-                'delivery':'상품 배송 중...',
-                'complete':'배송 완료'
-            }
-
             st.markdown(body="배송지 변경 요청")
 
             key = st.session_state.orderItem[0]
@@ -95,7 +89,7 @@ else:
             orderTime = key
             itemID = orderInfo.get('item')
             address = orderInfo.get('address')
-            status = showStatus[orderInfo.get('status')]
+            status = utils.database().showStatus[orderInfo.get('status')]
 
             # 아이템 정보
             itemInfo = utils.items.itemInfo(itemId=itemID)['result']
@@ -126,3 +120,7 @@ else:
             )
             if changeAddrB:
                 changeAddr(key=key)
+    else:
+        st.switch_page(page='pages/myPageOrderList.py')
+else:
+    st.switch_page(page="mainPage.py")

@@ -17,6 +17,14 @@ if "user" not in st.session_state:
 if "userInfo" not in st.session_state:
     st.session_state.userInfo = None
 
+# 휘발성 세션 제거
+volatileSession = ["signup_step", "signup_email", "pw", "selectAddr", "allowCount", "orderItem", "item"]
+for sess in volatileSession:
+    if sess in st.session_state:
+        del st.session_state.sess
+    else:
+        pass
+
 # 페이지 UI 변경 사항
 st.markdown(
     """
@@ -34,9 +42,6 @@ st.markdown(
         width: 100% !important;
         aspect-ratio: 20 / 9;
         object-fit: fill;
-    }
-    div[aria-label="dialog"][role="dialog"] {
-        width: 70% !important;
     }
     [data-testid="stHeaderActionElements"] {
         display: none !important;
@@ -96,15 +101,9 @@ def showItem(item): # item == itemId로 검색
         else:
             if st.session_state.userInfo.get('emailCK'):
                 st.session_state.item = item
-                st.rerun()
+                st.switch_page(page="pages/orderPage.py")
             else:
                 st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
-
-# 상품 주문 페이지 전환
-if 'item' in st.session_state and st.session_state.item:
-    st.switch_page(page="pages/orderPage.py")
-else:
-    pass
 
 # 메인 페이지
 # 페이지 제목

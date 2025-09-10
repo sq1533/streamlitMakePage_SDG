@@ -3,15 +3,13 @@ import utils
 import time
 
 # 회원 로그인 구분
-if "user" not in st.session_state:
-    st.session_state.user = False
-
-# 회원 이메일 인증 확인
-if "emailCK" not in st.session_state:
-    st.session_state.emailCK = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
+if 'userInfo' not in st.session_state:
+    st.session_state.userInfo = None
 
 # 상세 주소 선택 구분
-if "selectAddr" not in st.session_state:
+if 'selectAddr' not in st.session_state:
     st.session_state.selectAddr = None
 
 
@@ -62,6 +60,7 @@ def addrDialog():
             if addAddrToFirebase:
                 newAddr = st.session_state.selectAddr + ' ' + detailAddress
                 utils.guest.addAddr(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'], addAddr=newAddr)
+                st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']
                 st.session_state.selectAddr = None
                 st.rerun()
         else:
@@ -79,20 +78,14 @@ def addrDialog():
                         use_container_width=True
                     )
             else:
-                st.warning(
-                    body=utils.seachAddress(dialogAddr)['result']
-                )
                 st.session_state.selectAddr = None
+                st.warning(body=utils.seachAddress(dialogAddr)['result'])
     else:
         st.session_state.selectAddr = None
-        st.markdown(
-            body="검색창에 찾을 주소를 입력해주세요."
-        )
+        st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
 
 # 페이지
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
+if st.session_state.user:
     with st.sidebar:
         st.title(body="마이페이지")
         signOut = st.button(
@@ -118,15 +111,13 @@ else:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        if st.session_state.emailCK:
-            # 사용자 정보 불러오기
-            userInfo = utils.database().pyrebase_db_user.child(st.session_state.user['localId']).get(token=st.session_state.user['idToken']).val()
+        if st.session_state.userInfo.get('emailCK'):
 
             email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
 
             email.text_input(
                 label="Email",
-                value=userInfo.get('email'),
+                value=st.session_state.userInfo.get('email'),
                 key="myinfoEmail",
                 type="default",
                 disabled=True
@@ -142,60 +133,58 @@ else:
 
             st.text_input(
                 label="이름",
-                value=userInfo.get('name'),
+                value=st.session_state.userInfo.get('name'),
                 key="myinfoName",
                 type="default",
                 disabled=True
             )
             st.text_input(
                 label="휴대폰 번호",
-                value=userInfo.get('phoneNumber'),
+                value=st.session_state.userInfo.get('phoneNumber'),
                 key="myinfoPhone",
                 type="default",
                 disabled=True
             )
-            addrLen = userInfo.get('address').__len__()
+
             st.markdown(body='##### 주 배송지')
-            st.markdown(body=f"###### {userInfo.get('address')['home']}")
+            st.markdown(body=f"###### {st.session_state.userInfo.get('address')['home']}")
 
             st.markdown(body='##### 주소 리스트')
-            if addrLen != 1:
-                for key, address in userInfo.get('address').items():
-                    if key == 'home':
-                        pass
-                    else:
-                        st.markdown(body=f"###### {address}")
-                        empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
-                        deleteBTN = deleteB.button(
-                            label="삭제",
-                            key=f"delete_{key}",
-                            type="secondary",
-                            use_container_width=False
+            for key, address in st.session_state.userInfo.get('address').items():
+                if key == 'home':
+                    pass
+                else:
+                    st.markdown(body=f"###### {address}")
+                    empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
+                    deleteBTN = deleteB.button(
+                        label="삭제",
+                        key=f"delete_{key}",
+                        type="secondary",
+                        use_container_width=False
+                        )
+                    if deleteBTN:
+                        utils.guest.delAddr(
+                            uid=st.session_state.user['localId'],
+                            token=st.session_state.user['idToken'],
+                            delAddr=key
                             )
-                        if deleteBTN:
-                            utils.guest.delAddr(
-                                uid=st.session_state.user['localId'],
-                                token=st.session_state.user['idToken'],
-                                delAddr=key
-                                )
-                            st.rerun()
-                        homeAddrBTN = homeAddrB.button(
-                            label="주 배송지로 변경",
-                            key=f"home_{key}",
-                            type="secondary",
-                            use_container_width=False
-                            )
-                        if homeAddrBTN:
-                            utils.guest.homeAddr(
-                                uid=st.session_state.user['localId'],
-                                token=st.session_state.user['idToken'],
-                                addr=address,
-                                delAddr=key
-                            )
-                            st.rerun()
-                        
-            else:
-                pass
+                        st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']
+                        st.rerun()
+                    homeAddrBTN = homeAddrB.button(
+                        label="주 배송지로 변경",
+                        key=f"home_{key}",
+                        type="secondary",
+                        use_container_width=False
+                        )
+                    if homeAddrBTN:
+                        utils.guest.homeAddr(
+                            uid=st.session_state.user['localId'],
+                            token=st.session_state.user['idToken'],
+                            addr=address,
+                            delAddr=key
+                        )
+                        st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']
+                        st.rerun()
 
             addAddressBTN = st.button(
                 label="배송지 검색",
@@ -204,7 +193,7 @@ else:
                 use_container_width=True
             )
             if addAddressBTN:
-                if userInfo.get('address').__len__() >= 4:
+                if st.session_state.userInfo.get('address').__len__() >= 4:
                     st.warning(body="추가 등록할 수 없습니다.")
                 else:
                     addrDialog()
@@ -222,3 +211,5 @@ else:
                     st.info(body='인증메일을 전송했어요. 메일함을 확인해주세요.')
                     time.sleep(2)
                     st.session_state.clear()
+else:
+    st.switch_page(page="mainPage.py")

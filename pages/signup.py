@@ -1,9 +1,8 @@
 import streamlit as st
-import time
 import utils
 
 # 회원 가입 구분
-if "signup_step" not in st.session_state:
+if 'signup_step' not in st.session_state:
     st.session_state.signup_step = False
 
 st.markdown(

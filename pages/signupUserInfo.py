@@ -3,16 +3,14 @@ import utils
 from datetime import datetime, timezone, timedelta
 
 # 회원 가입 step 검증
-if "signup_step" not in st.session_state:
+if 'signup_step' not in st.session_state:
     st.session_state.signup_step = False
-
 # 가입 이메일 정보
-if "signup_email" not in st.session_state:
-    st.session_state.signup_email = False
-
+if 'signup_email' not in st.session_state:
+    st.session_state.signup_email = None
 # 회원가입 비밀번호
-if "pw" not in st.session_state:
-    st.session_state.pw = False
+if 'pw' not in st.session_state:
+    st.session_state.pw = None
 
 # 고객 주소 정보
 if "address" not in st.session_state:
@@ -45,17 +43,15 @@ def addrDialog():
         disabled=False
     )
     if dialogAddr == None:
-        st.markdown(
-            body="검색창에 찾을 주소를 입력해주세요."
-        )
+        st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
     else:
         findAddr = utils.seachAddress(dialogAddr)
         if findAddr['allow']:
             for i in findAddr['result']:
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
-                addrNo.markdown(
-                    body=i
-                )
+
+                addrNo.markdown(body=i)
+
                 choice = btn.button(
                     label="선택",
                     key=i,
@@ -66,8 +62,10 @@ def addrDialog():
                     st.session_state.address = i
                     st.rerun()
             return st.session_state.address
+        else:
+            st.markdown(body="검색 실패, 다시 시도해주세요.")
 
-if st.session_state.signup_step:
+if st.session_state.signup_step and st.session_state.signup_email and st.session_state.pw:
     with st.sidebar:
         st.title("환영합니다.")
 
@@ -105,6 +103,7 @@ if st.session_state.signup_step:
             use_container_width=False
         )
         if searchAddr:
+            st.session_state.address = '배송지 입력하기'
             addrDialog()
 
         detailAddr = st.text_input(
@@ -116,17 +115,6 @@ if st.session_state.signup_step:
         
         address = st.session_state.address + ' ' + detailAddr
 
-        infomation = {
-            'email':st.session_state.signup_email,
-            'emailCK':False,
-            'name':name,
-            'phoneNumber':phone,
-            'address':{
-                'home':address
-                },
-            'createPW':nowDay
-        }
-
         sendEmail = st.button(
             label="인증 메일 보내기",
             key="done",
@@ -134,9 +122,19 @@ if st.session_state.signup_step:
             use_container_width=True
         )
         if sendEmail:
-            if name == None or phone == None or detailAddr == "상세주소 입력하기" or st.session_state.address == '배송지 입력하기':
+            if name == None or phone == None or detailAddr == None or st.session_state.address == '배송지 입력하기':
                 st.error(body="아직 완료되지 않았어요.")
             else:
+                infomation = {
+                    'email':st.session_state.signup_email,
+                    'emailCK':False,
+                    'name':name,
+                    'phoneNumber':phone,
+                    'address':{
+                        'home':address
+                        },
+                    'createPW':nowDay
+                }
                 try:
                     endStep = utils.guest.signUP(
                         email=st.session_state.signup_email,

@@ -3,8 +3,8 @@ import utils
 import re
 
 # 세션 정의
-if "user" not in st.session_state:
-    st.session_state.user = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
 
 st.markdown(
     body="""
@@ -18,9 +18,7 @@ st.markdown(
 )
 
 # 사용자 정보 저장
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
+if st.session_state.user:
     with st.sidebar:
         st.title("비밀번호 변경")
 
@@ -126,3 +124,5 @@ else:
                     st.session_state.clear()
                 except Exception as e:
                     st.error(body="비밀번호 설정 실패")
+else:
+    st.switch_page(page="mainPage.py")

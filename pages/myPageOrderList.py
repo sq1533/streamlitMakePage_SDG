@@ -4,9 +4,9 @@ from datetime import datetime
 
 # 회원 로그인 구분
 if 'user' not in st.session_state:
-    st.session_state.user = False
+    st.session_state.user = None
 # 회원 정보
-if "userInfo" not in st.session_state:
+if 'userInfo' not in st.session_state:
     st.session_state.userInfo = None
 
 # 주문 상품 정보
@@ -72,17 +72,10 @@ def showItem(item): # item == itemId로 검색
     with st.expander(label="상품 세부정보"):
         st.html(body=f"{itemInfo['detail']}")
     if buyBTN:
-        # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
-        if not st.session_state.user:
-            st.error("구매하려면 로그인이 필요합니다.")
-        # 로그인 정보 있을 경우, 구매 페이지 스왑
-        else:
-            st.session_state.item = item
-            st.switch_page(page="pages/orderPage.py")
+        st.session_state.item = item
+        st.switch_page(page="pages/orderPage.py")
 
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
+if st.session_state.user:
     with st.sidebar:
         st.title(body="주문내역")
 
@@ -212,3 +205,5 @@ else:
                         st.switch_page(page=btnStatus['switchPagePath'])
         else:
             st.info(body="주문내역 확인 불가")
+else:
+    st.switch_page(page="mainPage.py")

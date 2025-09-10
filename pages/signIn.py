@@ -2,9 +2,9 @@ import streamlit as st
 import utils
 
 # 회원 로그인 구분
-if "user" not in st.session_state:
+if 'user' not in st.session_state:
     st.session_state.user = None
-if "userInfo" not in st.session_state:
+if 'userInfo' not in st.session_state:
     st.session_state.userInfo = None
 
 st.markdown(

@@ -6,11 +6,13 @@ import requests
 
 # 회원 로그인 구분
 if 'user' not in st.session_state:
-    st.session_state.user = False
+    st.session_state.user = None
+if 'userInfo' not in st.session_state:
+    st.session_state.userInfo = None
 
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = False
+    st.session_state.orderItem = None
 
 st.markdown(
     body="""
@@ -49,18 +51,14 @@ def cancelOrder(key : str, itemID : str):
             )
         if func:
             st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
+            st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])['result']
             time.sleep(2)
-            st.session_state.orderItem = False
-            st.switch_page(page='pages/myPageOrderList.py')
+            st.session_state.orderItem = None
         else:
             st.warning(body='주문 취소 실패, 다시 시도해주세요.')
 
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
-    if not st.session_state.orderItem:
-        st.switch_page(page="mainPage.py")
-    else:
+if st.session_state.user:
+    if st.session_state.orderItem:
         with st.sidebar:
             st.title(body="주문 취소")
 
@@ -117,3 +115,7 @@ else:
             if cancelItemB:
                 #requests.post()
                 cancelOrder(key=key, itemID=itemID)
+    else:
+        st.switch_page(page='pages/myPageOrderList.py')
+else:
+    st.switch_page(page="mainPage.py")

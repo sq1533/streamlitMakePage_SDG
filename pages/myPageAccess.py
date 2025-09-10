@@ -3,9 +3,10 @@ import utils
 import time
 
 # 회원 로그인 구분
-if "user" not in st.session_state:
-    st.session_state.user = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
 
+# 비밀번호 인증시도 횟수
 if 'allowCount' not in st.session_state:
     st.session_state.allowCount = 0
 
@@ -20,9 +21,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
+if st.session_state.user:
     with st.sidebar:
         st.title(body="마이페이지")
 
@@ -79,3 +78,5 @@ else:
                     st.markdown(
                         body=f"인증에 실패 했습니다. 인증 실패 {st.session_state.allowCount}회"
                     )
+else:
+    st.switch_page(page="mainPage.py")

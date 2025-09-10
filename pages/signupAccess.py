@@ -2,8 +2,14 @@ import streamlit as st
 import time
 
 # 회원 가입 step 검증
-if "signup_step" not in st.session_state:
+if 'signup_step'not in st.session_state:
     st.session_state.signup_step = False
+# 가입 이메일 정보
+if 'signup_email' not in st.session_state:
+    st.session_state.signup_email = None
+# 회원가입 비밀번호
+if 'pw' not in st.session_state:
+    st.session_state.pw = None
 
 st.markdown(
     body="""
@@ -17,7 +23,7 @@ st.markdown(
 )
 
 # 세션 검증 및 이메일 검증
-if st.session_state.signup_step:
+if st.session_state.signup_step and st.session_state.signup_email and st.session_state.pw:
     with st.sidebar:
         st.title("환영합니다.")
 

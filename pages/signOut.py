@@ -2,8 +2,8 @@ import streamlit as st
 import utils
 import time
 
-if "user" not in st.session_state:
-    st.session_state.user = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
 
 st.markdown(
     body="""
@@ -16,9 +16,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if not st.session_state.user:
-    st.switch_page(page="mainPage.py")
-else:
+if st.session_state.user:
     with st.sidebar:
         st.title(body="회원 탈퇴")
 
@@ -63,3 +61,5 @@ else:
                 time.sleep(2)
                 st.session_state.clear()
                 st.switch_page(page="mainPage.py")
+else:
+    st.switch_page(page="mainPage.py")
