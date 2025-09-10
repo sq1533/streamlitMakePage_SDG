@@ -8,4 +8,3 @@ pillow==11.2.1
 Pyrebase4==4.8.0
 requests==2.32.3
 streamlit==1.44.1
-streamlit-js-eval==0.1.7
