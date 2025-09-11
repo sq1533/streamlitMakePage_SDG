@@ -95,7 +95,7 @@ if st.session_state.user:
             use_container_width=True
         )
         if signOut:
-            st.switch_page(page="pages/signOut.py")
+            st.switch_page(page="pages/5-2signOut.py")
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -129,7 +129,7 @@ if st.session_state.user:
                 use_container_width=True
             )
             if passwardBTN:
-                st.switch_page(page="pages/myPageChangePW.py")
+                st.switch_page(page="pages/3-3myPageChangePW.py")
 
             st.text_input(
                 label="이름",

@@ -73,7 +73,7 @@ if st.session_state.user:
             else:
                 st.session_state.allowCount += 1
                 if signIN['allow']:
-                    st.switch_page("pages/myPage.py")
+                    st.switch_page("pages/3-2myPage.py")
                 else:
                     st.markdown(
                         body=f"인증에 실패 했습니다. 인증 실패 {st.session_state.allowCount}회"

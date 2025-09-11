@@ -73,7 +73,7 @@ def showItem(item): # item == itemId로 검색
         st.html(body=f"{itemInfo['detail']}")
     if buyBTN:
         st.session_state.item = item
-        st.switch_page(page="pages/orderPage.py")
+        st.switch_page(page="pages/5-1orderPage.py")
 
 if st.session_state.user:
     with st.sidebar:
@@ -130,7 +130,7 @@ if st.session_state.user:
                             'addressChange':False, # 배송지 변경 버튼 활성화 여부
                             'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
                             'statusChange':'주문 취소', # 주문 상태 변경 버튼 멘트
-                            'switchPagePath':'pages/userCancel.py', # 페이지 이동
+                            'switchPagePath':'pages/4-3userCancel.py', # 페이지 이동
                         }
                     # 배송 완료 후 7일 경과
                     elif order.get('status') == 'Done':
@@ -170,7 +170,7 @@ if st.session_state.user:
                             'addressChange':True, # 배송지 변경 버튼 활성화 여부
                             'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
                             'statusChange':'환불 요청', # 주문 상태 변경 버튼 멘트
-                            'switchPagePath':'pages/userRefund.py', # 페이지 이동
+                            'switchPagePath':'pages/4-4userRefund.py', # 페이지 이동
                         }
 
                     changeAddrB = changeAddr.button(
@@ -182,7 +182,7 @@ if st.session_state.user:
                     )
                     if changeAddrB:
                         st.session_state.orderItem = [key, order]
-                        st.switch_page(page='pages/userCgAddr.py')
+                        st.switch_page(page='pages/4-2userCgAddr.py')
 
                     aboutItemB = aboutItem.button(
                         label='상품 상세',

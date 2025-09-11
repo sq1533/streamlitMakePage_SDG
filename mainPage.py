@@ -18,7 +18,7 @@ if "userInfo" not in st.session_state:
     st.session_state.userInfo = None
 
 # 휘발성 세션 제거
-volatileSession = ["signup_step", "signup_email", "pw", "selectAddr", "allowCount", "orderItem", "item"]
+volatileSession = ["signup_step", "signup_email", "pw", "selectAddr", "allowCount", "orderItem", "item", "naverState"]
 
 for i in volatileSession:
     if i in st.session_state:
@@ -104,7 +104,7 @@ def showItem(item): # item == itemId로 검색
         else:
             if st.session_state.userInfo.get('emailCK'):
                 st.session_state.item = item
-                st.switch_page(page="pages/orderPage.py")
+                st.switch_page(page="pages/5-1orderPage.py")
             else:
                 st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
 
@@ -167,7 +167,7 @@ with st.sidebar:
                     use_container_width=True
                 )
                 if pwChange:
-                    st.switch_page(page="pages/myPageChangePW.py")
+                    st.switch_page(page="pages/3-3myPageChangePW.py")
 
                 if laterChange:
                     utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
@@ -192,10 +192,10 @@ with st.sidebar:
         )
         # 마이페이지
         if myinfo:
-            st.switch_page(page="pages/myPageAccess.py")
+            st.switch_page(page="pages/3-1myPageAccess.py")
         # 주문 내역 페이지
         if orderL:
-            st.switch_page(page="pages/myPageOrderList.py")
+            st.switch_page(page="pages/4-1myPageOrderList.py")
     else:
         signIn = st.button(
             label='sign in / 회원가입',
@@ -204,7 +204,7 @@ with st.sidebar:
             use_container_width=True
         )
         if signIn:
-            st.switch_page(page="pages/signIn.py")
+            st.switch_page(page="pages/1-1signIn.py")
 
     # 상품 카테고리
     category = utils.items.itemCategory()

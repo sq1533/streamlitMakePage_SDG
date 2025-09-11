@@ -88,7 +88,7 @@ if st.session_state.item and st.session_state.user and st.session_state.userInfo
                     st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['token'])
                     st.session_state.item = False # 구매 후 아이템 세션 초기화
                     time.sleep(2)
-                    st.switch_page("pages/myPageOrderList.py")
+                    st.switch_page("pages/4-1myPageOrderList.py")
                 else:
                     st.warning(body='주문 중 오류가 발생했습니다. 다시 시도해주세요.')
                     time.sleep(2)

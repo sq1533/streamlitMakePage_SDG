@@ -128,7 +128,7 @@ if st.session_state.signup_step and st.session_state.signup_email:
                 signUpUser = utils.guest.userOverlapCK(id=st.session_state.signup_email, pw=pw)
                 if signUpUser:
                     st.session_state.pw = pw
-                    st.switch_page(page="pages/signupUserInfo.py")
+                    st.switch_page(page="pages/2-3signupUserInfo.py")
                 else:
                     st.warning(body='가입 중 오류발생, 이메일과 비밀번호를 확인해주세요.')
 else:

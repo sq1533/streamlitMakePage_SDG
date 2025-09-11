@@ -145,7 +145,7 @@ if st.session_state.signup_step and st.session_state.signup_email and st.session
                         st.info(body="인증 메일을 보내는 중이에요.")
                         sendResult = utils.guest.sendEmail(token=endStep['result']['idToken'])
                         if sendResult:
-                            st.switch_page(page="pages/signupAccess.py")
+                            st.switch_page(page="pages/2-4signupAccess.py")
                         else:
                             st.warning(body="이메일 인증 실패")
                     else:

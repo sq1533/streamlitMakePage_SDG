@@ -67,7 +67,7 @@ if st.session_state.signup_step:
                         )
                         if checkEmail:
                             st.session_state.signup_email = email
-                            st.switch_page(page="pages/signupPW.py")
+                            st.switch_page(page="pages/2-2signupPW.py")
                     else:
                         st.error(
                             body=userEmail['result']
