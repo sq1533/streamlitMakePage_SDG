@@ -88,9 +88,8 @@ else:
             'state':secrets.randbits(k=16),
             'redirect_uri':'http://localhost:8080/2naverLogin'
         }
-        st.session_state.naverState = naverParams['state']
         encoded_params = urllib.parse.urlencode(naverParams)
-        st.link_button(
+        test = st.link_button(
             label='네이버 로그인',
             url=f'https://nid.naver.com/oauth2.0/authorize?{encoded_params}',
             type='primary',
