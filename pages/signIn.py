@@ -1,5 +1,6 @@
 import streamlit as st
 import utils
+import requests
 
 # 회원 로그인 구분
 if 'user' not in st.session_state:
@@ -79,3 +80,16 @@ else:
         if signUpB:
             st.session_state.signup_step = True
             st.switch_page(page="pages/signup.py")
+        
+        naverB = st.button(
+            label='네이버 로그인',
+            key='naverSignIN',
+            type='primary',
+            use_container_width=True
+        )
+        if naverB:
+            client_id = 'test'
+            test = requests.get(
+                url=f'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={client_id}&redirect_uri=https://amuredo.shop&state=test'
+            )
+            'https://amuredo.shop/?code={code}&state={test}'
