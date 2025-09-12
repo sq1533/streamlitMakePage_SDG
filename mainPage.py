@@ -1,6 +1,4 @@
 import streamlit as st
-import utils
-from datetime import datetime, timezone, timedelta
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -9,6 +7,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+
+import utils
+from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
 if "user" not in st.session_state:
