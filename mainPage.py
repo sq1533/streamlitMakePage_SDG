@@ -1,4 +1,6 @@
 import streamlit as st
+import userFunc.userAuth as userAuth
+import itemFunc.itemInfo as itemInfo
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -12,22 +14,19 @@ import utils
 from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
-if "user" not in st.session_state:
+if 'user' not in st.session_state:
     st.session_state.user = None
 # 회원 정보
-if "userInfo" not in st.session_state:
-    st.session_state.userInfo = None
+if 'uid' not in st.session_state:
+    st.session_state.uid = None
 
-# 휘발성 세션 제거
-volatileSession = ["signup_step", "signup_email", "pw", "selectAddr", "allowCount", "orderItem", "item", "naverState"]
+# 상품 주문
+if 'item' not in st.session_state:
+    st.session_state.item = None
 
-for i in volatileSession:
-    if i in st.session_state:
-        del st.session_state[i]
-    elif i not in st.session_state:
-        pass
-    else:
-        pass
+# 주문 상품 상태 변경
+if 'orderItem' not in st.session_state:
+    st.session_state.orderItem = None
 
 # 페이지 UI 변경 사항
 st.markdown(
@@ -39,6 +38,9 @@ st.markdown(
     div[data-testid="stElementToolbar"] {
         display: none !important;
     }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
     video::-webkit-media-controls {
         display: none !important;
     }
@@ -47,18 +49,14 @@ st.markdown(
         aspect-ratio: 20 / 9;
         object-fit: fill;
     }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# UX function
 # 이미지 고정 설정
 def showImage(path : str):
-    if path:
+    try:
         st.image(
             image=path,
             caption=None,
@@ -66,52 +64,53 @@ def showImage(path : str):
             clamp=False,
             output_format="auto"
             )
-    else:
-        st.warning("이미지 경로가 없습니다.")
+    except Exception as e:
+        st.warning(f'이미지 호출 실패 {e}')
 
 # 상품 상세페이지 dialog
-@st.dialog("상세 페이지")
-def showItem(item): # item == itemId로 검색
-    itemInfo = utils.items.itemInfo(itemId=item)['result']
+@st.dialog(title='상품 상세', width='large')
+def showItem(itemID, itemIF):
+    buyDisable = not itemInfo.items.itemStatus(itemId=itemID)
     # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
     with row1.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][0])
     with row2.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][0])
     with row3.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][0])
     with row4.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][0])
     # 상품 이름
-    st.markdown(f"# {itemInfo['name']}")
+    st.markdown(f"# {itemIF['name']}")
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : {itemInfo['price']} 원 / 배송비 : 무료")
+    price.markdown(f"#### 상품 가격 : {itemIF['price']} 원 / 배송비 : 무료")
     buyBTN = buy.button(
         label="구매하기",
-        key=f"buyItem_{item}",
+        key=f"buyItem_{itemID}",
         type="primary",
+        disabled=buyDisable,
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.html(body=f"{itemInfo['detail']}")
+        st.html(body=f"{itemIF['detail']}")
     if buyBTN:
         # 로그인 정보 없을 경우, 로그인 요청 페이지 스왑
         if not st.session_state.user:
             st.error("구매하려면 로그인이 필요합니다.")
         # 로그인 정보 있을 경우, 구매 페이지 스왑
         else:
-            if st.session_state.userInfo.get('emailCK'):
-                st.session_state.item = item
+            if userAuth.guest.showUserEmailCK(uid=st.session_state.uid):
+                st.session_state.item = itemID
                 st.switch_page(page="pages/5-1orderPage.py")
             else:
                 st.error("이메일 인증이 필요합니다. 메일함을 확인해주세요.")
 
-# 메인 페이지
+
 # 페이지 제목
-st.html(body="<h1 style='font-family:Oswald, sans-serif; text-align:center'>AMU:)redo</h1>")
+st.title(body='amuredo', anchor='https://amuredo.shop')
 
 # siderbar 정의
 with st.sidebar:
@@ -128,52 +127,43 @@ with st.sidebar:
 
         st.markdown(f'## 환영합니다.')
 
-        if st.session_state.userInfo.get('emailCK'):
+        if userAuth.guest.showUserEmailCK(uid=st.session_state.uid):
             pass
         else:
-            emailCheck = utils.guest.showUserEmailCK(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
-            if emailCheck == 'pass':
-                st.session_state.userInfo['emailCK'] = True
+            st.warning(body='이메일 인증을 완료해주세요.')
+
+        createPW = st.session_state.user.get('createPW')
+        now = datetime.now(timezone.utc) + timedelta(hours=9)
+        nowDay = now.strftime('%Y-%m-%d')
+
+        orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
+        nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
+        elapsed = (nowDay_d - orderDay_d).days
+
+        if elapsed > 90:
+            st.warning(body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.')
+
+            YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
+
+            pwChange = YES.button(
+                label="변경하기",
+                type="tertiary",
+                key="pwChange",
+                use_container_width=True
+            )
+            laterChange = NO.button(
+                label="나중에..",
+                type="secondary",
+                key="laterChange",
+                use_container_width=True
+            )
+            if pwChange:
+                st.switch_page(page="pages/3-3myPageChangePW.py")
+
+            if laterChange:
+                userAuth.guest.PWchangeLater(uid=st.session_state.uid, date=nowDay)
+                st.session_state.user['createPW'] = nowDay
                 st.rerun()
-            elif emailCheck == 'none':
-                st.warning(body='이메일 인증을 완료해 주세요.')
-                pass
-            elif emailCheck == 'session-out':
-                st.warning(body='세션이 종료되었습니다. 다시 로그인 해주세요.')
-                pass
-
-            createPW = st.session_state.userInfo.get('createPW')
-            now = datetime.now(timezone.utc) + timedelta(hours=9)
-            nowDay = now.strftime('%Y-%m-%d')
-
-            orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
-            nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
-            elapsed = (nowDay_d - orderDay_d).days
-
-            if elapsed > 90:
-                st.warning(body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.')
-
-                YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-                pwChange = YES.button(
-                    label="변경하기",
-                    type="tertiary",
-                    key="pwChange",
-                    use_container_width=True
-                )
-                laterChange = NO.button(
-                    label="나중에..",
-                    type="secondary",
-                    key="laterChange",
-                    use_container_width=True
-                )
-                if pwChange:
-                    st.switch_page(page="pages/3-3myPageChangePW.py")
-
-                if laterChange:
-                    utils.guest.PWlaterChange(uid=st.session_state.user['localId'], date=now.strftime("%Y-%m-%d"))
-                    st.session_state.userInfo['createPW'] = now.strftime("%Y-%m-%d")
-                    st.rerun()
             else:
                 pass
 
@@ -193,22 +183,22 @@ with st.sidebar:
         )
         # 마이페이지
         if myinfo:
-            st.switch_page(page="pages/3-1myPageAccess.py")
+            st.switch_page(page="pages/3myPage_access.py")
         # 주문 내역 페이지
         if orderL:
             st.switch_page(page="pages/4-1myPageOrderList.py")
     else:
         signIn = st.button(
-            label='sign in / 회원가입',
-            key='signIn',
+            label='로그인 / 회원가입',
+            key='signUPIN',
             type='primary',
             use_container_width=True
         )
         if signIn:
-            st.switch_page(page="pages/1-1signIn.py")
+            st.switch_page(page="pages/1signIN.py")
 
     # 상품 카테고리
-    category = utils.items.itemCategory()
+    category = itemInfo.items.itemCategory()
 
     colorFilter = st.segmented_control(
         label = "컬러",
@@ -236,20 +226,20 @@ for l in range(line):
     cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
 # 아이템 4열 배치
-for item in category['key']:
-    itemCard = utils.items.itemInfo(itemId=item)['result']
+for itemKey in category['key']:
+    itemCard = itemInfo.items.itemInfo(itemId=itemKey)['result']
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
             showImage(itemCard['paths'][0])
             st.markdown(body=f"###### {itemCard['name']}")
             viewBTN = st.button(
                 label="상세보기",
-                key=f"loop_item_{item}",
+                key=f"loop_item_{itemKey}",
                 type="primary",
                 use_container_width=True
             )
             if viewBTN:
-                showItem(item=item)
+                showItem(itemID=itemKey, itemIF=itemCard)
         count_in_card += 1
         if count_in_card == 4:
             count_in_card = 0
