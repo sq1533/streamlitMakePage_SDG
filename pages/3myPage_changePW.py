@@ -1,24 +1,32 @@
 import streamlit as st
-import utils
+import userFunc.userAuth as userAuth
+from datetime import datetime, timezone, timedelta
 import re
 
-# 세션 정의
+# 회원 로그인 구분
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-st.markdown(
+st.html(
     body="""
     <style>
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
 # 사용자 정보 저장
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title("비밀번호 변경")
 
@@ -50,79 +58,90 @@ if st.session_state.user:
             type='password',
             placeholder="비밀번호와 동일하게 입력해주세요."
         )
-
-        length, eng, num, special, check = "gray", "gray", "gray", "gray", "gray"
-        lengthC, engC, numC, specialC, checkC = False, False, False, False, False
+        # 비밀번호 보안 규칙 준수 검증
+        access = {
+            'length':'gray',
+            'eng':'gray',
+            'num':'gray',
+            'special':'gray',
+            'check':'gray'
+        }
 
         if pw:
+            # 비밀번호 길이
             if 8 <= len(pw) <= 20:
-                length = "green"
-                lengthC = True
+                access['length'] = 'green'
             else:
-                length = "gray"
-
+                pass
+            
+            # 비밀번호 대소문자 영문
             if re.search(r'[a-zA-Z]', pw):
-                eng = "green"
-                engC = True
+                access['eng'] = 'green'
             else:
-                eng = "gray"
-
+                pass
+            
+            # 비밀번호 숫자
             if re.search(r'[0-9]', pw):
-                num = "green"
-                numC = True
+                access['num'] = 'green'
             else:
-                num = "gray"
-
+                pass
+            
+            # 비밀번호 특수문자
             if re.search(r"[!@#$%^&*(),.?:<>'/]", pw):
-                special = "green"
-                specialC = True
+                access['special'] = 'green'
             else:
-                special = "gray"
-
+                pass
+                
+            # 비밀번호 재확인
             if pw == pwCheck:
-                check = "green"
-                checkC = True
+                access['check'] = 'green'
             else:
-                check = "gray"
+                pass
+        else:
+            pass
 
         st.badge(
             label="비밀번호 08 ~ 20 자리",
             icon=None,
-            color=length
+            color=access['length']
         )
         st.badge(
             label="비밀번호 영문 포함",
             icon=None,
-            color=eng
+            color=access['eng']
         )
         st.badge(
             label="비밀번호 숫자 포함",
             icon=None,
-            color=num
+            color=access['num']
         )
         st.badge(
             label="비밀번호 특수문자 포함  __?__ __!__ __@__ __#__ __$__ __%__ __^__ __&__ __*__ __,__ __.__ __:__ __<__ __>__ __/__",
             icon=None,
-            color=special
+            color=access['special']
         )
         st.badge(
             label="비밀번호 재입력 일치",
             icon=None,
-            color=check
+            color=access['check']
         )
-        if lengthC and engC and numC and specialC and checkC:
+
+        # 비밀번호 검증
+        if 'gray' in access.values():
+            pass
+        else:
             next = st.button(
-                label="비밀번호 변경 완료",
-                key="userInfo",
-                type="primary",
+                label='비밀번호 변경',
+                key='changePW',
+                type='primary',
                 use_container_width=True,
                 disabled=False
             )
             if next:
-                try:
-                    utils.guest.PWChange(token=st.session_state.user['idToken'], newPW=pw)
-                    st.session_state.clear()
-                except Exception as e:
-                    st.error(body="비밀번호 설정 실패")
+                now = datetime.now(timezone.utc) + timedelta(hours=9)
+                nowDay = now.strftime('%Y-%m-%d')
+                userAuth.guest.PWchange(token=st.session_state.token, newPW=pw, date=nowDay)
+                st.session_state.clear()
+                st.rerun()
 else:
     st.switch_page(page="mainPage.py")

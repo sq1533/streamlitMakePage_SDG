@@ -3,8 +3,14 @@ import userFunc.userAuth as userAuth
 from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
-if 'user' not in st.session_state:
-    st.session_state.user = None
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+
 # 회원가입 진입
 if 'signUP' not in st.session_state:
     st.session_state.signUP = False
@@ -63,7 +69,7 @@ def addrDialog():
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
 # 세션 정보 검증 및 이메일 검증
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 else:
     if st.session_state.signUP:

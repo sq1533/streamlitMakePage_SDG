@@ -3,8 +3,14 @@ import userFunc.userAuth as userAuth
 import re
 
 # 회원 로그인 구분
-if 'user' not in st.session_state:
-    st.session_state.user = None
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+
 # 회원가입 진입
 if 'signUP' not in st.session_state:
     st.session_state.signUP = False
@@ -24,7 +30,7 @@ st.markdown(
 )
 
 # 회원 비밀번호 설정
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 else:
     if st.session_state.signUP and st.session_state.email:
@@ -88,12 +94,14 @@ else:
                     access['special'] = 'green'
                 else:
                     pass
-            
+                
                 # 비밀번호 재확인
                 if PW == PWcheck:
                     access['check'] = 'green'
                 else:
                     pass
+            else:
+                pass
 
             st.badge(
                 label="비밀번호 08 ~ 20 자리",

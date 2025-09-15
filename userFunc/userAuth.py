@@ -9,6 +9,28 @@ from email.message import EmailMessage
 
 # guest 관리
 class guest(database):
+    def tokenToUid(token : dict) -> dict:
+        try:
+            if token.get('firebase') != None:
+                uid = token.get('firebase').get('localId')
+                return {'allow':True, 'result':uid}
+            elif token.get('naver') != None:
+                userInfo = requests.post(
+                    url='https://openapi.naver.com/v1/nid/me',
+                    headers={'Authorization':f'Bearer {token.get('naver')['access_token']}'}
+                    )
+                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
+                    return {'allow':True, 'result':userInfo.json()['response']['id']}
+                else:
+                    return {'allow':False, 'result':'네이버 고객정보 확인 실패'}
+            elif token.get('kakao') != None:
+                pass
+            elif token.get('gmail') != None:
+                pass
+
+        except Exception as e:
+            return {'allow':False, 'result':e}
+
     # 네이버 로그인 요청
     def naverSignUP() -> str:
         naverSignInParams = {
@@ -21,7 +43,7 @@ class guest(database):
         return f'https://nid.naver.com/oauth2.0/authorize?{encoded_params}'
 
     # 네이버 고객 토큰 발급
-    def naverUser(code : str, state : str):
+    def naverToken(code : str, state : str):
         naverParams = {
             'grant_type':'authorization_code',
             'client_id':st.secrets['naver_api']['client_id'],
@@ -33,25 +55,18 @@ class guest(database):
         try:
             userToken = requests.post(url='https://nid.naver.com/oauth2.0/token', params=encoded_params)
             if userToken.status_code == 200:
-                userInfo = requests.post(url='https://openapi.naver.com/v1/nid/me', headers={'Authorization':f'Bearer {userToken.json()['access_token']}'})
-                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
-                    return userInfo.json()
-                else:
-                    print('토큰발행 성공, 고객정보 확인 실패')
-                    return False
+                return {'allow':True, 'result':userToken.json()}
             else:
-                print('토큰 발행 실패')
-                return False
+                return {'allow':False, 'result':'토큰 발행 실패'}
         except Exception as e:
-            print(e)
-            return False
+            return {'allow':False, 'result':e}
 
     # 네이버 로그인 고객 firebase 처리
-    def naverSignIN(response : dict) -> dict:
+    def naverUser(response : dict) -> bool:
         try:
             if response['id'] in database().rtDatabase_user.get(shallow=True):
                 userInfo = database().rtDatabase_user.child(response['id']).get()
-                return {'allow':True, 'result':userInfo, 'uid':response['id']}
+                return {'allow':True, 'result':userInfo}
             else:
                 userData = {
                     'name':response['name'],
@@ -59,21 +74,17 @@ class guest(database):
                     'age':response['birthyear'] + response['birthday'].replace('-','')
                 }
                 database().rtDatabase_user.child(response['id']).set(value=userData)
-                return {'allow':True, 'result':userData, 'uid':response['id']}
+                return {'allow':True, 'result':userData}
+
         except Exception as e:
             print(e)
-            return {'allow':False, 'result':'회원 로그인 실패'}
+            return {'allow':False, 'result':e}
 
     # firebase 로그인 고객
     def signIN(id : str, pw : str) -> dict:
         try:
-            findUser = database().auth.get_user_by_email(email=id)
-            database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            userInfo = database().rtDatabase_user.child(findUser.uid).get()
-            return {'allow':True, 'result':userInfo, 'uid':findUser.uid}
-
-        except database().auth.UserNotFoundError:
-            return {'allow':False, 'result':'로그인 정보를 확인할 수 없습니다.'}
+            signINuser = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+            return {'allow':True, 'result':signINuser}
 
         except requests.exceptions.HTTPError as httpError:
             print(httpError)
@@ -153,83 +164,86 @@ class guest(database):
             return False
 
     # 회원 이메일 인증 확인
-    def showUserEmailCK(uid : str) -> bool:
+    def showEmailVerified(token : dict) -> bool:
         try:
-            emailVer = database().auth.get_user(uid=uid).email_verified
-            if emailVer:
-                return True
+            if token.keys() == 'firebase':
+                uid = guest.tokenToUid(token=token)
+                if uid['allow']:
+                    emailVer = database().auth.get_user(uid=uid['result']).email_verified
+                    if emailVer:
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
             else:
-                return False
+                return True
         except Exception as e:
             print(e)
             return False
 
-    # 회원 정보 재호출
-    def showUserInfo(uid : str):
-        try:
-            userInfo = database().rtDatabase_user.child(uid).get()
-            return {'allow':True, 'result':userInfo}
-        except Exception as e:
-            print(f'사용자 정보 호출 실패 {e}')
-            return {'allow':False, 'result':'사용자 정보 호출 실패'}
+    # 회원 정보호출
+    def showUserInfo(token : dict) -> dict:
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            userInfo = database().rtDatabase_user.child(uid['result']).get()
+            return userInfo
+        else:
+            return None
 
     # 비밀번호 변경
-    def PWchange(uid : str, pw : str, date : str) -> bool:
-        try:
-            database().auth.update_user(uid=uid, password=pw)
-            database().rtDatabase_user.child(uid).update(values={'createPW':date})
-            return True
-        except Exception as e:
-            print(f"비밀번호 변경 오류 : {e}")
-            return False
+    def PWchange(token : dict, newPW : str, date : str) -> bool:
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            database().auth.update_user(uid=uid['result'], password=newPW)
+            database().rtDatabase_user.child(uid['result']).update({'createPW':date})
+        else:
+            print('비밀번호 변경 실패')
+            pass
 
     # 비밀번호 연장
-    def PWchangeLater(uid : str, date : str) -> bool:
-        try:
-            database().rtDatabase_user.child(uid).update(values={'createPW':date})
-            return True
-        except Exception as e:
-            print(f'비밀번호 연장 실패 {e}')
-            return False
+    def PWchangeLater(token : dict, date : str):
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            database().rtDatabase_user.child(uid['result']).update({'createPW':date})
+        else:
+            pass
+
     # 회원 탈퇴
-    def guestOUT(uid : str, token : str) -> bool:
+    def guestOUT(token : dict) -> bool:
         try:
-            database().pyrebase_db_user.child(uid).remove(token=token)
-            database().pyrebase_auth.delete_user_account(id_token=token)
+            database().pyrebase_auth.delete_user_account(token)
             return True
         except Exception as e:
             print(f'회원탈퇴 실패 {e}')
             return False
 
     # 사용자 주소 추가
-    def addAddr(uid : str, token : str, addAddr : str) -> bool:
-        try:
-            database().pyrebase_db_user.child(uid).child('address').push(data=addAddr, token=token)
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    def addAddr(token : dict, addAddr : str):
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            database().rtDatabase_user.child(uid['result']).child('address').push(addAddr)
+        else:
+            pass
 
     # 사용자 주소 삭제
-    def delAddr(uid : str, token : str, delAddr : str) -> bool:
-        try:
-            database().pyrebase_db_user.child(uid).child('address').child(delAddr).remove(token=token)
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    def delAddr(token : dict, delAddrKey : str):
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            database().rtDatabase_user.child(uid['result']).child(f'address/{delAddrKey}').delete()
+        else:
+            pass
 
     # 주 배송지 수정
-    def homeAddr(uid : str, token : str, addr : str, delAddr : str) -> bool:
-        try:
-            oldAddr = database().pyrebase_db_user.child(uid).child('address').child('home').get(token=token).val()
-            database().pyrebase_db_user.child(uid).child('address').push(data=oldAddr, token=token)
-            database().pyrebase_db_user.child(uid).child('address').update(data={'home':addr}, token=token)
-            database().pyrebase_db_user.child(uid).child('address').child(delAddr).remove(token=token)
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    def homeAddr(token : dict, homeAddrKey : str, homeAddr : str):
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            oldAddr = database().rtDatabase_user.child(uid['result']).child('address').child('home').get()
+            database().rtDatabase_user.child(uid['result']).child('address').push(oldAddr)
+            database().rtDatabase_user.child(uid['result']).child('address').update({'home':homeAddr})
+            database().rtDatabase_user.child(uid['result']).child(f'address/{homeAddrKey}').delete()
+        else:
+            pass
 
 # 주소 검색
 def seachAddress(address : str):

@@ -1,19 +1,29 @@
 import streamlit as st
 import utils
+import userFunc.userAuth as userAuth
+import itemFunc.itemInfo as itemInfo
 from datetime import datetime
 
 # 회원 로그인 구분
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
-# 회원 정보
-if 'userInfo' not in st.session_state:
-    st.session_state.userInfo = None
 
+# 상품 주문
+if 'item' not in st.session_state:
+    st.session_state.item = None
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
     st.session_state.orderItem = False
 
-st.markdown(
+st.html(
     body="""
     <style>
     div[data-testid="stElementToolbar"] {
@@ -22,12 +32,8 @@ st.markdown(
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
-    div[aria-label="dialog"][role="dialog"] {
-        width: 75% !important;
-    }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
 # 이미지 고정 설정
@@ -44,38 +50,43 @@ def showImage(path : str):
         st.warning("이미지 경로가 없습니다.")
 
 # 상품 상세페이지 dialog
-@st.dialog("상세 페이지")
-def showItem(item): # item == itemId로 검색
-    itemInfo = utils.items.itemInfo(itemId=item)['result']
+@st.dialog(title='상품 상세', width='large')
+def showItem(itemId, itemIF):
+    buyDisable = not itemInfo.items.itemStatus(itemId=itemId)['enable']
     # 이미지 2X2 배치
     row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
     row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
     with row1.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][0])
     with row2.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][1])
     with row3.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][2])
     with row4.container():
-        showImage(path=itemInfo['paths'][0])
+        showImage(path=itemIF['paths'][3])
+
     # 상품 이름
-    st.markdown(f"# {itemInfo['name']}")
+    st.markdown(f"# {itemIF['name']}")
+
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : {itemInfo['price']} 원 / 배송비 : 무료")
+    price.markdown(f"#### 상품 가격 : {itemIF['price']} 원")
+
     buyBTN = buy.button(
         label="구매하기",
-        key=f"buyItem_{item}",
+        key=f"buyItem_{itemId}",
         type="primary",
+        disabled=buyDisable,
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.html(body=f"{itemInfo['detail']}")
+        st.html(body=f"{itemIF['detail']}")
+
     if buyBTN:
-        st.session_state.item = item
+        st.session_state.item = itemId
         st.switch_page(page="pages/5-1orderPage.py")
 
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body="주문내역")
 
@@ -95,8 +106,8 @@ if st.session_state.user:
         
         st.markdown(body="주문 내역")
 
-        if st.session_state.userInfo and ('orderList' in st.session_state.userInfo):
-            for key, order in reversed(st.session_state.userInfo.get('orderList').items()):
+        if 'orderList' in st.session_state.user:
+            for key, order in reversed(st.session_state.user.get('orderList').items()):
                 # 주문 정보
                 orderTime = key
                 itemID = order.get('item')
@@ -104,12 +115,12 @@ if st.session_state.user:
                 status = utils.database().showStatus[order.get('status')]
 
                 # 아이템 정보
-                itemInfo = utils.items.itemInfo(itemId=itemID)['result']
+                itemIF = itemInfo.items.itemInfo(itemId=itemID)
 
-                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemInfo.get('name')} {status}'):
+                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     image.image(
-                        image=itemInfo.get("paths")[0],
+                        image=itemIF.get("paths")[0],
                         caption=None,
                         use_container_width=True,
                         clamp=False,
@@ -117,7 +128,7 @@ if st.session_state.user:
                         )
                     info.markdown(
                         body=f"""
-                        상품명 : {itemInfo.get('name')}\n\n
+                        상품명 : {itemIF.get('name')}\n\n
                         {address}
                         """
                         )
@@ -191,7 +202,7 @@ if st.session_state.user:
                         use_container_width=True
                     )
                     if aboutItemB:
-                        showItem(item=itemID)
+                        showItem(itemId=itemID, itemIF=itemIF)
 
                     chagneStatusB = changeStatus.button(
                         label=btnStatus['statusChange'],

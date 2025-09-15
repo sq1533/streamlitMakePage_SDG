@@ -3,27 +3,29 @@ import userFunc.userAuth as userAuth
 import time
 
 # 회원 로그인 구분
-if 'user' not in st.session_state:
-    st.session_state.user = None
-# 회원 로그인 구분
-if 'uid' not in st.session_state:
-    st.session_state.uid = None
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+
 # 로그인 시도
 if 'allowCount' not in st.session_state:
     st.session_state.allowCount = 0
 
-st.markdown(
+st.html(
     body="""
     <style>
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 else:
     with st.sidebar:
@@ -76,8 +78,7 @@ else:
             signINuser = userAuth.guest.signIN(id=ID, pw=PW)
             if st.session_state.allowCount <= 7:
                 if signINuser['allow']:
-                    st.session_state.uid = signINuser['uid']
-                    st.session_state.user = signINuser['result']
+                    st.session_state.token['firebase'] = signINuser['result']
                     st.rerun()
                 else:
                     st.session_state.allowCount += 1

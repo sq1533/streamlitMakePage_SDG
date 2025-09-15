@@ -1,12 +1,15 @@
 import streamlit as st
 import userFunc.userAuth as userAuth
+import requests
 
 # 회원 로그인 구분
-if 'user' not in st.session_state:
-    st.session_state.user = None
-# 회원 정보
-if 'uid' not in st.session_state:
-    st.session_state.uid = None
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
 
 # 회원가입 진입
 if 'signUP' not in st.session_state:
@@ -23,7 +26,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 else:
     with st.sidebar:
@@ -45,27 +48,30 @@ else:
         
         # 고객 네이버 로그인 요청 상태
         if 'code' in st.query_params and st.query_params.code:
-            userInfo = userAuth.guest.naverUser(code=st.query_params.code, state=st.query_params.state)
-            if userInfo:
-                signIN = userAuth.guest.naverSignIN(response=userInfo['response'])
-                if signIN['allow']:
-                    st.session_state.uid = signIN['uid']
-                    st.session_state.user = signIN['result']
-                    st.rerun()
+            naverToken = userAuth.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
+            if naverToken['allow']:
+                userInfo = requests.post(
+                    url='https://openapi.naver.com/v1/nid/me',
+                    headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
+                    )
+                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
+                    signIN = userAuth.guest.naverUser(response=userInfo.json()['response'])
+                    if signIN['allow']:
+                        st.session_state.token['naver'] = naverToken['result']
+                        st.rerun()
                 else:
-                    st.write(signIN['result'])
+                    st.warning(body='로그인 실패, 고객 정보 확인불가')
             else:
-                st.write('고객 네이버 로그인 실패')
+                st.warning('고객 네이버 로그인 실패')
 
         # 고객 비로그인 상태
         else:
-            st.markdown(
+            st.html(
                 body=f"""
                 <a href="{userAuth.guest.naverSignUP()}" target="_self" style="display: inline-block; padding: 10px 20px; background-color: #03C75A; color: white; text-align: center; text-decoration: none; border-radius: 5px;">
                     네이버 아이디로 로그인 (HTML)
                 </a>
-                """,
-                unsafe_allow_html=True
+                """
                 )
 
             signUP, signIN = st.columns(spec=2, gap='small', vertical_alignment='center')

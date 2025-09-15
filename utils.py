@@ -76,7 +76,7 @@ class database:
         감사합니다.
         amuredo 팀 드림
 
-        [인증 LINK]
+        [인증링크]
         """
         self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
         self.showStatus = {

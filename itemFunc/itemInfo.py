@@ -24,21 +24,13 @@ class items(database):
     # 특정 아이템 ID 정보 조회
     @st.cache_data(ttl=36000)
     def itemInfo(itemId : str) -> dict:
-        try:
-            itemIF = database().rtDatabase_item.child(itemId).get()
-            return {'allow':True, 'result':itemIF}
-        except Exception as e:
-            print(e)
-            return {'allow':False, 'result':'아이템 조회 실패'}
+        itemIF = database().rtDatabase_item.child(itemId).get()
+        return itemIF
 
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:
-        try:
-            itemStatus = database().rtDatabase_itemStatus.child(itemId).get()
-            return {'allow':True, 'result':itemStatus}
-        except Exception as e:
-            print(e)
-            return {'allow':False, 'result':'아이템 상태 조회 실패'}
+        itemStatus = database().rtDatabase_itemStatus.child(itemId).get()
+        return itemStatus
 
     # 아이템 구매 및 상태 변경
     def itemOrder(uid : str, token : str, itemID : str, orderTime : str, address : str) -> bool:

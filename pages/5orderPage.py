@@ -1,21 +1,27 @@
 import streamlit as st
-import utils
+import userFunc.userAuth as userAuth
+import itemFunc.itemInfo as itemInfo
 import requests
 import time
 from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
+# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
-# 회원 정보
-if 'userInfo' not in st.session_state:
-    st.session_state.userInfo = None
 
-# 상품 구매 페이지
+# 상품 주문
 if 'item' not in st.session_state:
     st.session_state.item = None
 
-st.markdown(
+st.html(
     body="""
     <style>
     div[data-testid="stElementToolbar"] {
@@ -25,16 +31,15 @@ st.markdown(
         display: none !important;
     }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
-if st.session_state.item and st.session_state.user and st.session_state.userInfo.get('emailCK'):
+if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
     with st.sidebar:
         st.title(body="상품 주문")
 
-    itemInfo = utils.database().pyrebase_db_items.child(st.session_state.item).get().val()
-    itemStatus = utils.database().pyrebase_db_itemStatus.child(st.session_state.item).get().val()
+    itemIF = itemInfo.items.itemInfo(itemId=st.session_state.item)
+    itemStatus = itemInfo.items.itemStatus(itemId=st.session_state.item)
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -53,21 +58,22 @@ if st.session_state.item and st.session_state.user and st.session_state.userInfo
         col1, col2 = st.columns(spec=2, gap="small", vertical_alignment="top")
 
         col1.image(
-            image=itemInfo['paths'][0],
+            image=itemIF.get('paths')[0],
             use_container_width=True
             )
 
         with col2:
-            st.title(body=itemInfo['name'])
-            st.markdown(body=f"##### **가격 :** {itemInfo['price']}원")
+            st.title(body=itemIF.get('name'))
+            st.markdown(body=f"##### **가격 :** {itemIF.get('price')}원")
             st.markdown(body="##### **배송비 :** 무료")
 
-        st.markdown(body=f'###### {st.session_state.userInfo.get('address')['home']}')
+        st.markdown(body=f'###### {st.session_state.user.get('address')['home']}')
 
         buyBTN = st.button(
             label="결제하기",
             key='pay',
             type="primary",
+            disabled=(not itemStatus['enable']),
             use_container_width=True
             )
 
