@@ -45,56 +45,45 @@ else:
         )
         if goHome:
             st.switch_page(page='mainPage.py')
-        
-        # 고객 네이버 로그인 요청 상태
-        if 'code' in st.query_params and st.query_params.code:
-            naverToken = userAuth.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
-            if naverToken['allow']:
-                userInfo = requests.post(
-                    url='https://openapi.naver.com/v1/nid/me',
-                    headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
-                    )
-                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
-                    signIN = userAuth.guest.naverUser(response=userInfo.json()['response'])
-                    if signIN['allow']:
-                        st.session_state.token['naver'] = naverToken['result']
-                        st.rerun()
-                else:
-                    st.warning(body='로그인 실패, 고객 정보 확인불가')
-            else:
-                st.warning('고객 네이버 로그인 실패')
 
-        # 고객 비로그인 상태
-        else:
-            st.html(
-                body=f"""
-                <a href="{userAuth.guest.naverSignUP()}" target="_self" style="display: inline-block; padding: 10px 20px; background-color: #03C75A; color: white; text-align: center; text-decoration: none; border-radius: 5px;">
-                    네이버 아이디로 로그인 (HTML)
-                </a>
-                """
-                )
-
-            signUP, signIN = st.columns(spec=2, gap='small', vertical_alignment='center')
-
-            # firebese 이메일 회원가입
-            signUPB = signUP.button(
-                label='회원가입',
-                key='firebaseSignUP',
-                type='secondary',
-                use_container_width=True
+        # 네이버 로그인 버튼
+        st.html(
+            body=f"""
+            <a href="{userAuth.guest.naverSignUP()}" target="_self" style="display: inline-block; padding: 10px 20px; background-color: #03C75A; color: white; text-align: center; text-decoration: none; border-radius: 5px;">
+                네이버 로그인
+            </a>
+            """
+            )
+        # 카카오 로그인 버튼
+        st.html(
+            body=f"""
+            <a href="{userAuth.guest.kakaoSignUP()}" target="_self" style="display: inline-block; padding: 10px 20px; background-color: #03C75A; color: white; text-align: center; text-decoration: none; border-radius: 5px;">
+                카카오 로그인
+            </a>
+            """
             )
 
-            # firebase 이메일 로그인
-            signINB = signIN.button(
-                label='email로그인',
-                key='firebaseSignIN',
-                type='primary',
-                use_container_width=True
-            )
+        signUP, signIN = st.columns(spec=2, gap='small', vertical_alignment='center')
 
-            if signUPB:
-                st.session_state.signUP = True
-                st.switch_page(page='pages/2signUP.py')
+        # firebese 이메일 회원가입
+        signUPB = signUP.button(
+            label='회원가입',
+            key='firebaseSignUP',
+            type='secondary',
+            use_container_width=True
+        )
 
-            if signINB:
-                st.switch_page(page='pages/1signIN_firebase.py')
+        # firebase 이메일 로그인
+        signINB = signIN.button(
+            label='email로그인',
+            key='firebaseSignIN',
+            type='primary',
+            use_container_width=True
+        )
+
+        if signUPB:
+            st.session_state.signUP = True
+            st.switch_page(page='pages/2signUP.py')
+
+        if signINB:
+            st.switch_page(page='pages/1signIN_firebase.py')

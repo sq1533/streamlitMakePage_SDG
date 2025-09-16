@@ -37,13 +37,13 @@ class guest(database):
             'response_type':'code',
             'client_id':st.secrets['naver_api']['client_id'],
             'state':secrets.randbits(k=16),
-            'redirect_uri':'http://localhost:8080/signIN'
+            'redirect_uri':st.secrets['naver_api']['redirect_uri']
         }
         encoded_params = urllib.parse.urlencode(naverSignInParams)
         return f'https://nid.naver.com/oauth2.0/authorize?{encoded_params}'
 
     # 네이버 고객 토큰 발급
-    def naverToken(code : str, state : str):
+    def naverToken(code : str, state : str) -> dict:
         naverParams = {
             'grant_type':'authorization_code',
             'client_id':st.secrets['naver_api']['client_id'],
@@ -70,8 +70,60 @@ class guest(database):
             else:
                 userData = {
                     'name':response['name'],
-                    'mobile':response['mobile_e164'],
+                    'phoneNumber':response['mobile'].replace('-',''),
+                    'email':response['email'],
                     'age':response['birthyear'] + response['birthday'].replace('-','')
+                }
+                database().rtDatabase_user.child(response['id']).set(value=userData)
+                return {'allow':True, 'result':userData}
+
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':e}
+
+    # 카카오 로그인 요청
+    def kakaoSignUP() -> str:
+        kakaoSignInParams = {
+            'response_type':'code',
+            'client_id':st.secrets['kakao_api']['client_id'],
+            'state':secrets.randbits(k=16),
+            'redirect_uri':st.secrets['kakao_api']['redirect_uri']
+        }
+        encoded_params = urllib.parse.urlencode(kakaoSignInParams)
+        return f'https://kauth.kakao.com/oauth/authorize?{encoded_params}'
+
+    # 카카오 토큰 발행
+    def kakaoToken(code : str) -> dict:
+        kakaoHeader = "Content-Type: application/x-www-form-urlencoded;charset=utf-8"
+        kakaoParams = {
+            'grant_type':'authorization_code',
+            'client_id':st.secrets['kakao_api']['client_id'],
+            'redirect_uri':st.secrets['kakao_api']['redirect_uri'],
+            'code':code,
+            'client_secret':st.secrets['kakao_api']['client_sc']
+        }
+        encoded_params = urllib.parse.urlencode(kakaoParams)
+        try:
+            userToken = requests.post(url='https://kauth.kakao.com/oauth/token', params=encoded_params, headers=kakaoHeader)
+            if userToken.status_code == 200:
+                return {'allow':True, 'result':userToken.json()}
+            else:
+                return {'allow':False, 'result':'토큰 발행 실패'}
+        except Exception as e:
+            return {'allow':False, 'result':e}
+
+    # 카카오 로그인 고객 firebase 처리
+    def kakaoUser(response : dict) -> bool:
+        try:
+            if response['id'] in database().rtDatabase_user.get(shallow=True):
+                userInfo = database().rtDatabase_user.child(response['id']).get()
+                return {'allow':True, 'result':userInfo}
+            else:
+                userData = {
+                    'name':response['name'],
+                    'phoneNumber':response['phone_number'].replace('-',''),
+                    'email':response['email'],
+                    'age':response['birthyear'] + response['birthday']
                 }
                 database().rtDatabase_user.child(response['id']).set(value=userData)
                 return {'allow':True, 'result':userData}
@@ -222,6 +274,16 @@ class guest(database):
                 return False
         else:
             database().rtDatabase_user.child(uid['result']).delete()
+
+    # 소셜 사용자 기본 배송지 추가
+    def addHomeAddr(token : dict, addr : str) -> bool:
+        uid = guest.tokenToUid(token=token)
+        if uid['allow']:
+            database().rtDatabase_user.child(uid['result']).child('address').set({'home':addr})
+            return True
+        else:
+            print('소셜 고객 기본 배송지 설정 실패')
+            return False
 
     # 사용자 주소 추가
     def addAddr(token : dict, addAddr : str):

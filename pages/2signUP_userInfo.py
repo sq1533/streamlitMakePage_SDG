@@ -22,15 +22,14 @@ if 'email' not in st.session_state:
 if 'address' not in st.session_state:
     st.session_state.address = '배송지 입력하기'
 
-st.markdown(
+st.html(
     body="""
     <style>
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
 now = datetime.now(timezone.utc) + timedelta(hours=9)
@@ -64,7 +63,6 @@ def addrDialog():
                 if choice:
                     st.session_state.address = i
                     st.rerun()
-            return st.session_state.address
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
@@ -100,7 +98,7 @@ else:
 
             addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
 
-            addr = st.text_input(
+            addr.text_input(
                 label="기본 배송지",
                 value=st.session_state.address,
                 key="addrNone",
@@ -108,14 +106,14 @@ else:
                 disabled=True
             )
 
-            searchAddr = st.button(
+            searchAddrB = searchAddr.button(
                 label="찾아보기",
                 key="addressSearch",
                 type="primary",
                 use_container_width=False
             )
 
-            if searchAddr:
+            if searchAddrB:
                 addrDialog()
 
             detailAddr = st.text_input(
