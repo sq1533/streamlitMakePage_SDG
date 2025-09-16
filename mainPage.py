@@ -228,7 +228,7 @@ for l in range(line):
 
 # 아이템 4열 배치
 for itemKey in category['key']:
-    itemCard = itemInfo.items.itemInfo(itemId=itemKey)
+    itemCard = itemInfo.items.itemInfo()[itemKey]
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
             showImage(itemCard['paths'][0])

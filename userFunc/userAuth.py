@@ -211,12 +211,17 @@ class guest(database):
 
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
-        try:
-            database().pyrebase_auth.delete_user_account(token)
-            return True
-        except Exception as e:
-            print(f'회원탈퇴 실패 {e}')
-            return False
+        if token.get('firebase') != None:
+            uid = guest.tokenToUid(token=token)
+            if uid['allow']:
+                database().auth.delete_user(uid['result'])
+                database().rtDatabase_user.child(uid['result']).delete()
+                return True
+            else:
+                print(f'회원탈퇴 실패')
+                return False
+        else:
+            database().rtDatabase_user.child(uid['result']).delete()
 
     # 사용자 주소 추가
     def addAddr(token : dict, addAddr : str):

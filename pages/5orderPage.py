@@ -38,8 +38,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with st.sidebar:
         st.title(body="상품 주문")
 
-    itemIF = itemInfo.items.itemInfo(itemId=st.session_state.item)
-    itemStatus = itemInfo.items.itemStatus(itemId=st.session_state.item)
+    itemIF = itemInfo.items.itemInfo()[st.session_state.item]
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -73,32 +72,32 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             label="결제하기",
             key='pay',
             type="primary",
-            disabled=(not itemStatus['enable']),
             use_container_width=True
             )
 
         if buyBTN:
-            with st.spinner(text="결제 승인 요청 중...", show_time=False):
+            itemEnable = itemInfo.items.itemStatus(itemId=st.session_state.item)['enable']
+            if itemEnable:
+                with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
-                now = datetime.now(timezone.utc) + timedelta(hours=9)
-                orderTime = now.strftime("%y%m%d%H%M%S")
-                order = utils.items.itemOrder(
-                    uid=st.session_state.user['localId'],
-                    token=st.session_state.user['idToken'],
-                    itemID=st.session_state.item,
-                    orderTime=orderTime,
-                    address=st.session_state.userInfo.get('address')['home']
-                    )
-                if order:
-                    st.success(body=f"{itemInfo['name']} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
-                    st.session_state.userInfo = utils.guest.showUserInfo(uid=st.session_state.user['localId'], token=st.session_state.user['token'])
-                    st.session_state.item = False # 구매 후 아이템 세션 초기화
-                    time.sleep(2)
-                    st.switch_page("pages/4-1myPageOrderList.py")
-                else:
-                    st.warning(body='주문 중 오류가 발생했습니다. 다시 시도해주세요.')
-                    time.sleep(2)
-                    st.session_state.item = False # 구매 후 아이템 세션 초기화
-                    st.rerun()
+                    now = datetime.now(timezone.utc) + timedelta(hours=9)
+                    orderTime = now.strftime("%y%m%d%H%M%S")
+                    order = itemInfo.items.itemOrder(
+                        token=st.session_state.token,
+                        itemID=st.session_state.item,
+                        orderTime=orderTime,
+                        address=st.session_state.user.get('address')['home']
+                        )
+                    if order:
+                        st.success(body=f"{itemIF.get('name')} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
+                        st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                        st.session_state.item = None # 구매 후 아이템 세션 초기화
+                        time.sleep(2)
+                        st.switch_page("pages/3myPage_orderList.py")
+                    else:
+                        st.warning(body='주문 중 오류가 발생했습니다. 다시 시도해주세요.')
+                        time.sleep(2)
+                        st.session_state.item = None
+                        st.rerun()
 else:
     st.switch_page(page="mainPage.py")

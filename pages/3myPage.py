@@ -95,7 +95,7 @@ if any(value is not None for value in st.session_state.token.values()):
             use_container_width=True
         )
         if signOut:
-            st.switch_page(page="pages/5-2signOut.py")
+            st.switch_page(page="pages/6signOUT.py")
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 

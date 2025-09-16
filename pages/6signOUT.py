@@ -1,22 +1,27 @@
 import streamlit as st
-import utils
+import userFunc.userAuth as userAuth
 import time
 
-if 'user' not in st.session_state:
-    st.session_state.user = None
+# 회원 로그인 구분
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'firebase':None,
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
 
-st.markdown(
+st.html(
     body="""
     <style>
     [data-testid="stHeaderActionElements"] {
         display: none !important;
     }
     </style>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
-if st.session_state.user:
+if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body="회원 탈퇴")
 
@@ -34,7 +39,8 @@ if st.session_state.user:
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        st.markdown(body="#### 회원을 탈퇴 하시겠습니까?")
+        st.title(body="회원을 탈퇴 하시겠습니까?")
+        st.info(body='간편 로그인 회원의 경우, amuredo와 연동된 정보만 삭제됩니다.\n 원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')
         NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
         
         DontOut = NO.button(
@@ -56,7 +62,7 @@ if st.session_state.user:
                 st.switch_page(page="mainPage.py")
         if out:
             with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
-                utils.guest.guestOUT(uid=st.session_state.user['localId'], token=st.session_state.user['idToken'])
+                userAuth.guest.guestOUT(token=st.session_state.token)
                 st.info(body="회원 탈퇴 완료")
                 time.sleep(2)
                 st.session_state.clear()

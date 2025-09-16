@@ -1,6 +1,5 @@
 import streamlit as st
 import utils
-import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
 from datetime import datetime
 
@@ -21,7 +20,7 @@ if 'item' not in st.session_state:
     st.session_state.item = None
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = False
+    st.session_state.orderItem = None
 
 st.html(
     body="""
@@ -84,7 +83,7 @@ def showItem(itemId, itemIF):
 
     if buyBTN:
         st.session_state.item = itemId
-        st.switch_page(page="pages/5-1orderPage.py")
+        st.switch_page(page="pages/5orderPage.py")
 
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
@@ -115,7 +114,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 status = utils.database().showStatus[order.get('status')]
 
                 # 아이템 정보
-                itemIF = itemInfo.items.itemInfo(itemId=itemID)
+                itemIF = itemInfo.items.itemInfo()[itemID]
 
                 with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
@@ -141,7 +140,7 @@ if any(value is not None for value in st.session_state.token.values()):
                             'addressChange':False, # 배송지 변경 버튼 활성화 여부
                             'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
                             'statusChange':'주문 취소', # 주문 상태 변경 버튼 멘트
-                            'switchPagePath':'pages/4-3userCancel.py', # 페이지 이동
+                            'switchPagePath':'pages/4myOrder_itemCancel.py', # 페이지 이동
                         }
                     # 배송 완료 후 7일 경과
                     elif order.get('status') == 'Done':
@@ -181,7 +180,7 @@ if any(value is not None for value in st.session_state.token.values()):
                             'addressChange':True, # 배송지 변경 버튼 활성화 여부
                             'cancelB':False, # 주문 상태 변경 버튼 활성화 여부
                             'statusChange':'환불 요청', # 주문 상태 변경 버튼 멘트
-                            'switchPagePath':'pages/4-4userRefund.py', # 페이지 이동
+                            'switchPagePath':'pages/4myOrder_itemRefund.py', # 페이지 이동
                         }
 
                     changeAddrB = changeAddr.button(
@@ -193,7 +192,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     )
                     if changeAddrB:
                         st.session_state.orderItem = [key, order]
-                        st.switch_page(page='pages/4-2userCgAddr.py')
+                        st.switch_page(page='pages/4myOrder_changeAddr.py')
 
                     aboutItemB = aboutItem.button(
                         label='상품 상세',
