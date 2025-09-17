@@ -9,7 +9,6 @@ import requests
 # 회원 로그인 구분
 if 'token' not in st.session_state:
     st.session_state.token = {
-        'firebase':None,
         'naver':None,
         'kakao':None,
         'gmail':None

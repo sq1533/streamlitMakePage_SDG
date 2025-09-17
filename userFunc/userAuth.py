@@ -4,16 +4,11 @@ import re
 import requests
 import urllib.parse
 import secrets
-# import smtplib
-# from email.message import EmailMessage
 
 # guest 관리
 class guest(database):
     def tokenToUid(token : dict) -> dict:
         try:
-            # if token.get('firebase') != None:
-            #     uid = token.get('firebase').get('localId')
-            #     return {'allow':True, 'result':uid}
             if token.get('naver') != None:
                 userInfo = requests.post(
                     url='https://openapi.naver.com/v1/nid/me',
@@ -197,52 +192,6 @@ class guest(database):
         else:
             pass
 
-    # # firebase 로그인 고객
-    # def signIN(id : str, pw : str) -> dict:
-    #     try:
-    #         signINuser = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-    #         return {'allow':True, 'result':signINuser}
-
-    #     except requests.exceptions.HTTPError as httpError:
-    #         print(httpError)
-    #         return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
-
-    #     except Exception as e:
-    #         print(e)
-    #         return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
-
-    # # 중복 이메일 확인 및 이메일 검증
-    # def emailCK(id : str) -> dict:
-    #     try:
-    #         database().auth.get_user_by_email(email=id)
-    #         return {'allow' : False, 'result' : '가입된 이메일입니다.'}
-    #     except database().auth.UserNotFoundError:
-    #         return {'allow' : True, 'result' : id}
-    #     except ValueError:
-    #         return {'allow' : False, 'result' : '올바르지 않은 이메일 형식입니다.'}
-    #     except Exception as e:
-    #         print(e)
-    #         return {'allow' : False, 'result' : '예기치 못한 오류'}
-
-    # # 회원 가입 db 연동
-    # def createUser(email : str, pw : str) -> bool:
-    #     try:
-    #         database().auth.create_user(email=email, password=pw, disabled=True)
-    #         return True
-    #     except Exception as e:
-    #         print(e)
-    #         return False
-
-    # # firebase 고객 DB 저장
-    # def userInfoAddDB(email : str, userInfo : dict) -> bool:
-    #     try:
-    #         userAuth = database().auth.get_user_by_email(email=email)
-    #         database().rtDatabase_user.child(path=userAuth.uid).set(value=userInfo)
-    #         return True
-    #     except Exception as e:
-    #         print(e)
-    #         return False
-
     # # 인증 메일 전송
     # def sendEmail(userMail: str) -> bool:
     #     findUser = database().auth.get_user_by_email(email=userMail)
@@ -279,44 +228,6 @@ class guest(database):
     #     except Exception as e:
     #         print(e)
     #         return False
-
-    # # 회원 이메일 인증 확인
-    # def showEmailVerified(token : dict) -> bool:
-    #     try:
-    #         if token.keys() == 'firebase':
-    #             uid = guest.tokenToUid(token=token)
-    #             if uid['allow']:
-    #                 emailVer = database().auth.get_user(uid=uid['result']).email_verified
-    #                 if emailVer:
-    #                     return True
-    #                 else:
-    #                     return False
-    #             else:
-    #                 return False
-    #         else:
-    #             return True
-    #     except Exception as e:
-    #         print(e)
-    #         return False
-
-    # # 비밀번호 변경
-    # def PWchange(token : dict, newPW : str, date : str) -> bool:
-    #     uid = guest.tokenToUid(token=token)
-    #     if uid['allow']:
-    #         database().auth.update_user(uid=uid['result'], password=newPW)
-    #         database().rtDatabase_user.child(uid['result']).update({'createPW':date})
-    #     else:
-    #         print('비밀번호 변경 실패')
-    #         pass
-
-    # # 비밀번호 연장
-    # def PWchangeLater(token : dict, date : str):
-    #     uid = guest.tokenToUid(token=token)
-    #     if uid['allow']:
-    #         database().rtDatabase_user.child(uid['result']).update({'createPW':date})
-    #     else:
-    #         pass
-
 
 # 주소 검색
 def seachAddress(address : str):

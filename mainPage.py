@@ -16,7 +16,6 @@ from datetime import datetime, timezone, timedelta
 # 회원 로그인 구분
 if 'token' not in st.session_state:
     st.session_state.token = {
-        'firebase':None,
         'naver':None,
         'kakao':None,
         'gmail':None
@@ -99,7 +98,6 @@ def showItem(itemID, itemIF):
 
     if buyBTN:
         if any(value is not None for value in st.session_state.token.values()):
-            # and userAuth.guest.showEmailVerified(token=st.session_state.token):
             st.session_state.item = itemID
             st.switch_page(page="pages/5orderPage.py")
         else:
@@ -124,47 +122,6 @@ with st.sidebar:
 
         st.markdown(f'## 환영합니다.')
 
-        # if st.session_state.token['firebase']:
-        #     if userAuth.guest.showEmailVerified(token=st.session_state.token):
-        #         pass
-        #     else:
-        #         st.warning(body='이메일 인증을 완료해주세요.')
-
-        #     createPW = st.session_state.user.get('createPW')
-        #     now = datetime.now(timezone.utc) + timedelta(hours=9)
-        #     nowDay = now.strftime('%Y-%m-%d')
-
-        #     orderDay_d = datetime.strptime(createPW, '%Y-%m-%d').date()
-        #     nowDay_d = datetime.strptime(nowDay, '%Y-%m-%d').date()
-        #     elapsed = (nowDay_d - orderDay_d).days
-
-        #     if elapsed > 90:
-        #         st.warning(body='비밀번호를 변경한지 90일이 지났습니다. 비밀번호를 변경해주세요.')
-
-        #         YES, NO = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-        #         pwChange = YES.button(
-        #             label="변경하기",
-        #             type="tertiary",
-        #             key="pwChange",
-        #             use_container_width=True
-        #         )
-        #         laterChange = NO.button(
-        #             label="나중에..",
-        #             type="secondary",
-        #             key="laterChange",
-        #             use_container_width=True
-        #         )
-        #         if pwChange:
-        #             st.switch_page(page="pages/3myPage_changePW.py")
-
-        #         if laterChange:
-        #             userAuth.guest.PWchangeLater(token=st.session_state.token, date=nowDay)
-        #             st.session_state.user['createPW'] = nowDay
-        #             st.rerun()
-        #         else:
-        #             pass
-        # else:
         # 소셜 고객 배송정보 확인
         if st.session_state.user.get('address'):
             pass
@@ -187,6 +144,7 @@ with st.sidebar:
             type='tertiary',
             use_container_width=True
         )
+
         # 마이페이지
         if myinfo:
             st.switch_page(page="pages/3myPage.py")

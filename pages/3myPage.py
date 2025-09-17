@@ -1,11 +1,9 @@
 import streamlit as st
 import userFunc.userAuth as userAuth
-import time
 
 # 회원 로그인 구분
 if 'token' not in st.session_state:
     st.session_state.token = {
-        'firebase':None,
         'naver':None,
         'kakao':None,
         'gmail':None
@@ -86,8 +84,6 @@ if any(value is not None for value in st.session_state.token.values()):
         )
         if goHome:
             st.switch_page(page="mainPage.py")
-
-        # if userAuth.guest.showEmailVerified(token=st.session_state.token):
 
         email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
 
@@ -212,20 +208,5 @@ if any(value is not None for value in st.session_state.token.values()):
                         st.rerun()
                 else:
                     st.warning(body='배송지 정보가 잘못 되었습니다.')
-                            
-        # else:
-        #     st.warning(body='이메일 인증이 완료되지 않았습니다. 이메일 인증을 진행해주세요.')
-        #     sendEmail = st.button(
-        #         label="이메일 인증 보내기",
-        #         key="sendEmail",
-        #         type="primary",
-        #         use_container_width=True
-        #     )
-        #     if sendEmail:
-        #         sent = userAuth.guest.sendEmail(userMail=st.session_state.user.get('email'))
-        #         if sent:
-        #             st.info(body='인증메일을 전송했어요. 메일함을 확인해주세요.')
-        #             time.sleep(2)
-        #             st.session_state.clear()
 else:
     st.switch_page(page="mainPage.py")
