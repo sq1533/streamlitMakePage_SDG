@@ -33,9 +33,6 @@ if 'item' not in st.session_state:
 st.html(
     """
     <style>
-    .block-container {
-        padding-top: 2rem;
-    }
     div[data-testid="stElementToolbar"] {
         display: none !important;
     }
@@ -101,7 +98,7 @@ def showItem(itemID, itemIF):
         st.html(body=f"{itemIF['detail']}")
 
     if buyBTN:
-        if st.session_state.token and userAuth.guest.showEmailVerified(token=st.session_state.token):
+        if any(value is not None for value in st.session_state.token.values()) and userAuth.guest.showEmailVerified(token=st.session_state.token):
             st.session_state.item = itemID
             st.switch_page(page="pages/5orderPage.py")
         else:
