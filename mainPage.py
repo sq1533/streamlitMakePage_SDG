@@ -109,7 +109,7 @@ def showItem(itemID, itemIF):
             st.error(body='고객이 확인되지 않습니다.')
 
 # 페이지 제목
-st.title(body='amuredo', anchor='https://amuredo.shop')
+st.title(body='amuredo')
 
 # siderbar 정의
 with st.sidebar:

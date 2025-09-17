@@ -25,7 +25,7 @@ goHome = st.button(
 if goHome:
     st.switch_page(page='mainPage.py')
 
-st.title(body='쿠키 정책', width='stretch')
+st.title(body='쿠키 정책')
 
 st.text(
     body="""
