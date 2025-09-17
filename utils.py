@@ -1,5 +1,5 @@
 import streamlit as st
-import pyrebase
+# import pyrebase
 import firebase_admin
 from firebase_admin import auth, db
 

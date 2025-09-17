@@ -4,8 +4,8 @@ import re
 import requests
 import urllib.parse
 import secrets
-import smtplib
-from email.message import EmailMessage
+# import smtplib
+# from email.message import EmailMessage
 
 # guest 관리
 class guest(database):
