@@ -6,18 +6,18 @@ from firebase_admin import auth, db
 # firebase client
 @st.cache_resource()
 def firebaseInitializeApp():
-    # Firebase 사용자 keys
-    pyrebaseKey = {
-        "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
-        "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
-        "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
-        "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
-        "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
-        "appId" : st.secrets["firebaseWebConfig"]["appId"],
-        "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
-        }
+    # # Firebase 사용자 keys
+    # pyrebaseKey = {
+    #     "apiKey" : st.secrets["firebaseWebConfig"]["apiKey"],
+    #     "authDomain" : st.secrets["firebaseWebConfig"]["authDomain"],
+    #     "projectId" : st.secrets["firebaseWebConfig"]["projectId"],
+    #     "storageBucket" : st.secrets["firebaseWebConfig"]["storageBucket"],
+    #     "messagingSenderId" : st.secrets["firebaseWebConfig"]["messagingSenderId"],
+    #     "appId" : st.secrets["firebaseWebConfig"]["appId"],
+    #     "databaseURL" : st.secrets["firebaseWebConfig"]["databaseURL"]
+    #     }
 
-    firebase_client = pyrebase.initialize_app(config=pyrebaseKey)
+    # firebase_client = pyrebase.initialize_app(config=pyrebaseKey)
 
     private_key = st.secrets["firebaseKey"]["private_key"].replace('\\n', '\n')
     
@@ -43,7 +43,7 @@ def firebaseInitializeApp():
         )
 
     return {
-        'pyrebase': firebase_client,
+        # 'pyrebase': firebase_client,
         'firebase_auth': auth,
         'firebase_rtDB': db,
     }
@@ -53,7 +53,7 @@ firebase = firebaseInitializeApp()
 # database
 class database:
     def __init__(self):
-        self.pyrebase_auth = firebase['pyrebase'].auth()
+        # self.pyrebase_auth = firebase['pyrebase'].auth()
         self.auth = firebase['firebase_auth']
         self.rtDatabase_user = firebase['firebase_rtDB'].reference(path='user') # 회원 정보 호출
         self.rtDatabase_item = firebase['firebase_rtDB'].reference(path='items') # 아이템 정보
