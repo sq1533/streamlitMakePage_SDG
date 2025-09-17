@@ -40,7 +40,7 @@ if any(value is not None for value in st.session_state.token.values()):
             st.switch_page(page="mainPage.py")
 
         st.title(body="회원을 탈퇴 하시겠습니까?")
-        st.info(body='간편 로그인 회원의 경우, amuredo와 연동된 정보만 삭제됩니다.\n 원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')
+        st.info(body='간편 로그인 회원의 경우, amuredo가 관리하는 정보만 삭제됩니다.\n원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')
         NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
         
         DontOut = NO.button(

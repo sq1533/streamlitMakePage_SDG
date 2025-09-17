@@ -1,6 +1,5 @@
 import streamlit as st
 import userFunc.userAuth as userAuth
-import requests
 
 # 회원 로그인 구분
 if 'token' not in st.session_state:
@@ -62,28 +61,3 @@ else:
             </a>
             """
             )
-
-        signUP, signIN = st.columns(spec=2, gap='small', vertical_alignment='center')
-
-        # firebese 이메일 회원가입
-        signUPB = signUP.button(
-            label='회원가입',
-            key='firebaseSignUP',
-            type='secondary',
-            use_container_width=True
-        )
-
-        # firebase 이메일 로그인
-        signINB = signIN.button(
-            label='email로그인',
-            key='firebaseSignIN',
-            type='primary',
-            use_container_width=True
-        )
-
-        if signUPB:
-            st.session_state.signUP = True
-            st.switch_page(page='pages/2signUP.py')
-
-        if signINB:
-            st.switch_page(page='pages/1signIN_firebase.py')

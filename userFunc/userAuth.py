@@ -11,10 +11,10 @@ from email.message import EmailMessage
 class guest(database):
     def tokenToUid(token : dict) -> dict:
         try:
-            if token.get('firebase') != None:
-                uid = token.get('firebase').get('localId')
-                return {'allow':True, 'result':uid}
-            elif token.get('naver') != None:
+            # if token.get('firebase') != None:
+            #     uid = token.get('firebase').get('localId')
+            #     return {'allow':True, 'result':uid}
+            if token.get('naver') != None:
                 userInfo = requests.post(
                     url='https://openapi.naver.com/v1/nid/me',
                     headers={'Authorization':f'Bearer {token.get('naver')['access_token']}'}
@@ -27,7 +27,8 @@ class guest(database):
                 pass
             elif token.get('gmail') != None:
                 pass
-
+            else:
+                {'allow':False, 'result':'회원 정보 없음'}
         except Exception as e:
             return {'allow':False, 'result':e}
 
@@ -132,108 +133,6 @@ class guest(database):
             print(e)
             return {'allow':False, 'result':e}
 
-    # firebase 로그인 고객
-    def signIN(id : str, pw : str) -> dict:
-        try:
-            signINuser = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
-            return {'allow':True, 'result':signINuser}
-
-        except requests.exceptions.HTTPError as httpError:
-            print(httpError)
-            return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
-
-        except Exception as e:
-            print(e)
-            return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
-
-    # 중복 이메일 확인 및 이메일 검증
-    def emailCK(id : str) -> dict:
-        try:
-            database().auth.get_user_by_email(email=id)
-            return {'allow' : False, 'result' : '가입된 이메일입니다.'}
-        except database().auth.UserNotFoundError:
-            return {'allow' : True, 'result' : id}
-        except ValueError:
-            return {'allow' : False, 'result' : '올바르지 않은 이메일 형식입니다.'}
-        except Exception as e:
-            print(e)
-            return {'allow' : False, 'result' : '예기치 못한 오류'}
-
-    # 회원 가입 db 연동
-    def createUser(email : str, pw : str) -> bool:
-        try:
-            database().auth.create_user(email=email, password=pw, disabled=True)
-            return True
-        except Exception as e:
-            print(e)
-            return False
-
-    # firebase 고객 DB 저장
-    def userInfoAddDB(email : str, userInfo : dict) -> bool:
-        try:
-            userAuth = database().auth.get_user_by_email(email=email)
-            database().rtDatabase_user.child(path=userAuth.uid).set(value=userInfo)
-            return True
-        except Exception as e:
-            print(e)
-            return False
-
-    # 인증 메일 전송
-    def sendEmail(userMail: str) -> bool:
-        findUser = database().auth.get_user_by_email(email=userMail)
-        settingCode = database().auth.ActionCodeSettings(
-            url=f"{database().emailAccess['DEPLOYED_BASE_URL']}/success?email={userMail}",
-            handle_code_in_app=True
-        )
-        link = database().auth.generate_email_verification_link(
-            email=userMail,
-            action_code_settings=settingCode
-        )
-        emailMain = EmailMessage()
-        emailMain['Subject'] = 'amuredo 회원가입, 이메일 인증 입니다.'
-        emailMain['From'] = database().emailAccess['SENDER_EMAIL']
-        emailMain['To'] = userMail
-        emailMain.set_content(database().emailMain + link)
-        try:
-            with smtplib.SMTP(
-                host=database().emailAccess['SENDER_SERVER'],
-                port=database().emailAccess['SENDER_PORT']
-                ) as smtp_server:
-                smtp_server.ehlo() # 서버에 자신을 소개
-                smtp_server.starttls() # TLS 암호화 시작
-                smtp_server.login(database().emailAccess['SENDER_EMAIL'], database().emailAccess['SENDER_APP_PASSWORD'])
-                smtp_server.send_message(emailMain)
-            database().auth.update_user(uid=findUser.uid, disabled=False)
-            return True
-        except smtplib.SMTPAuthenticationError:
-            print('오류: SMTP 인증 실패.')
-            return False
-        except smtplib.SMTPServerDisconnected:
-            print('오류: SMTP 서버 연결 끊김.')
-            return False
-        except Exception as e:
-            print(e)
-            return False
-
-    # 회원 이메일 인증 확인
-    def showEmailVerified(token : dict) -> bool:
-        try:
-            if token.keys() == 'firebase':
-                uid = guest.tokenToUid(token=token)
-                if uid['allow']:
-                    emailVer = database().auth.get_user(uid=uid['result']).email_verified
-                    if emailVer:
-                        return True
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return True
-        except Exception as e:
-            print(e)
-            return False
-
     # 회원 정보호출
     def showUserInfo(token : dict) -> dict:
         uid = guest.tokenToUid(token=token)
@@ -243,36 +142,22 @@ class guest(database):
         else:
             return None
 
-    # 비밀번호 변경
-    def PWchange(token : dict, newPW : str, date : str) -> bool:
-        uid = guest.tokenToUid(token=token)
-        if uid['allow']:
-            database().auth.update_user(uid=uid['result'], password=newPW)
-            database().rtDatabase_user.child(uid['result']).update({'createPW':date})
-        else:
-            print('비밀번호 변경 실패')
-            pass
-
-    # 비밀번호 연장
-    def PWchangeLater(token : dict, date : str):
-        uid = guest.tokenToUid(token=token)
-        if uid['allow']:
-            database().rtDatabase_user.child(uid['result']).update({'createPW':date})
-        else:
-            pass
-
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
+        uid = guest.tokenToUid(token=token)
         if token.get('firebase') != None:
-            uid = guest.tokenToUid(token=token)
             if uid['allow']:
-                database().auth.delete_user(uid['result'])
+                database().auth.update_user(uid=uid['result'], disabled=True)
+                userInfo = database().rtDatabase_user.child(uid['result']).get()
+                database().rtDatabase_user.child('out_'+uid['result']).set(userInfo)
                 database().rtDatabase_user.child(uid['result']).delete()
                 return True
             else:
                 print(f'회원탈퇴 실패')
                 return False
         else:
+            userInfo = database().rtDatabase_user.child(uid['result']).get()
+            database().rtDatabase_user.child('out_'+uid['result']).set(userInfo)
             database().rtDatabase_user.child(uid['result']).delete()
 
     # 소셜 사용자 기본 배송지 추가
@@ -311,6 +196,127 @@ class guest(database):
             database().rtDatabase_user.child(uid['result']).child(f'address/{homeAddrKey}').delete()
         else:
             pass
+
+    # # firebase 로그인 고객
+    # def signIN(id : str, pw : str) -> dict:
+    #     try:
+    #         signINuser = database().pyrebase_auth.sign_in_with_email_and_password(email=id, password=pw)
+    #         return {'allow':True, 'result':signINuser}
+
+    #     except requests.exceptions.HTTPError as httpError:
+    #         print(httpError)
+    #         return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
+
+    #     except Exception as e:
+    #         print(e)
+    #         return {'allow':False, 'result':'회원 로그인 실패, 아이디와 비밀번호를 확인해주세요.'}
+
+    # # 중복 이메일 확인 및 이메일 검증
+    # def emailCK(id : str) -> dict:
+    #     try:
+    #         database().auth.get_user_by_email(email=id)
+    #         return {'allow' : False, 'result' : '가입된 이메일입니다.'}
+    #     except database().auth.UserNotFoundError:
+    #         return {'allow' : True, 'result' : id}
+    #     except ValueError:
+    #         return {'allow' : False, 'result' : '올바르지 않은 이메일 형식입니다.'}
+    #     except Exception as e:
+    #         print(e)
+    #         return {'allow' : False, 'result' : '예기치 못한 오류'}
+
+    # # 회원 가입 db 연동
+    # def createUser(email : str, pw : str) -> bool:
+    #     try:
+    #         database().auth.create_user(email=email, password=pw, disabled=True)
+    #         return True
+    #     except Exception as e:
+    #         print(e)
+    #         return False
+
+    # # firebase 고객 DB 저장
+    # def userInfoAddDB(email : str, userInfo : dict) -> bool:
+    #     try:
+    #         userAuth = database().auth.get_user_by_email(email=email)
+    #         database().rtDatabase_user.child(path=userAuth.uid).set(value=userInfo)
+    #         return True
+    #     except Exception as e:
+    #         print(e)
+    #         return False
+
+    # # 인증 메일 전송
+    # def sendEmail(userMail: str) -> bool:
+    #     findUser = database().auth.get_user_by_email(email=userMail)
+    #     settingCode = database().auth.ActionCodeSettings(
+    #         url=f"{database().emailAccess['DEPLOYED_BASE_URL']}/success?email={userMail}",
+    #         handle_code_in_app=True
+    #     )
+    #     link = database().auth.generate_email_verification_link(
+    #         email=userMail,
+    #         action_code_settings=settingCode
+    #     )
+    #     emailMain = EmailMessage()
+    #     emailMain['Subject'] = 'amuredo 회원가입, 이메일 인증 입니다.'
+    #     emailMain['From'] = database().emailAccess['SENDER_EMAIL']
+    #     emailMain['To'] = userMail
+    #     emailMain.set_content(database().emailMain + link)
+    #     try:
+    #         with smtplib.SMTP(
+    #             host=database().emailAccess['SENDER_SERVER'],
+    #             port=database().emailAccess['SENDER_PORT']
+    #             ) as smtp_server:
+    #             smtp_server.ehlo() # 서버에 자신을 소개
+    #             smtp_server.starttls() # TLS 암호화 시작
+    #             smtp_server.login(database().emailAccess['SENDER_EMAIL'], database().emailAccess['SENDER_APP_PASSWORD'])
+    #             smtp_server.send_message(emailMain)
+    #         database().auth.update_user(uid=findUser.uid, disabled=False)
+    #         return True
+    #     except smtplib.SMTPAuthenticationError:
+    #         print('오류: SMTP 인증 실패.')
+    #         return False
+    #     except smtplib.SMTPServerDisconnected:
+    #         print('오류: SMTP 서버 연결 끊김.')
+    #         return False
+    #     except Exception as e:
+    #         print(e)
+    #         return False
+
+    # # 회원 이메일 인증 확인
+    # def showEmailVerified(token : dict) -> bool:
+    #     try:
+    #         if token.keys() == 'firebase':
+    #             uid = guest.tokenToUid(token=token)
+    #             if uid['allow']:
+    #                 emailVer = database().auth.get_user(uid=uid['result']).email_verified
+    #                 if emailVer:
+    #                     return True
+    #                 else:
+    #                     return False
+    #             else:
+    #                 return False
+    #         else:
+    #             return True
+    #     except Exception as e:
+    #         print(e)
+    #         return False
+
+    # # 비밀번호 변경
+    # def PWchange(token : dict, newPW : str, date : str) -> bool:
+    #     uid = guest.tokenToUid(token=token)
+    #     if uid['allow']:
+    #         database().auth.update_user(uid=uid['result'], password=newPW)
+    #         database().rtDatabase_user.child(uid['result']).update({'createPW':date})
+    #     else:
+    #         print('비밀번호 변경 실패')
+    #         pass
+
+    # # 비밀번호 연장
+    # def PWchangeLater(token : dict, date : str):
+    #     uid = guest.tokenToUid(token=token)
+    #     if uid['allow']:
+    #         database().rtDatabase_user.child(uid['result']).update({'createPW':date})
+    #     else:
+    #         pass
+
 
 # 주소 검색
 def seachAddress(address : str):
