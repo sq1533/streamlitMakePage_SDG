@@ -1,5 +1,6 @@
 import streamlit as st
 import userFunc.userAuth as userAuth
+import utils
 import time
 
 # 회원 로그인 구분
@@ -101,20 +102,39 @@ if any(value is not None for value in st.session_state.token.values()):
             # 최종 주소지
             address = st.session_state.address + ' ' + detailAddr
 
-            addAddrB = st.button(
-                label='기본 배송지 설정하기',
-                key='baseAddr',
-                type='primary',
-                use_container_width=True
+            conditionMain, conditionBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
+            infoUsedMain, infoUsedBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
+
+            with conditionMain.expander(label='[필수] 이용약관 동의'):
+                st.text(body=utils.database().condition)
+
+            condtion = conditionBox.checkbox(
+                label='동의',
+                key='conditionAgree'
             )
-            if addAddrB:
-                result = userAuth.guest.addHomeAddr(token=st.session_state.token, addr=address)
-                if result:
-                    st.info(body='기본 배송지 설정 완료, 메인페이지 이동중 ..')
-                    st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
-                    time.sleep(2)
-                    st.switch_page(page='mainPage.py')
-                else:
-                    st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')
+
+            with infoUsedMain.expander(label='[필수] 개인정보 이용 동의'):
+                st.html(body=utils.database().infoUsed)
+
+            infoUsed = infoUsedBox.checkbox(
+                label='동의',
+                key='usedAgree'
+            )
+            if st.session_state.address != '배송지 입력하기' and detailAddr and condtion and infoUsed:
+                addAddrB = st.button(
+                    label='기본 배송지 설정하기',
+                    key='baseAddr',
+                    type='primary',
+                    use_container_width=True
+                )
+                if addAddrB:
+                    result = userAuth.guest.addHomeAddr(token=st.session_state.token, addr=address)
+                    if result:
+                        st.info(body='기본 배송지 설정 완료, 메인페이지 이동중 ..')
+                        st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                        time.sleep(2)
+                        st.switch_page(page='mainPage.py')
+                    else:
+                        st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')
 else:
     st.switch_page(page='mainPage.py')

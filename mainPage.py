@@ -257,4 +257,27 @@ for itemKey in category['key']:
         pass
 
 st.divider()
+
+policy, cookies, empty = st.columns(spec=[1,1,3], gap='small', vertical_alignment='center')
+
+policyB = policy.button(
+    label='개인정보 처리방침',
+    key='policy',
+    type='tertiary',
+    use_container_width=False
+)
+
+cookiesB = cookies.button(
+    label='쿠키 정책',
+    key='cookiesPolicy',
+    type='tertiary',
+    use_container_width=False
+)
+
+if policyB:
+    st.switch_page(page='pages/0policy.py')
+
+if cookiesB:
+    st.switch_page(page='pages/0cookies.py')
+
 st.write('통신판매업을 위한 정보 기입')
