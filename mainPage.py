@@ -2,16 +2,15 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="amuredo",
-    page_icon=":flying_disc:",
+    page_title="AMUREDO",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
 import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
+import utils
 import time
-from datetime import datetime, timezone, timedelta
 
 # 회원 로그인 구분
 if 'token' not in st.session_state:
@@ -102,6 +101,21 @@ def showItem(itemID, itemIF):
             st.switch_page(page="pages/5orderPage.py")
         else:
             st.error(body='고객이 확인되지 않습니다.')
+
+# 상단 vanner
+st.html(
+    body=f"""
+    <style>
+        .fullscreen-gif {{
+            width: 100%;
+            height: auto;
+            aspect-ratio: 21 / 9;
+            object-fit: cover;
+        }}
+    </style>
+    <img src="{utils.database().firestore_vanner.get().to_dict()['path']}" class="fullscreen-gif">
+    """
+)
 
 # 페이지 제목
 st.title(body='amuredo')

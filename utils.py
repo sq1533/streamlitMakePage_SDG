@@ -1,6 +1,6 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import auth, db
+from firebase_admin import db, firestore
 
 # firebase client
 @st.cache_resource()
@@ -28,21 +28,20 @@ def firebaseInitializeApp():
             options={'databaseURL': st.secrets["firebaseKey"]["databaseURL"]}
         )
 
-    return {
-        'firebase_auth': auth,
-        'firebase_rtDB': db,
-    }
+    return db
 
 firebase = firebaseInitializeApp()
 
 # database
 class database:
     def __init__(self):
-        self.auth = firebase['firebase_auth']
-        self.rtDatabase_user = firebase['firebase_rtDB'].reference(path='user') # 회원 정보 호출
-        self.rtDatabase_item = firebase['firebase_rtDB'].reference(path='items') # 아이템 정보
-        self.rtDatabase_itemStatus = firebase['firebase_rtDB'].reference(path='itemStatus') # 아이템 상태
-        self.rtDatabase_orderList = firebase['firebase_rtDB'].reference(path='orderList') # 회원 주문 정보
+        self.firestore_vanner = firestore.client().collection('vanner').document('vanner')
+        self.firestore_item = firestore.client()
+        self.firestore = firestore.client().collection('vanner').document('vanner')
+        self.rtDatabase_user = firebase.reference(path='user') # 회원 정보 호출
+        self.rtDatabase_item = firebase.reference(path='items') # 아이템 정보
+        self.rtDatabase_itemStatus = firebase.reference(path='itemStatus') # 아이템 상태
+        self.rtDatabase_orderList = firebase.reference(path='orderList') # 회원 주문 정보
         self.emailAccess = {
             'SENDER_EMAIL':st.secrets["email_credentials"]["sender_email"],
             'SENDER_APP_PASSWORD':st.secrets["email_credentials"]["sender_password"],
