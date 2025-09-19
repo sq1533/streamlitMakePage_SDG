@@ -3,6 +3,7 @@ import streamlit as st
 # 페이지 기본 설정
 st.set_page_config(
     page_title="AMUREDO",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="auto"
 )
@@ -74,9 +75,9 @@ def showItem(itemID, itemIF):
     with row2.container():
         showImage(path=itemIF['paths'][1])
     with row3.container():
-        showImage(path=itemIF['paths'][2])
+        showImage(path=itemIF['paths'][0])
     with row4.container():
-        showImage(path=itemIF['paths'][3])
+        showImage(path=itemIF['paths'][1])
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
@@ -113,12 +114,9 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{utils.database().firestore_vanner.get().to_dict()['path']}" class="fullscreen-gif">
+    <img src="{utils.database().firestore_vanner.to_dict()['path']}" class="fullscreen-gif">
     """
 )
-
-# 페이지 제목
-st.title(body='amuredo')
 
 # siderbar 정의
 with st.sidebar:

@@ -10,11 +10,12 @@ class items(database):
             keys = []
             color = []
             series = []
-            allItems = database().rtDatabase_item.get()
-            for key, values in allItems.items():
-                keys.append(key)
-                color.append(values['color'])
-                series.append(values['series'])
+            allItems = database().firestore_item
+            for item in allItems:
+                keys.append(item.id)
+                item = item.to_dict()
+                color.append(item['color'])
+                series.append(item['series'])
             colorResult = list(set(color))
             seriesResult = list(set(series))
             return {'allow':True, 'key':keys, 'color':colorResult, 'series':seriesResult}
@@ -25,7 +26,9 @@ class items(database):
     # 아이템 ID 정보 조회
     @st.cache_data(ttl=36000)
     def itemInfo() -> dict:
-        itemIF = database().rtDatabase_item.get()
+        itemIF = {}
+        for i in database().firestore_item:
+            itemIF[i.id] = i.to_dict()
         return itemIF
 
     # 특정 아이템 수량 및 상태
