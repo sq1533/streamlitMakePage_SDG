@@ -133,8 +133,6 @@ with st.sidebar:
             st.session_state.clear()
             st.rerun()
 
-        st.markdown(f'## 환영합니다.')
-
         # 소셜 고객 배송정보 확인
         if st.session_state.user.get('address'):
             pass
