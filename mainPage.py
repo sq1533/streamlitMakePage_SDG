@@ -75,9 +75,9 @@ def showItem(itemID, itemIF):
     with row2.container():
         showImage(path=itemIF['paths'][1])
     with row3.container():
-        showImage(path=itemIF['paths'][0])
+        showImage(path=itemIF['paths'][2])
     with row4.container():
-        showImage(path=itemIF['paths'][1])
+        showImage(path=itemIF['paths'][3])
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
@@ -120,6 +120,7 @@ st.html(
 
 # siderbar 정의
 with st.sidebar:
+    st.title(body='amuredo')
     if any(value is not None for value in st.session_state.token.values()):
         st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
