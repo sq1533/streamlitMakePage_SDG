@@ -50,41 +50,20 @@ st.html(
     """
 )
 
-# 이미지 고정 설정
-def showImage(path : str):
-    try:
-        st.image(
-            image=path,
-            caption=None,
-            use_container_width=True,
-            clamp=False,
-            output_format="auto"
-            )
-    except Exception as e:
-        st.warning(f'이미지 호출 실패 {e}')
-
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
 def showItem(itemID, itemIF):
-    buyDisable = not itemInfo.items.itemStatus(itemId=itemID)['enable']
-    # 이미지 2X2 배치
-    row1, row2 = st.columns(spec=2, gap="small", vertical_alignment="center")
-    row3, row4 = st.columns(spec=2, gap="small", vertical_alignment="center")
-    with row1.container():
-        showImage(path=itemIF['paths'][0])
-    with row2.container():
-        showImage(path=itemIF['paths'][1])
-    with row3.container():
-        showImage(path=itemIF['paths'][2])
-    with row4.container():
-        showImage(path=itemIF['paths'][3])
+    buyDisable = not itemInfo.items.itemStatus(itemId=itemID)['enable']    
+    st.html(body=f'<img src={itemCard['paths'][0]} alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+    st.html(body=f'<img src={itemCard['paths'][1]} alt="image sunglasses02" style="width: 100%; height: auto; display: block;"/>')
+    st.html(body=f'<img src={itemCard['paths'][2]} alt="image sunglasses03" style="width: 100%; height: auto; display: block;"/>')
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : {itemIF['price']} 원")
+    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~ {itemIF['price']}원( :red[-{itemIF['discount']}%] )")
 
     buyBTN = buy.button(
         label="구매하기",
@@ -205,7 +184,7 @@ for itemKey in category['key']:
     itemCard = itemInfo.items.itemInfo()[itemKey]
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
-            showImage(itemCard['paths'][0])
+            st.html(body=f'<img src={itemCard['paths'][0]} alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
             st.markdown(body=f"###### {itemCard['name']}")
             viewBTN = st.button(
                 label="상세보기",
@@ -247,4 +226,4 @@ if policyB:
 if cookiesB:
     st.switch_page(page='pages/0cookies.py')
 
-st.write('통신판매업을 위한 정보 기입')
+st.html(body=utils.database().infoAdmin)

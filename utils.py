@@ -76,3 +76,5 @@ class database:
             self.condition = file.read()
         with open(file='database/infoUsed.txt', mode='r', encoding='utf-8') as file:
             self.infoUsed = file.read()
+        with open(file='database/infoAdmin.txt', mode='r', encoding='utf-8') as file:
+            self.infoAdmin = file.read()
