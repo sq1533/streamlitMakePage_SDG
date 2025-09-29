@@ -40,7 +40,17 @@ st.html(
 items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
-    return st.html(body=f'<img src={path} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+    imageHTML = f"""
+        <style>
+            .itemsImage {{
+                width: 100%;
+                height: auto;
+                display: block;
+            }}
+        </style>
+        <img src={path} loading="lazy" alt="image sunglasses01" class="itemsImage">
+        """
+    return imageHTML
 
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
@@ -49,13 +59,13 @@ def showItem(itemId, itemIF):
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        imgLoad(itemIF['paths'][0])
+        st.html(body=imgLoad(itemIF['paths'][0]))
     with row2.container():
-        imgLoad(itemIF['paths'][1])
+        st.html(body=imgLoad(itemIF['paths'][1]))
     with row1.container():
-        imgLoad(itemIF['paths'][2])
+        st.html(body=imgLoad(itemIF['paths'][2]))
     with row2.container():
-        imgLoad(itemIF['paths'][3])
+        st.html(body=imgLoad(itemIF['paths'][3]))
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
@@ -111,7 +121,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
                 with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-                    image.html(body=f'<img src={itemIF['paths'][0]} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+                    image.html(body=imgLoad(itemIF['paths'][0]))
                     info.markdown(body=f'상품명 : {itemIF.get('name')}\n\n{address}')
 
                     if feedback != None:

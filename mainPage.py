@@ -59,7 +59,17 @@ category = itemInfo.items.itemCategory()
 items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
-    return st.html(body=f'<img src={path} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+    imageHTML = f"""
+        <style>
+            .itemsImage {{
+                width: 100%;
+                height: auto;
+                display: block;
+            }}
+        </style>
+        <img src={path} loading="lazy" alt="image sunglasses01" class="itemsImage">
+        """
+    return imageHTML
 
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
@@ -68,13 +78,13 @@ def showItem(itemID, itemIF):
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        imgLoad(itemIF['paths'][0])
+        st.html(body=imgLoad(itemIF['paths'][0]))
     with row2.container():
-        imgLoad(itemIF['paths'][1])
+        st.html(body=imgLoad(itemIF['paths'][1]))
     with row1.container():
-        imgLoad(itemIF['paths'][2])
+        st.html(body=imgLoad(itemIF['paths'][2]))
     with row2.container():
-        imgLoad(itemIF['paths'][3])
+        st.html(body=imgLoad(itemIF['paths'][3]))
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
 
@@ -200,12 +210,11 @@ for itemKey in category['key']:
     if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
         with cards[count_in_card].container():
             feedback = itemInfo.items.itemStatus(itemId=itemKey)['feedback']
-            likes = '%.1f'%((feedback['point'] / feedback['count'])*100)
 
-            imgLoad(itemCard['paths'][0])
+            st.html(body=imgLoad(itemCard['paths'][0]))
 
             st.markdown(body=f"###### {itemCard['name']}")
-            st.markdown(body=f':heart: {likes}%')
+            st.markdown(body=f':heart: {feedback['point']}%')
 
             viewBTN = st.button(
                 label="상세보기",
