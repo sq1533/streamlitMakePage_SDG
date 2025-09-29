@@ -40,7 +40,7 @@ st.html(
 items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
-    return st.html(body=f'<img src={path} alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+    return st.html(body=f'<img src={path} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
 
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
