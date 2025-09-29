@@ -1,6 +1,8 @@
 import streamlit as st
 import utils
+import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
+import time
 from datetime import datetime
 
 # 회원 로그인 구분
@@ -34,13 +36,26 @@ st.html(
     """
 )
 
+# 아이템 정보
+items = itemInfo.items.itemInfo()
+
+def imgLoad(path : str):
+    return st.html(body=f'<img src={path} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
 def showItem(itemId, itemIF):
     buyDisable = not itemInfo.items.itemStatus(itemId=itemId)['enable']
-    st.html(body=f'<img src={itemIF['paths'][0]} alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
-    st.html(body=f'<img src={itemIF['paths'][1]} alt="image sunglasses02" style="width: 100%; height: auto; display: block;"/>')
-    st.html(body=f'<img src={itemIF['paths'][2]} alt="image sunglasses03" style="width: 100%; height: auto; display: block;"/>')
+
+    row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
+    with row1.container():
+        imgLoad(itemIF['paths'][0])
+    with row2.container():
+        imgLoad(itemIF['paths'][1])
+    with row1.container():
+        imgLoad(itemIF['paths'][2])
+    with row2.container():
+        imgLoad(itemIF['paths'][3])
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
@@ -89,27 +104,44 @@ if any(value is not None for value in st.session_state.token.values()):
                 orderTime = key
                 itemID = order.get('item')
                 address = order.get('address')
+                feedback = order.get('feedback')
                 status = utils.database().showStatus[order.get('status')]
 
-                # 아이템 정보
-                itemIF = itemInfo.items.itemInfo()[itemID]
+                itemIF = items[itemID]
 
                 with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-                    image.image(
-                        image=itemIF.get("paths")[0],
-                        caption=None,
-                        use_container_width=True,
-                        clamp=False,
-                        output_format="auto"
+                    image.html(body=f'<img src={itemIF['paths'][0]} loading="lazy" alt="image sunglasses01" style="width: 100%; height: auto; display: block;"/>')
+                    info.markdown(body=f'상품명 : {itemIF.get('name')}\n\n{address}')
+
+                    if feedback != None:
+                        fbDisable = True
+                    else:
+                        fbDisable = False
+
+                    empty, feed, feedB = info.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
+                    fbing = feed.feedback(
+                        options='thumbs',
+                        key=f'itemFB_{key}',
+                        disabled=fbDisable
                         )
-                    info.markdown(
-                        body=f"""
-                        상품명 : {itemIF.get('name')}\n\n
-                        {address}
-                        """
-                        )
-                    
+                    fbB = feedB.button(
+                        label='평가하기',
+                        key=f'feedbackAdd_{key}',
+                        type='secondary',
+                        disabled=fbDisable,
+                        use_container_width=True
+                    )
+                    if fbB:
+                        feadbackDone = itemInfo.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing)
+                        if feadbackDone:
+                            st.info(body='소중한 의견 감사합니다.')
+                            time.sleep(2)
+                            st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                            st.rerun()
+                        else:
+                            st.warning(body='평가 중 오류발생')
+
                     changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
 
                     # 상품 준비중
@@ -160,7 +192,6 @@ if any(value is not None for value in st.session_state.token.values()):
                             'statusChange':'환불 요청', # 주문 상태 변경 버튼 멘트
                             'switchPagePath':'pages/4myOrder_itemRefund.py', # 페이지 이동
                         }
-
                     changeAddrB = changeAddr.button(
                         label='배송지 변경',
                         key=f'address_{key}',

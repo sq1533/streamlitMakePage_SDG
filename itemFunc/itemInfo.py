@@ -71,6 +71,21 @@ class items(database):
             print('고객정보 호출 실패')
             return False
 
+    def addFeedback(token : dict, key : str, itemID : str, feedback : int):
+        uid = userAuth.guest.tokenToUid(token)
+        if uid['allow']:
+            database().rtDatabase_user.child(uid['result']).child('orderList').child(key).update({'feedback':feedback})
+            fb = database().rtDatabase_itemStatus.child(itemID).child('feedback').get()
+            result = {
+                'point' : fb.get('point') + feedback,
+                'count' : fb.get('count') + 1
+            }
+            database().rtDatabase_itemStatus.child(itemID).child('feedback').update(result)
+            return True
+        else:
+            print('고객정보 호출 실패')
+            return False
+
     # 배송지 변경
     def cgAddr(token : dict, key : str, addr : str) -> bool:
         uid = userAuth.guest.tokenToUid(token)
