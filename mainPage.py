@@ -214,7 +214,7 @@ for itemKey in category['key']:
             st.html(body=imgLoad(itemCard['paths'][0]))
 
             st.markdown(body=f"###### {itemCard['name']}")
-            st.markdown(body=f':heart: {feedback['point']}%')
+            st.markdown(body=f':heart: {feedback['point']}')
 
             viewBTN = st.button(
                 label="상세보기",
