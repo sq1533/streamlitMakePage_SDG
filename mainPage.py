@@ -3,7 +3,7 @@ import streamlit as st
 # 페이지 기본 설정
 st.set_page_config(
     page_title="AMUREDO",
-    page_icon=" ",
+    page_icon="🇦🇲",
     layout="wide",
     initial_sidebar_state="auto"
 )
@@ -59,17 +59,13 @@ category = itemInfo.items.itemCategory()
 items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
-    imageHTML = f"""
-        <style>
-            .itemsImage {{
-                width: 100%;
-                height: auto;
-                display: block;
-            }}
-        </style>
-        <img src={path} loading="lazy" alt="image sunglasses01" class="itemsImage">
-        """
-    return imageHTML
+    if path:
+        return st.image(
+            image=path,
+            output_format='JPEG'
+        )
+    else:
+        return st.info(body='not image')
 
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
@@ -78,13 +74,13 @@ def showItem(itemID, itemIF):
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        st.html(body=imgLoad(itemIF['paths'][0]))
+        imgLoad(itemIF['paths'][0])
     with row2.container():
-        st.html(body=imgLoad(itemIF['paths'][1]))
+        imgLoad(itemIF['paths'][1])
     with row1.container():
-        st.html(body=imgLoad(itemIF['paths'][2]))
+        imgLoad(itemIF['paths'][2])
     with row2.container():
-        st.html(body=imgLoad(itemIF['paths'][3]))
+        imgLoad(itemIF['paths'][3])
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
 
@@ -211,7 +207,7 @@ for itemKey in category['key']:
         with cards[count_in_card].container():
             feedback = itemInfo.items.itemStatus(itemId=itemKey)['feedback']
 
-            st.html(body=imgLoad(itemCard['paths'][0]))
+            imgLoad(itemCard['paths'][0])
 
             st.markdown(body=f"###### {itemCard['name']}")
             st.markdown(body=f':heart: {feedback['point']}')

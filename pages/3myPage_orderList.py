@@ -1,4 +1,13 @@
 import streamlit as st
+
+# 페이지 기본 설정
+st.set_page_config(
+    page_title="AMUREDO",
+    page_icon="🇦🇲",
+    layout="wide",
+    initial_sidebar_state="auto"
+)
+
 import utils
 import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
@@ -40,17 +49,13 @@ st.html(
 items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
-    imageHTML = f"""
-        <style>
-            .itemsImage {{
-                width: 100%;
-                height: auto;
-                display: block;
-            }}
-        </style>
-        <img src={path} loading="lazy" alt="image sunglasses01" class="itemsImage">
-        """
-    return imageHTML
+    if path:
+        return st.image(
+            image=path,
+            output_format='JPEG'
+        )
+    else:
+        return st.info(body='not image')
 
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
@@ -59,13 +64,13 @@ def showItem(itemId, itemIF):
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        st.html(body=imgLoad(itemIF['paths'][0]))
+        imgLoad(itemIF['paths'][0])
     with row2.container():
-        st.html(body=imgLoad(itemIF['paths'][1]))
+        imgLoad(itemIF['paths'][1])
     with row1.container():
-        st.html(body=imgLoad(itemIF['paths'][2]))
+        imgLoad(itemIF['paths'][2])
     with row2.container():
-        st.html(body=imgLoad(itemIF['paths'][3]))
+        imgLoad(itemIF['paths'][3])
 
     # 상품 이름
     st.markdown(f"# {itemIF['name']}")
@@ -121,7 +126,8 @@ if any(value is not None for value in st.session_state.token.values()):
 
                 with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-                    image.html(body=imgLoad(itemIF['paths'][0]))
+                    with image.container():
+                        imgLoad(itemIF['paths'][0])
                     info.markdown(body=f'상품명 : {itemIF.get('name')}\n\n{address}')
 
                     if feedback != None:
