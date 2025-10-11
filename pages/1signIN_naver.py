@@ -4,7 +4,7 @@ import streamlit as st
 st.set_page_config(
     page_title="AMUREDO",
     page_icon="🇦🇲",
-    layout="wide",
+    layout=":a:",
     initial_sidebar_state="auto"
 )
 
