@@ -96,7 +96,7 @@ def showItem(itemID, itemIF):
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.html(body=f"{itemIF['detail']}")
+        imgLoad(itemIF['detail'])
 
     if buyBTN:
         if any(value is not None for value in st.session_state.token.values()):
@@ -174,6 +174,14 @@ with st.sidebar:
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
+    seriesFilter = st.segmented_control(
+        label = "시리즈",
+        options = category['series'],
+        selection_mode = "single",
+        default = None,
+        key="itemSeries",
+        label_visibility="visible"
+        )
 
     colorFilter = st.segmented_control(
         label = "컬러",
@@ -181,15 +189,6 @@ with st.sidebar:
         selection_mode = "single",
         default = None,
         key="itemColor",
-        label_visibility="visible"
-        )
-
-    seriesFilter = st.segmented_control(
-        label = "시리즈",
-        options = category['series'],
-        selection_mode = "single",
-        default = None,
-        key="itemSeries",
         label_visibility="visible"
         )
 

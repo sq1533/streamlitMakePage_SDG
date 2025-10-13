@@ -94,25 +94,13 @@ if any(value is not None for value in st.session_state.token.values()):
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        email, passward = st.columns(spec=[2,1], gap="small", vertical_alignment="bottom")
-
-        email.text_input(
+        st.text_input(
             label='email',
             value=st.session_state.user.get('email'),
             key='myInfoEmail',
             type='default',
             disabled=True
         )
-        passwardBTN = passward.button(
-            label='비밀번호 변경',
-            key='myInfoPW',
-            type='primary',
-            use_container_width=True,
-            disabled=True
-        )
-
-        if passwardBTN:
-            st.switch_page(page="pages/3myPage_changePW.py")
 
         st.text_input(
             label='이름',
