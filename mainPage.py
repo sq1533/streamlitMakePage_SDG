@@ -86,7 +86,7 @@ def showItem(itemID, itemIF):
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~ {itemIF['price']}원( :red[-{itemIF['discount']}%] )")
+    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~:red[-{itemIF['discount']}%] {itemIF['price']}원")
 
     buyBTN = buy.button(
         label="구매하기",

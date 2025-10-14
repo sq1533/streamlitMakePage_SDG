@@ -62,7 +62,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        col1, col2 = st.columns(spec=2, gap="small", vertical_alignment="top")
+        col1, col2 = st.columns(spec=[2,3], gap="small", vertical_alignment="top")
 
         col1.image(
             image=itemIF.get('paths')[0],
@@ -71,8 +71,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         with col2:
             st.title(body=itemIF.get('name'))
-            st.markdown(body=f"##### **가격 :** {itemIF.get('price')}원")
-            st.markdown(body="##### **배송비 :** 무료")
+            st.markdown(body=f' **상품 가격 :** ~~{int((itemIF.get('price')*100/(100-itemIF.get('discount'))//100)*100)}~~:red[-{itemIF.get('discount')}%] {itemIF.get('price')}원')
+            st.markdown(body=' **배송비 :** 무료')
 
         st.markdown(body=f'###### {st.session_state.user.get('address')['home']}')
 

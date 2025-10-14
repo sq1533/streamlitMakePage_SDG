@@ -77,7 +77,7 @@ def showItem(itemId, itemIF):
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~ {itemIF['price']}원( :red[-{itemIF['discount']}%] )")
+    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~:red[-{itemIF['discount']}%] {itemIF['price']}원")
 
     buyBTN = buy.button(
         label="구매하기",
@@ -87,7 +87,7 @@ def showItem(itemId, itemIF):
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        st.html(body=f"{itemIF['detail']}")
+        imgLoad(itemIF['detail'])
 
     if buyBTN:
         st.session_state.item = itemId
@@ -149,14 +149,17 @@ if any(value is not None for value in st.session_state.token.values()):
                         use_container_width=True
                     )
                     if fbB:
-                        feadbackDone = itemInfo.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing)
-                        if feadbackDone:
-                            st.info(body='소중한 의견 감사합니다.')
-                            time.sleep(2)
-                            st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
-                            st.rerun()
+                        if fbing:
+                            feadbackDone = itemInfo.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing)
+                            if feadbackDone:
+                                st.info(body='소중한 의견 감사합니다.')
+                                time.sleep(2)
+                                st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                                st.rerun()
+                            else:
+                                st.warning(body='평가 중 오류발생')
                         else:
-                            st.warning(body='평가 중 오류발생')
+                            st.info(body='평가 미입력, 재확인 바랍니다.')
 
                     changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
 
