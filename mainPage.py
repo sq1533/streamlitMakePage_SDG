@@ -70,7 +70,9 @@ def imgLoad(path : str):
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='large')
 def showItem(itemID, itemIF):
-    buyDisable = not itemInfo.items.itemStatus(itemId=itemID)['enable']
+    status = itemInfo.items.itemStatus(itemId=itemID)
+    buyDisable = not status['enable']
+    feedT = status['feedback']['text']
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
@@ -96,7 +98,16 @@ def showItem(itemID, itemIF):
         use_container_width=True
     )
     with st.expander(label="상품 세부정보"):
-        imgLoad(itemIF['detail'])
+        info, feed = st.tabs(tabs=['info', '후기'])
+        with info:
+            imgLoad(itemIF['detail'])
+        with feed:
+            if feedT.__len__() == 1:
+                st.info(body='아직 후기가 없어요...', icon='😪')
+            else:
+                for i in reversed(feedT[1:]):
+                    st.markdown(body=i.keys())
+                    st.markdown(body=i.values())
 
     if buyBTN:
         if any(value is not None for value in st.session_state.token.values()):

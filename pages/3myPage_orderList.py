@@ -130,12 +130,21 @@ if any(value is not None for value in st.session_state.token.values()):
                         imgLoad(itemIF['paths'][0])
                     info.markdown(body=f'상품명 : {itemIF.get('name')}\n\n{address}')
 
-                    if feedback != None:
+                    if feedback:
                         fbDisable = True
                     else:
                         fbDisable = False
 
-                    empty, feed, feedB = info.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
+                    feedT, feed, feedB = info.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
+                    fdt = feedT.text_input(
+                        label='후기 남기기',
+                        value=None,
+                        max_chars=20,
+                        key=f'feedText_{key}',
+                        placeholder='상품은 어떠셨나요?',
+                        disabled=fbDisable,
+                        label_visibility='collapsed'
+                    )
                     fbing = feed.feedback(
                         options='thumbs',
                         key=f'itemFB_{key}',
@@ -150,7 +159,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     )
                     if fbB:
                         if fbing:
-                            feadbackDone = itemInfo.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing)
+                            feadbackDone = itemInfo.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing, feedT=fdt)
                             if feadbackDone:
                                 st.info(body='소중한 의견 감사합니다.')
                                 time.sleep(2)

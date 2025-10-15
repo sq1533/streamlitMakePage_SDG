@@ -71,14 +71,16 @@ class items(database):
             print('고객정보 호출 실패')
             return False
 
-    def addFeedback(token : dict, key : str, itemID : str, feedback : int):
+    def addFeedback(token : dict, key : str, itemID : str, feedback : int, feedT : str|None):
         uid = userAuth.guest.tokenToUid(token)
         if uid['allow']:
             database().rtDatabase_user.child(uid['result']).child('orderList').child(key).update({'feedback':feedback})
             fb = database().rtDatabase_itemStatus.child(itemID).child('feedback').get()
+            fb['text'][key] = feedT
             result = {
                 'point' : fb.get('point') + feedback,
-                'count' : fb.get('count') + 1
+                'count' : fb.get('count') + 1,
+                'text' : fb['text']
             }
             database().rtDatabase_itemStatus.child(itemID).child('feedback').update(result)
             return True
