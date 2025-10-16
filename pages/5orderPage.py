@@ -7,6 +7,18 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+st.html(
+    body="""
+    <style>
+    div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
@@ -28,19 +40,6 @@ if 'user' not in st.session_state:
 # 상품 주문
 if 'item' not in st.session_state:
     st.session_state.item = None
-
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
 
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
     with st.sidebar:

@@ -7,6 +7,19 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+# 페이지 UI 변경 사항
+st.html(
+    """
+    <style>
+    div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import userFunc.userAuth as userAuth
 import utils
@@ -26,20 +39,6 @@ if 'user' not in st.session_state:
 # 고객 주소 정보
 if 'address' not in st.session_state:
     st.session_state.address = '배송지 입력하기'
-
-# 페이지 UI 변경 사항
-st.html(
-    """
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
 
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='large')

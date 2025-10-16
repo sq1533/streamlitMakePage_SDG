@@ -152,7 +152,7 @@ class guest(database):
                 return False
         else:
             userInfo = database().rtDatabase_user.child(uid['result']).get()
-            database().rtDatabase_user.child('out_'+uid['result']).set(userInfo)
+            database().rtDatabase_user.child('out_'+secrets.randbits(k=8)+'_'+uid['result']).set(userInfo)
             database().rtDatabase_user.child(uid['result']).delete()
 
     # 소셜 사용자 기본 배송지 추가

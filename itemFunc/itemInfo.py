@@ -3,26 +3,6 @@ from utils import database
 import userFunc.userAuth as userAuth
 
 class items(database):
-    # 모든 아이템의 category 호출
-    @st.cache_data(ttl=36000)
-    def itemCategory():
-        try:
-            keys = []
-            color = []
-            series = []
-            allItems = database().firestore_item
-            for item in allItems:
-                keys.append(item.id)
-                item = item.to_dict()
-                color.append(item['color'])
-                series.append(item['series'])
-            colorResult = list(set(color))
-            seriesResult = list(set(series))
-            return {'allow':True, 'key':keys, 'color':colorResult, 'series':seriesResult}
-        except Exception as e:
-            print(e)
-            return {'allow':False, 'result':'컬러 및 시리즈 조회 실패'}
-
     # 아이템 ID 정보 조회
     @st.cache_data(ttl=36000)
     def itemInfo() -> dict:

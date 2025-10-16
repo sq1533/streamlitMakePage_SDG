@@ -7,6 +7,18 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+st.html(
+    body="""
+    <style>
+    div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import utils
 import userFunc.userAuth as userAuth
@@ -29,19 +41,6 @@ if 'user' not in st.session_state:
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
     st.session_state.orderItem = None
-
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
 
 # 환불 요청 dialog
 @st.dialog(title='환불 요청', width='large')

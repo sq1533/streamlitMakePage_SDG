@@ -7,6 +7,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+st.html(
+    """
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import userFunc.userAuth as userAuth
 
@@ -24,16 +33,6 @@ if 'user' not in st.session_state:
 # 상세 주소 선택 구분
 if 'selectAddr' not in st.session_state:
     st.session_state.selectAddr = '배송지 입력하기'
-
-st.html(
-    """
-    <style>
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
 
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='large')

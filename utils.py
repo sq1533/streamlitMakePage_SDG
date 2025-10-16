@@ -39,6 +39,8 @@ firebase = firebaseInitializeApp()
 class database:
     def __init__(self):
         self.firestore_vanner = firebase['store'].client().collection('vanner').document('vanner').get() # firestore 배너 수집
+        self.firestore_main_vanner = firebase['store'].client().collection('vanner').document('vannerMain').get() # firestore 배너 수집
+        self.firestore_daily_vanner = firebase['store'].client().collection('vanner').document('vannerDaily').get() # firestore 배너 수집
         self.firestore_item = firebase['store'].client().collection('item').stream() # firestore 아이템 수집
         self.rtDatabase_user = firebase['realtime'].reference(path='user') # 회원 정보 호출
         self.rtDatabase_itemStatus = firebase['realtime'].reference(path='itemStatus') # 아이템 상태

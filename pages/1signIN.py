@@ -7,21 +7,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
-
-import userFunc.userAuth as userAuth
-
-# 회원 로그인 구분
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-
-# 회원가입 진입
-if 'signUP' not in st.session_state:
-    st.session_state.signUP = False
-
 st.markdown(
     body="""
     <style>
@@ -32,6 +17,16 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+import userFunc.userAuth as userAuth
+
+# 회원 로그인 구분
+if 'token' not in st.session_state:
+    st.session_state.token = {
+        'naver':None,
+        'kakao':None,
+        'gmail':None
+    }
 
 if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')

@@ -7,10 +7,23 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+st.html(
+    body="""
+    <style>
+    div[data-testid="stElementToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import utils
 import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
+from mainPage import itemDict
 import time
 from datetime import datetime
 
@@ -31,22 +44,6 @@ if 'item' not in st.session_state:
 # 주문 상품 정보
 if 'orderItem' not in st.session_state:
     st.session_state.orderItem = None
-
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
-
-# 아이템 정보
-items = itemInfo.items.itemInfo()
 
 def imgLoad(path : str):
     if path:
@@ -122,7 +119,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 feedback = order.get('feedback')
                 status = utils.database().showStatus[order.get('status')]
 
-                itemIF = items[itemID]
+                itemIF = itemDict[itemID]
 
                 with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")

@@ -7,6 +7,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto"
 )
+st.html(
+    body="""
+    <style>
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+    </style>
+    """
+)
 
 import userFunc.userAuth as userAuth
 import requests
@@ -18,16 +27,6 @@ if 'token' not in st.session_state:
         'kakao':None,
         'gmail':None
     }
-
-st.html(
-    body="""
-    <style>
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
 
 if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
