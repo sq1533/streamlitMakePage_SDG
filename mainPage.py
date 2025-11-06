@@ -45,9 +45,6 @@ if 'token' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-# 아이템 데이터 호출
-itemDict = itemInfo.items.itemInfo()
-
 # 상단 vanner
 st.html(
     body=f"""

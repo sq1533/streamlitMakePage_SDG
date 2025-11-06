@@ -31,9 +31,11 @@ st.html(
 
 import userFunc.userAuth as userAuth
 import itemFunc.itemInfo as itemInfo
-from mainPage import itemDict
 import utils
 import time
+
+# 아이템 데이터 호출
+itemDict = itemInfo.items.itemInfo()
 
 # 회원 로그인 구분
 if 'token' not in st.session_state:
