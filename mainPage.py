@@ -44,6 +44,9 @@ if 'token' not in st.session_state:
 # 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
+for i in utils.database().firestore_vanner:
+    if i.id == 'vannerMain':
+        vannerData = i.to_dict()
 
 # 상단 vanner
 st.html(
