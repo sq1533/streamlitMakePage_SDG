@@ -91,7 +91,7 @@ def imgLoad(path : str):
         return st.info(body='not image')
 
 # 상품 상세페이지 dialog
-@st.dialog(title='상품 상세', width='large')
+@st.dialog(title='상품 상세', width='medium')
 def showItem(itemID, itemIF):
     status = itemInfo.items.itemStatus(itemId=itemID)
     buyDisable = not status['enable']
