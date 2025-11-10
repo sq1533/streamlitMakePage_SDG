@@ -1,0 +1,290 @@
+import streamlit as st
+import utils
+import re
+import requests
+import urllib.parse
+import secrets
+
+from schema.schema import user
+
+class guest(utils.database):
+
+    # 소셜 토큰으로 uid 확인
+    def tokenToUid(token : dict) -> dict:
+        try:
+            if token.get('naver') != None:
+                userInfo = requests.post(
+                    url='https://openapi.naver.com/v1/nid/me',
+                    headers={'Authorization':f'Bearer {token.get('naver')['access_token']}'}
+                    )
+                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
+                    return {'allow':True, 'result':userInfo.json()['response']['id']}
+                else:
+                    return {'allow':False, 'result':'네이버 고객정보 확인 실패'}
+            elif token.get('kakao') != None:
+                pass
+            elif token.get('gmail') != None:
+                pass
+            else:
+                {'allow':False, 'result':'회원 정보 없음'}
+        except Exception as e:
+            return {'allow':False, 'result':e}
+
+    # 네이버 로그인 요청
+    def naverSignUP() -> str:
+        naverSignInParams = {
+            'response_type':'code',
+            'client_id':st.secrets['naver_api']['client_id'],
+            'state':secrets.randbits(k=16),
+            'redirect_uri':st.secrets['naver_api']['redirect_uri']
+        }
+        encoded_params = urllib.parse.urlencode(naverSignInParams)
+        return f'https://nid.naver.com/oauth2.0/authorize?{encoded_params}'
+
+    # 네이버 고객 토큰 발급
+    def naverToken(code : str, state : str) -> dict:
+        naverParams = {
+            'grant_type':'authorization_code',
+            'client_id':st.secrets['naver_api']['client_id'],
+            'client_secret':st.secrets['naver_api']['client_sc'],
+            'code':code,
+            'state':state
+        }
+        encoded_params = urllib.parse.urlencode(naverParams)
+        try:
+            userToken = requests.post(url='https://nid.naver.com/oauth2.0/token', params=encoded_params)
+            if userToken.status_code == 200:
+                return {'allow':True, 'result':userToken.json()}
+            else:
+                return {'allow':False, 'result':'토큰 발행 실패'}
+        except Exception as e:
+            return {'allow':False, 'result':e}
+
+    # 네이버 로그인 고객 firebase 처리
+    def naverUser(response : dict) -> bool:
+        realtimeUser = utils.database().realtimeDB.reference().child('user')
+        try:
+            if response['id'] in realtimeUser.get(shallow=True):
+                userInfo = realtimeUser.child(response['id']).get()
+                try:
+                    userResult = user(**userInfo)
+                except Exception as e:
+                    print(f'파싱 오류 {response['id']} : {e}')
+                return {'allow':True, 'result':userResult.model_dump()}
+            else:
+                userData = {
+                    'name' : response['name'],
+                    'phoneNumber' : response['mobile'].replace('-',''),
+                    'email' : response['email'],
+                    'age' : int(response['birthyear'] + response['birthday'].replace('-',''))
+                }
+                try:
+                    userResult = user(**userData)
+                except Exception as e:
+                    print(f'파싱 오류 {response['id']} : {e}')
+                realtimeUser.child(response['id']).set(value=userResult.model_dump())
+                return {'allow':True, 'result':userResult.model_dump()}
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':e}
+
+    # 카카오 로그인 요청
+    def kakaoSignUP() -> str:
+        kakaoSignInParams = {
+            'response_type':'code',
+            'client_id':st.secrets['kakao_api']['client_id'],
+            'state':secrets.randbits(k=16),
+            'redirect_uri':st.secrets['kakao_api']['redirect_uri']
+        }
+        encoded_params = urllib.parse.urlencode(kakaoSignInParams)
+        return f'https://kauth.kakao.com/oauth/authorize?{encoded_params}'
+
+    # 카카오 토큰 발행
+    def kakaoToken(code : str) -> dict:
+        kakaoHeader = "Content-Type: application/x-www-form-urlencoded;charset=utf-8"
+        kakaoParams = {
+            'grant_type':'authorization_code',
+            'client_id':st.secrets['kakao_api']['client_id'],
+            'redirect_uri':st.secrets['kakao_api']['redirect_uri'],
+            'code':code,
+            'client_secret':st.secrets['kakao_api']['client_sc']
+        }
+        encoded_params = urllib.parse.urlencode(kakaoParams)
+        try:
+            userToken = requests.post(url='https://kauth.kakao.com/oauth/token', params=encoded_params, headers=kakaoHeader)
+            if userToken.status_code == 200:
+                return {'allow':True, 'result':userToken.json()}
+            else:
+                return {'allow':False, 'result':'토큰 발행 실패'}
+        except Exception as e:
+            return {'allow':False, 'result':e}
+
+    # 카카오 로그인 고객 firebase 처리
+    def kakaoUser(response : dict) -> bool:
+        realtimeUser = utils.database().realtimeDB.reference().child('user')
+        try:
+            if response['id'] in realtimeUser.get(shallow=True):
+                userInfo = realtimeUser.child(response['id']).get()
+                try:
+                    userResult = user(**userInfo)
+                except Exception as e:
+                    print(f'파싱 오류 {response['id']} : {e}')
+                return {'allow':True, 'result':userResult.model_dump()}
+            else:
+                userData = {
+                    'name' : response['name'],
+                    'phoneNumber' : response['phone_number'].replace('-',''),
+                    'email' : response['email'],
+                    'age' : int(response['birthyear'] + response['birthday'])
+                }
+                try:
+                    userResult = user(**userData)
+                except Exception as e:
+                    print(f'파싱 오류 {response['id']} : {e}')
+                realtimeUser.child(response['id']).set(value=userResult.model_dump())
+                return {'allow':True, 'result':userResult.model_dump()}
+
+        except Exception as e:
+            print(e)
+            return {'allow':False, 'result':e}
+
+    # 회원 정보호출
+    def showUserInfo(token : dict) -> dict:
+        uid = guest.tokenToUid(token=token)
+        if not uid['allow']:
+            return {'failed' : '회원 정보 호출 실패'}
+
+        uid = uid['result']
+
+        try:
+            userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').get()
+            try:
+                userData = user(**userInfo)
+            except Exception as e:
+                print(f'파싱 오류 {uid.keys()} : {e}')
+            return userData.model_dump()
+
+        except Exception as e:
+            print(f'회원 정보 호출 오류 : {e}')
+            return {'failed' : '회원 정보 호출 실패'}
+         
+
+    # 회원 탈퇴
+    def guestOUT(token : dict) -> bool:
+        uid = guest.tokenToUid(token=token)
+        if not uid['allow']:
+            return False
+
+        uid = uid['result']
+
+        userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').get()
+        utils.database().realtimeDB.reference().child(f'user/out_{uid.keys()}').set(userInfo)
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').delete()
+        return True
+
+    # 소셜 사용자 기본 배송지 추가
+    def addHomeAddr(token : dict, addr : str) -> bool:
+        uid = guest.tokenToUid(token=token)
+        if not uid['allow']:
+            return False
+
+        uid = uid['result']
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').set({'home':addr})
+        return True
+
+    # 사용자 주소 추가
+    def addAddr(token : dict, addAddr : str):
+        if not uid['allow']:
+            return False
+
+        uid = uid['result']
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').push(addAddr)
+        return True
+
+    # 사용자 주소 삭제
+    def delAddr(token : dict, delAddrKey : str):
+        if not uid['allow']:
+            return False
+
+        uid = uid['result']
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child(f'address/{delAddrKey}').delete()
+        return True
+
+    # 주 배송지 수정
+    def homeAddr(token : dict, homeAddrKey : str, homeAddr : str):
+        if not uid['allow']:
+            return False
+
+        uid = uid['result']
+
+        oldAddr = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').child('home').get()
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').push(oldAddr)
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').update({'home':homeAddr})
+        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child(f'address/{homeAddrKey}').delete()
+        return True
+
+    # # 인증 메일 전송
+    # def sendEmail(userMail: str) -> bool:
+    #     findUser = database().auth.get_user_by_email(email=userMail)
+    #     settingCode = database().auth.ActionCodeSettings(
+    #         url=f"{database().emailAccess['DEPLOYED_BASE_URL']}/success?email={userMail}",
+    #         handle_code_in_app=True
+    #     )
+    #     link = database().auth.generate_email_verification_link(
+    #         email=userMail,
+    #         action_code_settings=settingCode
+    #     )
+    #     emailMain = EmailMessage()
+    #     emailMain['Subject'] = 'amuredo 회원가입, 이메일 인증 입니다.'
+    #     emailMain['From'] = database().emailAccess['SENDER_EMAIL']
+    #     emailMain['To'] = userMail
+    #     emailMain.set_content(database().emailMain + link)
+    #     try:
+    #         with smtplib.SMTP(
+    #             host=database().emailAccess['SENDER_SERVER'],
+    #             port=database().emailAccess['SENDER_PORT']
+    #             ) as smtp_server:
+    #             smtp_server.ehlo() # 서버에 자신을 소개
+    #             smtp_server.starttls() # TLS 암호화 시작
+    #             smtp_server.login(database().emailAccess['SENDER_EMAIL'], database().emailAccess['SENDER_APP_PASSWORD'])
+    #             smtp_server.send_message(emailMain)
+    #         database().auth.update_user(uid=findUser.uid, disabled=False)
+    #         return True
+    #     except smtplib.SMTPAuthenticationError:
+    #         print('오류: SMTP 인증 실패.')
+    #         return False
+    #     except smtplib.SMTPServerDisconnected:
+    #         print('오류: SMTP 서버 연결 끊김.')
+    #         return False
+    #     except Exception as e:
+    #         print(e)
+    #         return False
+
+# 주소 검색
+def seachAddress(address : str) -> dict:
+    # SQL 인젝션 및 특수문자 방어
+    if re.search(r"[\]\[%;<>=]", address):
+        return {'allow':False, 'result':'특수문자는 포함할 수 없습니다.'}
+    if any(i in address.upper() for i in utils.database().sqlInjection):
+        return {'allow':False, 'result':'포함할 수 없는 단어가 존재합니다.'}
+
+    addressKey = {
+        "confmKey" : st.secrets["address_search"]["keys"],
+        "currentPage" : 1,
+        "countPerPage" : 10,
+        "keyword" : address,
+        "resultType" : "json"
+    }
+    try:
+        response = requests.post("https://business.juso.go.kr/addrlink/addrLinkApi.do", data=addressKey)
+        if response.status_code == 200:
+            addrLen = response.json()["results"]["juso"].__len__()
+            if addrLen == 0:
+                return {'allow':False, 'result':'주소가 없습니다.'}
+            else:
+                addrList = []
+                for i in range(addrLen):
+                    addrList.append(response.json()["results"]["juso"][i]["zipNo"] + ' ' + response.json()["results"]["juso"][i]["roadAddr"])
+                return {'allow':True, 'result':addrList}
+    except Exception:
+        return {'allow':False, 'result':'주소 검색 실패, 다시 시도해주세요.'}
