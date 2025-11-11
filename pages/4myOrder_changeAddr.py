@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 st.html(
     body="""
@@ -20,20 +20,18 @@ st.html(
     """
 )
 
+import api
 import utils
-import userFunc.userAuth as userAuth
-import itemFunc.itemInfo as itemInfo
 import time
 from datetime import datetime
 
-# 회원 로그인 구분
+# 회원 토큰 세션 및 정보
 if 'token' not in st.session_state:
     st.session_state.token = {
         'naver':None,
         'kakao':None,
         'gmail':None
     }
-# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
 
@@ -59,20 +57,17 @@ def changeAddr(key : str):
         use_container_width=True
     )
     if goBtn:
-        func = itemInfo.items.cgAddr(
-            token=st.session_state.token,
-            key=key,
-            addr=result
-            )
+        func = api.items.orderAddrChange(token=st.session_state.token, key=key, addr=result)
         if func:
             st.info(body='배송지 변경 완료, 주문내역으로 이동합니다.')
-            st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
             time.sleep(2)
             st.session_state.orderItem = None
             st.rerun()
         else:
             st.warning(body='배송지 변경 실패, 다시 시도해주세요.')
 
+# 고객 로그인 검증 및 주문상품 정보 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
     with st.sidebar:
         st.title(body="배송지 변경")
@@ -102,7 +97,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         status = utils.database().showStatus[orderInfo.get('status')]
 
         # 아이템 정보
-        itemIF = itemInfo.items.itemInfo()[itemID]
+        itemIF = api.items.showItem().get(itemID)
 
         with st.container(height=250, border=True, key='changeAddress'):
             image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")

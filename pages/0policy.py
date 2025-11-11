@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='collapsed'
 )
 
 # 페이지 UI 변경 사항

@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 st.html(
     body="""
@@ -17,7 +17,7 @@ st.html(
     """
 )
 
-import userFunc.userAuth as userAuth
+import api
 import requests
 
 # 회원 로그인 구분
@@ -28,20 +28,22 @@ if 'token' not in st.session_state:
         'gmail':None
     }
 
+# 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
+
 else:
     # 고객 네이버 로그인 요청 상태
     if 'code' in st.query_params and st.query_params.code:
-        naverToken = userAuth.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
-        if naverToken['allow']:
+        naverToken : dict = api.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
+        if naverToken.get('allow'):
             userInfo = requests.post(
                 url='https://openapi.naver.com/v1/nid/me',
                 headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
                 )
             if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
-                signIN = userAuth.guest.naverUser(response=userInfo.json()['response'])
-                if signIN['allow']:
+                signIN : dict = api.guest.naverUser(response=userInfo.json()['response'])
+                if signIN.get('allow'):
                     st.session_state.token['naver'] = naverToken['result']
                     st.rerun()
             else:

@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 st.html(
     """
@@ -17,16 +17,15 @@ st.html(
     """
 )
 
-import userFunc.userAuth as userAuth
+import api
 
-# 회원 로그인 구분
+# 회원 토큰 세션 및 정보
 if 'token' not in st.session_state:
     st.session_state.token = {
         'naver':None,
         'kakao':None,
         'gmail':None
     }
-# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
 
@@ -35,7 +34,7 @@ if 'selectAddr' not in st.session_state:
     st.session_state.selectAddr = '배송지 입력하기'
 
 # 배송지 추가하기
-@st.dialog(title='주소 검색', width='large')
+@st.dialog(title='주소 검색', width='medium')
 def addrDialog():
     dialogAddr = st.text_input(
         label="주소",
@@ -47,8 +46,8 @@ def addrDialog():
     if dialogAddr == None:
         st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
     else:
-        findAddr = userAuth.seachAddress(dialogAddr)
-        if findAddr['allow']:
+        findAddr : dict = api.seachAddress(dialogAddr)
+        if findAddr.get('allow'):
             for i in findAddr['result']:
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
 
@@ -66,7 +65,7 @@ def addrDialog():
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
-# 페이지
+# 회원 로그인 검증
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body="마이페이지")
@@ -117,6 +116,7 @@ if any(value is not None for value in st.session_state.token.values()):
             disabled=True
         )
 
+        # 고객 배송지 정보
         st.markdown(body='##### 주 배송지')
         st.markdown(body=f"###### {st.session_state.user.get('address')['home']}")
 
@@ -134,10 +134,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     use_container_width=False
                     )
                 if deleteBTN:
-                    userAuth.guest.delAddr(
-                        token=st.session_state.token,
-                        delAddrKey=key
-                        )
+                    api.guest.delAddr(token=st.session_state.token, delAddrKey=key)
                     del st.session_state.user['address'][key]
                     st.rerun()
 
@@ -148,13 +145,15 @@ if any(value is not None for value in st.session_state.token.values()):
                     use_container_width=False
                     )
                 if homeAddrBTN:
-                    userAuth.guest.homeAddr(
+                    api.guest.homeAddr(
                         token=st.session_state.token,
                         homeAddrKey=key,
                         homeAddr=address
                     )
-                    st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                     st.rerun()
+
+        # 신규 배송지 등록
         with st.expander(label='신규 배송지 등록'):
 
             addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
@@ -198,9 +197,9 @@ if any(value is not None for value in st.session_state.token.values()):
                     if st.session_state.user.get('address').__len__() >= 4:
                         st.warning(body="추가 등록할 수 없습니다.")
                     else:
-                        userAuth.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
+                        api.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
                         st.session_state.selectAddr = '배송지 입력하기'
-                        st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                         st.rerun()
                 else:
                     st.warning(body='배송지 정보가 잘못 되었습니다.')

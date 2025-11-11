@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 st.markdown(
     body="""
@@ -18,7 +18,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-import userFunc.userAuth as userAuth
+import api
 
 # 회원 로그인 구분
 if 'token' not in st.session_state:
@@ -28,8 +28,10 @@ if 'token' not in st.session_state:
         'gmail':None
     }
 
+# 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
+
 else:
     with st.sidebar:
         st.title(body='로그인/회원가입')
@@ -126,11 +128,11 @@ else:
             }}
             </style>
             <div class="login-container">
-                <a href="{userAuth.guest.naverSignUP()}" class="social-login-btn naver-login" target="_self">
+                <a href="{api.guest.naverSignUP()}" class="social-login-btn naver-login" target="_self">
                     <span class="social-logo naver-logo"></span>
                     <span class="btn-text">네이버로 시작하기</span>
                 </a>
-                <a href="{userAuth.guest.kakaoSignUP()}" class="social-login-btn kakao-login" target="_self">
+                <a href="{api.guest.kakaoSignUP()}" class="social-login-btn kakao-login" target="_self">
                     <span class="social-logo kakao-logo"></span>
                     <span class="btn-text">카카오로 시작하기</span>
                 </a>

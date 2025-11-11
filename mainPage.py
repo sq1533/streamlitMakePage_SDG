@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
 st.html(
@@ -29,24 +29,21 @@ st.html(
     """
 )
 
-import userFunc.userAuth as userAuth
-import itemFunc.itemInfo as itemInfo
 import utils
+import api
 import time
 
-# 회원 로그인 구분
+# 회원 토큰 세션 및 정보
 if 'token' not in st.session_state:
     st.session_state.token = {
         'naver':None,
         'kakao':None,
         'gmail':None
     }
-# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
-for i in utils.database().firestore_vanner:
-    if i.id == 'vannerMain':
-        vannerData = i.to_dict()
+
+mainVanner : dict = utils.database().firestore_vanner.get('mainVanner')
 
 # 상단 vanner
 st.html(
@@ -59,15 +56,17 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{utils.database().firestore_vanner.to_dict()['path']}" class="fullscreen-gif">
+    <img src="{mainVanner.get('path')}" class="fullscreen-gif">
     """
 )
 
 # siderbar 정의
 with st.sidebar:
     st.title(body='amuredo')
+
+    # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
-        st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
             label="signOut",
             key='signOut',
@@ -82,7 +81,7 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.info(body='기본 배송지 설정 필요')
+            st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
             time.sleep(2)
             st.switch_page(page='pages/1signIN_address.py')
 
@@ -107,6 +106,8 @@ with st.sidebar:
         # 주문 내역 페이지
         if orderL:
             st.switch_page(page="pages/3myPage_orderList.py")
+
+    # 비회원 상태
     else:
         signIn = st.button(
             label='로그인 / 회원가입',

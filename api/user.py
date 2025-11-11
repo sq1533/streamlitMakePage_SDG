@@ -157,17 +157,16 @@ class guest(utils.database):
         uid = uid['result']
 
         try:
-            userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').get()
+            userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
             try:
                 userData = user(**userInfo)
             except Exception as e:
-                print(f'파싱 오류 {uid.keys()} : {e}')
+                print(f'파싱 오류 {uid} : {e}')
             return userData.model_dump()
 
         except Exception as e:
             print(f'회원 정보 호출 오류 : {e}')
-            return {'failed' : '회원 정보 호출 실패'}
-         
+            return {'failed' : '회원 정보 호출 실패'}         
 
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
@@ -177,9 +176,9 @@ class guest(utils.database):
 
         uid = uid['result']
 
-        userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').get()
-        utils.database().realtimeDB.reference().child(f'user/out_{uid.keys()}').set(userInfo)
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').delete()
+        userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
+        utils.database().realtimeDB.reference().child(f'user/out_{uid}').set(userInfo)
+        utils.database().realtimeDB.reference().child(f'user/{uid}').delete()
         return True
 
     # 소셜 사용자 기본 배송지 추가
@@ -189,7 +188,7 @@ class guest(utils.database):
             return False
 
         uid = uid['result']
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').set({'home':addr})
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').set({'home':addr})
         return True
 
     # 사용자 주소 추가
@@ -198,7 +197,7 @@ class guest(utils.database):
             return False
 
         uid = uid['result']
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').push(addAddr)
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(addAddr)
         return True
 
     # 사용자 주소 삭제
@@ -207,7 +206,7 @@ class guest(utils.database):
             return False
 
         uid = uid['result']
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child(f'address/{delAddrKey}').delete()
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child(f'address/{delAddrKey}').delete()
         return True
 
     # 주 배송지 수정
@@ -217,10 +216,10 @@ class guest(utils.database):
 
         uid = uid['result']
 
-        oldAddr = utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').child('home').get()
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').push(oldAddr)
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child('address').update({'home':homeAddr})
-        utils.database().realtimeDB.reference().child(f'user/{uid.keys()}').child(f'address/{homeAddrKey}').delete()
+        oldAddr = utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').child('home').get()
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(oldAddr)
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').update({'home':homeAddr})
+        utils.database().realtimeDB.reference().child(f'user/{uid}').child(f'address/{homeAddrKey}').delete()
         return True
 
     # # 인증 메일 전송
