@@ -1,4 +1,4 @@
-streamlit==1.44.1
-firebase-admin
+streamlit==1.51.0
+firebase-admin==7.1.0
 requests==2.32.3
 pillow==11.2.1

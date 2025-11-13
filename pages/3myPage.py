@@ -31,7 +31,7 @@ if 'user' not in st.session_state:
 
 # 상세 주소 선택 구분
 if 'selectAddr' not in st.session_state:
-    st.session_state.selectAddr = '배송지 입력하기'
+    st.session_state.selectAddr = None
 
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='medium')
@@ -48,7 +48,7 @@ def addrDialog():
     else:
         findAddr : dict = api.seachAddress(dialogAddr)
         if findAddr.get('allow'):
-            for i in findAddr['result']:
+            for i in findAddr.get('result'):
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
 
                 addrNo.markdown(body=i)
@@ -61,7 +61,7 @@ def addrDialog():
                 )
                 if choice:
                     st.session_state.selectAddr = i
-                    st.rerun()
+                    st.switch_page(page="pages/3myPage.py")
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
@@ -145,11 +145,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     use_container_width=False
                     )
                 if homeAddrBTN:
-                    api.guest.homeAddr(
-                        token=st.session_state.token,
-                        homeAddrKey=key,
-                        homeAddr=address
-                    )
+                    api.guest.homeAddr(token=st.session_state.token, homeAddrKey=key, homeAddr=address)
                     st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                     st.rerun()
 
@@ -178,12 +174,10 @@ if any(value is not None for value in st.session_state.token.values()):
 
             detailAddr = st.text_input(
                 label='상세주소',
-                value='',
+                value=None,
                 key='detailAddr',
                 type='default'
             )
-
-            newAddr = st.session_state.selectAddr + ' ' + detailAddr
 
             addAddressBTN = st.button(
                 label='배송지 추가',
@@ -193,12 +187,13 @@ if any(value is not None for value in st.session_state.token.values()):
             )
 
             if addAddressBTN:
-                if st.session_state.selectAddr != '배송지 입력하기' and detailAddr:
+                if st.session_state.selectAddr and detailAddr:
+                    newAddr = st.session_state.selectAddr + ' ' + detailAddr
                     if st.session_state.user.get('address').__len__() >= 4:
                         st.warning(body="추가 등록할 수 없습니다.")
                     else:
                         api.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
-                        st.session_state.selectAddr = '배송지 입력하기'
+                        st.session_state.selectAddr = None
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                         st.rerun()
                 else:

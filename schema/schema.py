@@ -11,17 +11,17 @@ class item(BaseModel):
     category : str = Field(title='itemCategory')
     color : str = Field(title='itemColor')
     serises : str = Field(title='itemSerises')
-    paths : dict[HttpUrl] = Field(title='itemImagePaths')
+    paths : dict = Field(title='itemImagePaths')
     name : str = Field(title='itemName')
     detail : HttpUrl = Field(title='itemDetail')
     price : int = Field(title='itemPrice')
     discount : int = Field(title='itemDiscount')
-    event : str = Field(title='itemEvent')
+    event : str | None = Field(default=None, title='itemEvent')
 
 class itemFeedback(BaseModel):
     count : int = Field(title='feedbackCount')
     point : int = Field(title='feedbackPoint')
-    text : dict[int, str] = Field(title='feedbackText')
+    text : dict = Field(title='feedbackText')
 
 class itemStatus(BaseModel):
     enable : bool = Field(title='itemEnable')

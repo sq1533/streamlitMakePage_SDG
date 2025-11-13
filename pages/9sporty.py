@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
 st.html(
@@ -29,22 +29,17 @@ st.html(
     """
 )
 
-import userFunc.userAuth as userAuth
-import itemFunc.itemInfo as itemInfo
+import api
 import utils
 import time
 
-# 아이템 데이터 호출
-itemDict = itemInfo.items.itemInfo()
-
-# 회원 로그인 구분
+# 회원 토큰 및 정보 세선
 if 'token' not in st.session_state:
     st.session_state.token = {
         'naver':None,
         'kakao':None,
         'gmail':None
     }
-# 회원 정보 세션
 if 'user' not in st.session_state:
     st.session_state.user = None
 
@@ -52,10 +47,13 @@ if 'user' not in st.session_state:
 if 'item' not in st.session_state:
     st.session_state.item = None
 
+sportyVanner : dict = utils.database().firestore_vanner.get('vannerSporty')
+itemInfo : dict = api.items.showItem()
+
 keys = []
 color = []
 series = []
-for key, data in itemDict.items():
+for key, data in itemInfo.items():
     if data['category'] == 'sporty':
         keys.append(key)
         color.append(data['color'])
@@ -76,7 +74,7 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{utils.database().firestore_vanner.to_dict()['path']}" class="fullscreen-gif">
+    <img src="{sportyVanner.get('path')}" class="fullscreen-gif">
     """
 )
 
@@ -92,9 +90,9 @@ def imgLoad(path : str):
 # 상품 상세페이지 dialog
 @st.dialog(title='상품 상세', width='medium')
 def showItem(itemID, itemIF):
-    status = itemInfo.items.itemStatus(itemId=itemID)
-    buyDisable = not status['enable']
-    feedT = status['feedback']['text']
+    itemStatus : dict = api.items.itemStatus(itemId=itemID)
+    buyDisable = not itemStatus.get('enable')
+    feedT = itemStatus.get('feedback').get('text')
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
@@ -141,8 +139,9 @@ def showItem(itemID, itemIF):
 # siderbar 정의
 with st.sidebar:
     st.title(body='amuredo')
+    # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
-        st.session_state.user = userAuth.guest.showUserInfo(token=st.session_state.token)
+        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
             label="signOut",
             key='signOut',
@@ -153,7 +152,6 @@ with st.sidebar:
             st.session_state.clear()
             st.rerun()
 
-        # 소셜 고객 배송정보 확인
         if st.session_state.user.get('address'):
             pass
         else:
@@ -200,7 +198,6 @@ with st.sidebar:
         key="itemSeries",
         label_visibility="visible"
         )
-
     colorFilter = st.segmented_control(
         label = "컬러",
         options = colorPick,
@@ -219,15 +216,16 @@ for l in range(line):
 
 # 아이템 4열 배치
 for itemKey in keys:
-    itemCard = itemDict[itemKey]
-    if (colorFilter == None or colorFilter in itemCard['color']) and (seriesFilter == None or seriesFilter in itemCard['series']):
+    itemCard : dict = itemInfo.get(itemKey)
+    if (colorFilter == None or colorFilter in itemCard.get('color')) and (seriesFilter == None or seriesFilter in itemCard.get('series')):
         with cards[count_in_card].container():
-            feedback = itemInfo.items.itemStatus(itemId=itemKey)['feedback']
+            itemStatus : dict = api.items.itemStatus(itemId=itemKey)
+            feedback : dict = itemStatus.get('feedback')
 
             imgLoad(itemCard['paths'][0])
 
-            st.markdown(body=f"###### {itemCard['name']}")
-            st.markdown(body=f':heart: {feedback['point']}')
+            st.markdown(body=f"###### {itemCard.get('name')}")
+            st.markdown(body=f':heart: {feedback.get('point')}')
 
             viewBTN = st.button(
                 label="상세보기",

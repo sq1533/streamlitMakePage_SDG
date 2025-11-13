@@ -150,11 +150,11 @@ class guest(utils.database):
 
     # 회원 정보호출
     def showUserInfo(token : dict) -> dict:
-        uid = guest.tokenToUid(token=token)
-        if not uid['allow']:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return {'failed' : '회원 정보 호출 실패'}
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         try:
             userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
@@ -170,11 +170,11 @@ class guest(utils.database):
 
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
-        uid = guest.tokenToUid(token=token)
-        if not uid['allow']:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
         utils.database().realtimeDB.reference().child(f'user/out_{uid}').set(userInfo)
@@ -183,38 +183,44 @@ class guest(utils.database):
 
     # 소셜 사용자 기본 배송지 추가
     def addHomeAddr(token : dict, addr : str) -> bool:
-        uid = guest.tokenToUid(token=token)
-        if not uid['allow']:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
+
         utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').set({'home':addr})
         return True
 
     # 사용자 주소 추가
     def addAddr(token : dict, addAddr : str):
-        if not uid['allow']:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
+
         utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(addAddr)
         return True
 
     # 사용자 주소 삭제
-    def delAddr(token : dict, delAddrKey : str):
-        if not uid['allow']:
+    def delAddr(token : dict, delAddrKey : str) -> bool:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
+
         utils.database().realtimeDB.reference().child(f'user/{uid}').child(f'address/{delAddrKey}').delete()
         return True
 
     # 주 배송지 수정
-    def homeAddr(token : dict, homeAddrKey : str, homeAddr : str):
-        if not uid['allow']:
+    def homeAddr(token : dict, homeAddrKey : str, homeAddr : str) -> bool:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         oldAddr = utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').child('home').get()
         utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(oldAddr)

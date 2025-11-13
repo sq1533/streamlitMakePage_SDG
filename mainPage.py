@@ -43,7 +43,7 @@ if 'token' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-mainVanner : dict = utils.database().firestore_vanner.get('mainVanner')
+mainVanner : dict = utils.database().firestore_vanner.get('vannerMain')
 
 # 상단 vanner
 st.html(
@@ -56,7 +56,7 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{mainVanner.get('path')}" class="fullscreen-gif">
+    <img src="{mainVanner['path']}" class="fullscreen-gif">
     """
 )
 

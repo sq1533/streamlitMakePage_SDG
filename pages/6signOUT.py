@@ -2,10 +2,10 @@ import streamlit as st
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="AMUREDO",
-    page_icon=":a:",
-    layout="wide",
-    initial_sidebar_state="auto"
+    page_title='AMUREDO',
+    page_icon=':a:',
+    layout='wide',
+    initial_sidebar_state='auto'
 )
 st.html(
     body="""
@@ -17,10 +17,10 @@ st.html(
     """
 )
 
-import userFunc.userAuth as userAuth
+import api
 import time
 
-# 회원 로그인 구분
+# 회원 토큰 관리
 if 'token' not in st.session_state:
     st.session_state.token = {
         'naver':None,
@@ -28,6 +28,7 @@ if 'token' not in st.session_state:
         'gmail':None
     }
 
+# 회원 로그인 상태 점검
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body="회원 탈퇴")
@@ -57,7 +58,7 @@ if any(value is not None for value in st.session_state.token.values()):
             use_container_width=True
         )
         out = YES.button(
-            label="탈퇴 하기",
+            label="탈퇴하기",
             key="out",
             type="primary",
             use_container_width=True
@@ -69,7 +70,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 st.switch_page(page="mainPage.py")
         if out:
             with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
-                userAuth.guest.guestOUT(token=st.session_state.token)
+                api.guest.guestOUT(token=st.session_state.token)
                 st.info(body="회원 탈퇴 완료")
                 time.sleep(2)
                 st.session_state.clear()

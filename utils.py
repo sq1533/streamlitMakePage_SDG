@@ -37,19 +37,24 @@ class database:
         # firestore 배너
         self.firestore_vanner : dict = {}
         vannerSnapshot = fs_client.collection('vanner').stream()
-        for doc in vannerSnapshot.items():
-            data = doc.to_dict()
-            self.firestore_vanner[data.keys()] = data.values()
+        for doc in vannerSnapshot:
+            data : dict = doc.to_dict()
+            if not data:
+                continue
+            try:
+                self.firestore_vanner[doc.id] = data
+            except Exception as e:
+                print(f'파싱 오류 {doc.id} : {e}')
 
         # firestore 아이템 수집
         self.firestore_item : dict = {}
         itemSnapshot = fs_client.collection('item').stream()
-        for doc in itemSnapshot.items():
-            data = doc.to_dict()
+        for doc in itemSnapshot:
+            data : dict = doc.to_dict()
             if not data:
                 continue
             try:
-                itemData = item(data.values())
+                itemData = item(**data)
                 self.firestore_item[doc.id] = itemData
             except Exception as e:
                 print(f'파싱 오류 {doc.id} : {e}')
@@ -91,7 +96,7 @@ class database:
 # utils.py 전역에 싱글톤 인스턴스 관리
 _db_instance = None
 
-def db() -> database:
+def utilsDb() -> database:
     global _db_instance
     if _db_instance is None:
         _db_instance = database()
