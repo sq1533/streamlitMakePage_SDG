@@ -14,7 +14,7 @@ class items(utils.database):
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:
         try:
-            itemStatus : dict = utils.database().realtimeDB.reference().child(itemId).get()
+            itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemId).get()
             return itemStatus
         except Exception as e:
             return {'failed' : str(e)}
@@ -34,7 +34,7 @@ class items(utils.database):
             'status' : 'ready'
             }
         utils.database().realtimeDB.reference().child(uid).child('orderList').child(orderTime).set(orderData)
-        utils.database().realtimeDB.reference().child('newOrder').child(orderTime+'_'+uid['result']).set({'item':itemID})
+        utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(orderTime+'_'+uid['result']).set({'item':itemID})
 
         itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()
         countResults = int(itemStatus['count']) - 1

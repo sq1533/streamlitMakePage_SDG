@@ -84,8 +84,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
         addr.text_input(
             label="기본 배송지",
-            value=st.session_state.address,
-            key="addrNone",
+            key="address",
             type="default",
             disabled=True
         )

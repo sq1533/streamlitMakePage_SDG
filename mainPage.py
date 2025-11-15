@@ -66,7 +66,6 @@ with st.sidebar:
 
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
-        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
             label="signOut",
             key='signOut',

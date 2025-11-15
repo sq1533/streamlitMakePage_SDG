@@ -54,10 +54,10 @@ keys = []
 color = []
 series = []
 for key, data in itemInfo.items():
-    if data['category'] == 'sporty':
+    if data.category == 'sporty':
         keys.append(key)
-        color.append(data['color'])
-        series.append(data['series'])
+        color.append(data.color)
+        series.append(data.series)
     else:
         pass
 colorPick = list(set(color))
@@ -141,7 +141,6 @@ with st.sidebar:
     st.title(body='amuredo')
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
-        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
             label="signOut",
             key='signOut',
@@ -222,7 +221,7 @@ for itemKey in keys:
             itemStatus : dict = api.items.itemStatus(itemId=itemKey)
             feedback : dict = itemStatus.get('feedback')
 
-            imgLoad(itemCard['paths'][0])
+            imgLoad(itemCard.paths[0])
 
             st.markdown(body=f"###### {itemCard.get('name')}")
             st.markdown(body=f':heart: {feedback.get('point')}')

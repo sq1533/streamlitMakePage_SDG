@@ -10,8 +10,8 @@ class user(BaseModel):
 class item(BaseModel):
     category : str = Field(title='itemCategory')
     color : str = Field(title='itemColor')
-    serises : str = Field(title='itemSerises')
-    paths : dict = Field(title='itemImagePaths')
+    series : str = Field(title='itemSerises')
+    paths : list[HttpUrl] = Field(title='itemImagePaths')
     name : str = Field(title='itemName')
     detail : HttpUrl = Field(title='itemDetail')
     price : int = Field(title='itemPrice')

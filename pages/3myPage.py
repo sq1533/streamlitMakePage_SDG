@@ -34,7 +34,7 @@ if 'selectAddr' not in st.session_state:
     st.session_state.selectAddr = None
 
 # 배송지 추가하기
-@st.dialog(title='주소 검색', width='medium')
+@st.dialog(title='주소 검색', width='medium', on_dismiss='rerun')
 def addrDialog():
     dialogAddr = st.text_input(
         label="주소",
@@ -61,7 +61,7 @@ def addrDialog():
                 )
                 if choice:
                     st.session_state.selectAddr = i
-                    st.switch_page(page="pages/3myPage.py")
+                    st.rerun()
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
@@ -156,8 +156,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
             addr.text_input(
                 label="신규 배송지",
-                value=st.session_state.selectAddr,
-                key="addrNone",
+                key="selectAddr",
                 type="default",
                 disabled=True
             )

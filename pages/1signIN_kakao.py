@@ -27,6 +27,8 @@ if 'token' not in st.session_state:
         'kakao':None,
         'gmail':None
     }
+if 'user' not in st.session_state:
+    st.session_state.user = None
 
 # 회원 소셜 로그인 상태
 if any(value is not None for value in st.session_state.token.values()):
@@ -45,6 +47,7 @@ else:
                 signIN : dict = api.guest.kakaoUser(response=userInfo.json())
                 if signIN.get('allow'):
                     st.session_state.token['kakao'] = kakaoToken['result']
+                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                     st.rerun()
             else:
                 st.warning(body='고객 정보 확인불가')

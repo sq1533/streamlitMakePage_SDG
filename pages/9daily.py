@@ -54,10 +54,10 @@ keys = []
 color = []
 series = []
 for key, data in itemInfo.items():
-    if data['category'] == 'daily':
+    if data.category == 'daily':
         keys.append(key)
-        color.append(data['color'])
-        series.append(data['series'])
+        color.append(data.color)
+        series.append(data.series)
     else:
         pass
 
@@ -142,7 +142,6 @@ with st.sidebar:
     st.title(body='amuredo')
     # 고객 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
-        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
         logoutB = st.button(
             label="signOut",
             key='signOut',
