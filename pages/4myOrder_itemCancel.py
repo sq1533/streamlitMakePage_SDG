@@ -40,15 +40,17 @@ if 'user' not in st.session_state:
 if 'orderItem' not in st.session_state:
     st.session_state.orderItem = None
 
+def clearOrderItem():
+    st.session_state.orderItem = None
+
 # 주문 취소 dialog
-@st.dialog(title='주문 취소', width='large')
+@st.dialog(title='주문 취소', width='medium')
 def cancelOrder(key : str, itemID : str):
     st.markdown(body='주문 취소하시겠습니까?')
 
     empty, cancel = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
     cancelB = cancel.button(
         label='주문 취소',
-        key=f'cancel_check',
         type='primary',
     )
     if cancelB:
@@ -56,8 +58,8 @@ def cancelOrder(key : str, itemID : str):
         if func:
             st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
+            st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
             time.sleep(2)
-            st.session_state.orderItem = None
             st.rerun()
         else:
             st.warning(body='주문 취소 실패, 다시 시도해주세요.')
@@ -73,9 +75,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHOME',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
@@ -92,18 +93,18 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         # 아이템 정보
         itemIF = api.items.showItem().get(itemID)
-        with st.container(height=250, border=True, key='cancelItem'):
+        with st.container(height=250, border=True):
             image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
 
             image.image(
-                image=itemIF.get("paths")[0],
+                image=str(itemIF.paths[0]),
                 caption=None,
                 clamp=False,
                 output_format='auto'
                 )
             info.markdown(
                 body=f"""
-                상품명 : {itemIF.get('name')}\n\n
+                상품명 : {itemIF.name}\n\n
                 주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
                 주문 상태 : {status}\n\n
                 {address}
@@ -114,9 +115,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         cancelItemB = cancelItem.button(
             label='주문 취소하기',
-            key=f'cancelItem_{key}',
             type='primary',
-            use_container_width=True
+            width='stretch'
         )
         if cancelItemB:
             #requests.post()

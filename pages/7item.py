@@ -46,8 +46,6 @@ if 'user' not in st.session_state:
 if 'item' not in st.session_state:
     st.session_state.item = None
 
-itemIF : dict = api.items.showItem().get(st.session_state.item)
-
 def imgLoad(path : str):
     if path:
         return st.image(
@@ -66,10 +64,9 @@ else:
         # 회원 로그인 정보 검증
         if any(value is not None for value in st.session_state.token.values()):
             logoutB = st.button(
-                label="signOut",
-                key='signOut',
-                type="secondary",
-                use_container_width=True
+                label='signOut',
+                type='secondary',
+                width='stretch'
             )
             if logoutB:
                 st.session_state.clear()
@@ -86,15 +83,13 @@ else:
 
             myinfo = myinfo.button(
                 label='마이페이지',
-                key='myPage',
                 type='tertiary',
-                use_container_width=True
+                width='stretch'
             )
             orderL = orderList.button(
                 label='주문내역',
-                key='orderList',
                 type='tertiary',
-                use_container_width=True
+                width='stretch'
             )
             # 마이페이지
             if myinfo:
@@ -105,16 +100,16 @@ else:
         else:
             signIn = st.button(
                 label='로그인 / 회원가입',
-                key='signUPIN',
                 type='primary',
-                use_container_width=True
+                width='stretch'
             )
             if signIn:
                 st.switch_page(page="pages/1signIN.py")
 
     itemID : str = st.session_state.item
-
+    itemIF : dict = api.items.showItem().get(itemID)
     itemStatus : dict = api.items.itemStatus(itemId=itemID)
+
     buyDisable = not itemStatus.get('enable')
     feedT = itemStatus.get('feedback').get('text')
 
@@ -135,11 +130,10 @@ else:
     price.markdown(f"#### 상품 가격 : ~~{int((itemIF.price*100/(100-itemIF.discount)//100)*100)}~~:red[-{itemIF.discount}%] {itemIF.price}원")
 
     buyBTN = buy.button(
-        label="구매하기",
-        key=f"buyItem_{itemID}",
-        type="primary",
+        label='구매하기',
+        type='primary',
         disabled=buyDisable,
-        use_container_width=True
+        width='stretch'
     )
     if buyBTN:
         if any(value is not None for value in st.session_state.token.values()):

@@ -39,9 +39,8 @@ if any(value is not None for value in st.session_state.token.values()):
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHOME',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
@@ -52,16 +51,14 @@ if any(value is not None for value in st.session_state.token.values()):
         NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
         
         DontOut = NO.button(
-            label="탈퇴 안하기",
-            key="dontOut",
-            type="secondary",
-            use_container_width=True
+            label='탈퇴 안하기',
+            type='secondary',
+            width='stretch'
         )
         out = YES.button(
-            label="탈퇴하기",
-            key="out",
-            type="primary",
-            use_container_width=True
+            label='탈퇴하기',
+            type='primary',
+            width='stretch'
         )
         if DontOut:
             with st.spinner(text="함께 해주셔서 감사합니다. :smile:"):

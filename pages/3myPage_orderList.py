@@ -51,48 +51,8 @@ def imgLoad(path : str):
     else:
         return st.info(body='not image')
 
-# 상품 상세페이지 dialog
-@st.dialog(title='상품 상세', width='medium')
-def showItem(itemId, itemIF):
-    itemStatus : dict = api.items.itemStatus(itemId=itemId)
-    buyDisable = not itemStatus.get('enable')
-
-    row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
-    with row1.container():
-        imgLoad(itemIF['paths'][0])
-    with row2.container():
-        imgLoad(itemIF['paths'][1])
-    with row1.container():
-        imgLoad(itemIF['paths'][2])
-    with row2.container():
-        imgLoad(itemIF['paths'][3])
-
-    # 상품 이름
-    st.markdown(f"# {itemIF['name']}")
-
-    # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~:red[-{itemIF['discount']}%] {itemIF['price']}원")
-
-    buyBTN = buy.button(
-        label="구매하기",
-        key=f"buyItem_{itemId}",
-        type="primary",
-        disabled=buyDisable,
-        use_container_width=True
-    )
-    with st.expander(label="상품 세부정보"):
-        imgLoad(itemIF['detail'])
-
-    if buyBTN:
-        st.session_state.item = itemId
-        st.switch_page(page="pages/5orderPage.py")
-
 # 회원 로그인 확인
 if any(value is not None for value in st.session_state.token.values()):
-    # 아이템 정보 호출
-    itemList : dict = api.items.showItem()
-
     with st.sidebar:
         st.title(body="주문내역")
 
@@ -102,9 +62,8 @@ if any(value is not None for value in st.session_state.token.values()):
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHOME',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
@@ -112,7 +71,12 @@ if any(value is not None for value in st.session_state.token.values()):
         
         st.markdown(body="주문 내역")
 
-        if 'orderList' in st.session_state.user:
+        userOrder : dict = st.session_state.user.get('orderList')
+
+        if userOrder:
+            # 아이템 정보 호출
+            itemList : dict = api.items.showItem()
+
             for key, order in reversed(st.session_state.user.get('orderList').items()):
                 # 주문 정보
                 orderTime = key
@@ -124,12 +88,12 @@ if any(value is not None for value in st.session_state.token.values()):
                 # 상품
                 itemIF = itemList.get(itemID)
 
-                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.get('name')} {status}'):
+                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.name} {status}'):
                     # 상품 이미지, 정보 호출
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     with image.container():
-                        imgLoad(itemIF['paths'][0])
-                    info.markdown(body=f'상품명 : {itemIF.get('name')}\n\n{address}')
+                        imgLoad(str(itemIF.paths[0]))
+                    info.markdown(body=f'상품명 : {itemIF.name}\n\n{address}')
 
                     # 후기 유무 검사
                     if feedback:
@@ -157,7 +121,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         key=f'feedbackAdd_{key}',
                         type='secondary',
                         disabled=fbDisable,
-                        use_container_width=True
+                        width='stretch'
                     )
                     if fbB:
                         if fbing:
@@ -165,7 +129,7 @@ if any(value is not None for value in st.session_state.token.values()):
                             if feadbackDone:
                                 st.info(body='소중한 의견 감사합니다.')
                                 time.sleep(2)
-                                st.session_state.user =api.guest.showUserInfo(token=st.session_state.token)
+                                st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                                 st.rerun()
                             else:
                                 st.warning(body='평가 중 오류발생')
@@ -224,7 +188,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         key=f'address_{key}',
                         type='primary',
                         disabled=btnStatus.get('addressChange'),
-                        use_container_width=True
+                        width='stretch'
                     )
                     if changeAddrB:
                         st.session_state.orderItem = [key, order]
@@ -235,10 +199,11 @@ if any(value is not None for value in st.session_state.token.values()):
                         label='상품 상세',
                         key=f'item_{key}',
                         type='primary',
-                        use_container_width=True
+                        width='stretch'
                     )
                     if aboutItemB:
-                        showItem(itemId=itemID, itemIF=itemIF)
+                        st.session_state.item = itemID
+                        st.switch_page(page="pages/7item.py")
 
                     # 주문 상태 변경
                     chagneStatusB = changeStatus.button(
@@ -246,7 +211,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         key=f'order_{key}',
                         type='primary',
                         disabled=btnStatus.get('cancelB'),
-                        use_container_width=True
+                        width='stretch'
                     )
                     if chagneStatusB:
                         st.session_state.orderItem = [key, order]

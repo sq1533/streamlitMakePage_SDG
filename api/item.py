@@ -22,19 +22,19 @@ class items(utils.database):
     # 아이템 구매 및 상태 변경
     def itemOrder(token : dict, itemID : str, orderTime : str, address : str) -> bool:
         uid = guest.tokenToUid(token)
-        if uid['allow']:
+        if not uid.get('allow'):
             print('고객정보 호출 실패')
             return False
         
-        uid = uid['result']
+        uid = uid.get('result')
 
         orderData = {
             'item' : itemID,
             'address' : address,
             'status' : 'ready'
             }
-        utils.database().realtimeDB.reference().child(uid).child('orderList').child(orderTime).set(orderData)
-        utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(orderTime+'_'+uid['result']).set({'item':itemID})
+        utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(orderTime).set(orderData)
+        utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(orderTime+'_'+uid).set({'item':itemID})
 
         itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()
         countResults = int(itemStatus['count']) - 1
@@ -60,11 +60,11 @@ class items(utils.database):
 
     def addFeedback(token : dict, key : str, itemID : str, feedback : int, feedT : str|None) -> bool:
         uid = guest.tokenToUid(token)
-        if uid['allow']:
+        if not uid.get('allow'):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         utils.database().realtimeDB.reference().child(uid).child('orderList').child(key).update({'feedback':feedback})
         fb = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).child('feedback').get()
@@ -80,11 +80,11 @@ class items(utils.database):
     # 주문상품 배송지 변경
     def orderAddrChange(token : dict, key : str, addr : str) -> bool:
         uid = guest.tokenToUid(token)
-        if uid['allow']:
+        if not uid.get('allow'):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(key).update({'address':addr})
         return True
@@ -92,11 +92,11 @@ class items(utils.database):
     # 주문 취소 및 환불
     def orderCancel(token : dict, key : str, itemID : str) -> bool:
         uid = guest.tokenToUid(token)
-        if uid['allow']:
+        if not uid.get('allow'):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         # 주문 취소 리스트 이동
         utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(key+'_'+uid).delete()
@@ -132,16 +132,16 @@ class items(utils.database):
     # 환불 요청
     def orderRefund(token : dict, key : str, itemID : str) -> bool:
         uid = guest.tokenToUid(token)
-        if uid['allow']:
+        if not uid.get('allow'):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid['result']
+        uid = uid.get('result')
 
         # 주문 환불 리스트 이동
         utils.database().realtimeDB.reference().child('orderList').child('delivery').child(key+'_'+uid).delete()
         utils.database().realtimeDB.reference().child('orderList').child('complete').child(key+'_'+uid).delete()
-        utils.database().realtimeDB.reference().child('orderList').child('refund').child(key+'_'+uid['result']).set({'item':itemID})
+        utils.database().realtimeDB.reference().child('orderList').child('refund').child(key+'_'+uid).set({'item':itemID})
 
         # 환불된 상품 count 처리
         itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()

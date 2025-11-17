@@ -37,22 +37,21 @@ if 'user' not in st.session_state:
 
 # 고객 주소 정보
 if 'address' not in st.session_state:
-    st.session_state.address = '배송지 입력하기'
+    st.session_state.address = None
 
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='medium')
 def addrDialog():
-    dialogAddr = st.text_input(
-        label="주소",
-        value=None,
-        key="addrTrue",
-        type="default",
+    st.text_input(
+        label='주소',
+        key='firstAddr',
+        type='default',
         disabled=False
     )
-    if dialogAddr == None:
+    if st.session_state.firstAddr == None:
         st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
     else:
-        findAddr : dict = api.seachAddress(dialogAddr)
+        findAddr : dict = api.seachAddress(st.session_state.firstAddr)
         if findAddr.get('allow'):
             for i in findAddr['result']:
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
@@ -60,10 +59,10 @@ def addrDialog():
                 addrNo.markdown(body=i)
 
                 choice = btn.button(
-                    label="선택",
+                    label='선택',
                     key=i,
-                    type="primary",
-                    use_container_width=True
+                    type='primary',
+                    width='stretch'
                 )
                 if choice:
                     st.session_state.address = i
@@ -83,31 +82,25 @@ if any(value is not None for value in st.session_state.token.values()):
         addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
 
         addr.text_input(
-            label="기본 배송지",
-            key="address",
-            type="default",
+            label='기본 배송지',
+            type='default',
             disabled=True
         )
 
         searchAddrB = searchAddr.button(
-            label="찾아보기",
-            key="addressSearch",
-            type="primary",
-            use_container_width=True
+            label='찾아보기',
+            type='primary',
+            width='stretch'
         )
 
         if searchAddrB:
             addrDialog()
 
-        detailAddr = st.text_input(
+        st.text_input(
             label='상세주소',
-            value='',
             key='detailAddr',
             type='default'
         )
-
-        # 최종 주소지
-        address = st.session_state.address + ' ' + detailAddr
 
         # 약관 동의 및 개인정보 이용 동의
         conditionMain, conditionBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
@@ -125,12 +118,14 @@ if any(value is not None for value in st.session_state.token.values()):
             key='usedAgree'
         )
         # 입력사항 확인 후 기본 배송지 설정
-        if st.session_state.address != '배송지 입력하기' and detailAddr and condtion and infoUsed:
+        if st.session_state.address and st.session_state.detailAddr and condtion and infoUsed:
+            address = st.session_state.address + ' ' + st.session_state.detailAddr
+
             addAddrB = st.button(
                 label='기본 배송지 설정하기',
                 key='baseAddr',
                 type='primary',
-                use_container_width=True
+                width='stretch'
             )
             if addAddrB:
                 result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)

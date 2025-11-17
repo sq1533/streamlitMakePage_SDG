@@ -36,17 +36,16 @@ if 'selectAddr' not in st.session_state:
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='medium', on_dismiss='rerun')
 def addrDialog():
-    dialogAddr = st.text_input(
-        label="주소",
-        value=None,
-        key="addrTrue",
-        type="default",
+    st.text_input(
+        label='주소',
+        key='addrTrue',
+        type='default',
         disabled=False
     )
-    if dialogAddr == None:
+    if st.session_state.addrTrue == None:
         st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
     else:
-        findAddr : dict = api.seachAddress(dialogAddr)
+        findAddr : dict = api.seachAddress(st.session_state.addrTrue)
         if findAddr.get('allow'):
             for i in findAddr.get('result'):
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
@@ -54,10 +53,10 @@ def addrDialog():
                 addrNo.markdown(body=i)
 
                 choice = btn.button(
-                    label="선택",
+                    label='선택',
                     key=i,
-                    type="primary",
-                    use_container_width=True
+                    type='primary',
+                    width='content'
                 )
                 if choice:
                     st.session_state.selectAddr = i
@@ -65,15 +64,18 @@ def addrDialog():
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
 
+# 선택된 주소 초기화
+def clear_address():
+    st.session_state.selectAddr = None
+
 # 회원 로그인 검증
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
-        st.title(body="마이페이지")
+        st.title(body='마이페이지')
         signOut = st.button(
-            label="회원탈퇴",
-            key="signOut",
-            type="primary",
-            use_container_width=True
+            label='회원탈퇴',
+            type='primary',
+            width='content'
         )
         if signOut:
             st.switch_page(page="pages/6signOUT.py")
@@ -84,9 +86,8 @@ if any(value is not None for value in st.session_state.token.values()):
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHome',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
@@ -95,7 +96,6 @@ if any(value is not None for value in st.session_state.token.values()):
         st.text_input(
             label='email',
             value=st.session_state.user.get('email'),
-            key='myInfoEmail',
             type='default',
             disabled=True
         )
@@ -103,7 +103,6 @@ if any(value is not None for value in st.session_state.token.values()):
         st.text_input(
             label='이름',
             value=st.session_state.user.get('name'),
-            key='myInfoName',
             type='default',
             disabled=True
         )
@@ -111,7 +110,6 @@ if any(value is not None for value in st.session_state.token.values()):
         st.text_input(
             label='휴대폰 번호',
             value=st.session_state.user.get('phoneNumber'),
-            key='myInfoPhone',
             type='default',
             disabled=True
         )
@@ -128,10 +126,10 @@ if any(value is not None for value in st.session_state.token.values()):
                 st.markdown(body=f"###### {address}")
                 empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
                 deleteBTN = deleteB.button(
-                    label="삭제",
-                    key=f"delete_{key}",
-                    type="secondary",
-                    use_container_width=False
+                    label='삭제',
+                    key=f'delete_{key}',
+                    type='secondary',
+                    width='content'
                     )
                 if deleteBTN:
                     api.guest.delAddr(token=st.session_state.token, delAddrKey=key)
@@ -139,10 +137,10 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.rerun()
 
                 homeAddrBTN = homeAddrB.button(
-                    label="주 배송지로 변경",
-                    key=f"home_{key}",
-                    type="secondary",
-                    use_container_width=False
+                    label='주 배송지로 변경',
+                    key=f'home_{key}',
+                    type='secondary',
+                    width='content'
                     )
                 if homeAddrBTN:
                     api.guest.homeAddr(token=st.session_state.token, homeAddrKey=key, homeAddr=address)
@@ -155,23 +153,22 @@ if any(value is not None for value in st.session_state.token.values()):
             addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
 
             addr.text_input(
-                label="신규 배송지",
-                key="selectAddr",
-                type="default",
+                label='신규 배송지',
+                key='selectAddr',
+                type='default',
                 disabled=True
             )
 
             searchAddrB = searchAddr.button(
-                label="검색",
-                key="addressSearch",
-                type="primary",
-                use_container_width=True
+                label='검색',
+                type='primary',
+                width='content'
             )
 
             if searchAddrB:
                 addrDialog()
 
-            detailAddr = st.text_input(
+            st.text_input(
                 label='상세주소',
                 value=None,
                 key='detailAddr',
@@ -180,19 +177,17 @@ if any(value is not None for value in st.session_state.token.values()):
 
             addAddressBTN = st.button(
                 label='배송지 추가',
-                key='myInfoAddAddr',
                 type='primary',
-                use_container_width=True
+                width='content'
             )
-
             if addAddressBTN:
-                if st.session_state.selectAddr and detailAddr:
-                    newAddr = st.session_state.selectAddr + ' ' + detailAddr
+                if st.session_state.selectAddr and st.session_state.detailAddr:
+                    newAddr = st.session_state.selectAddr + ' ' + st.session_state.detailAddr
                     if st.session_state.user.get('address').__len__() >= 4:
                         st.warning(body="추가 등록할 수 없습니다.")
                     else:
                         api.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
-                        st.session_state.selectAddr = None
+                        st.button(label='잠시만 기다려주세요.', on_click=clear_address, type='tertiary', disabled=True)
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                         st.rerun()
                 else:

@@ -172,6 +172,7 @@ class guest(utils.database):
     def guestOUT(token : dict) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
+            print('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')
@@ -185,6 +186,7 @@ class guest(utils.database):
     def addHomeAddr(token : dict, addr : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
+            print('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')
@@ -196,6 +198,7 @@ class guest(utils.database):
     def addAddr(token : dict, addAddr : str):
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
+            print('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')
@@ -207,6 +210,7 @@ class guest(utils.database):
     def delAddr(token : dict, delAddrKey : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
+            print('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')
@@ -218,6 +222,7 @@ class guest(utils.database):
     def homeAddr(token : dict, homeAddrKey : str, homeAddr : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
+            print('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')

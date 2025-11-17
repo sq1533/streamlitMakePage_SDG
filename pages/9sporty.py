@@ -93,10 +93,9 @@ with st.sidebar:
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
-            label="signOut",
-            key='signOut',
-            type="secondary",
-            use_container_width=True
+            label='signOut',
+            type='secondary',
+            width='stretch'
         )
         if logoutB:
             st.session_state.clear()
@@ -113,15 +112,13 @@ with st.sidebar:
 
         myinfo = myinfo.button(
             label='마이페이지',
-            key='myPage',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
         orderL = orderList.button(
             label='주문내역',
-            key='orderList',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
 
         # 마이페이지
@@ -133,28 +130,25 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            key='signUPIN',
             type='primary',
-            use_container_width=True
+            width='stretch'
         )
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
     seriesFilter = st.segmented_control(
-        label = "시리즈",
-        options = seriesPick,
-        selection_mode = "single",
+        label='시리즈',
+        options=seriesPick,
+        selection_mode='single',
         default = None,
-        key="itemSeries",
-        label_visibility="visible"
+        label_visibility='visible'
         )
     colorFilter = st.segmented_control(
-        label = "컬러",
-        options = colorPick,
-        selection_mode = "single",
+        label='컬러',
+        options=colorPick,
+        selection_mode='single',
         default = None,
-        key="itemColor",
-        label_visibility="visible"
+        label_visibility='visible'
         )
 
 count_in_card = 0
@@ -178,10 +172,10 @@ for itemKey in keys:
             st.markdown(body=f':heart: {feedback.get('point')}')
 
             viewBTN = st.button(
-                label="상세보기",
-                key=f"loop_item_{itemKey}",
-                type="primary",
-                use_container_width=True
+                label='상세보기',
+                key=f'loop_item_{itemKey}',
+                type='primary',
+                width='stretch'
             )
             if viewBTN:
                 st.session_state.item = itemKey
@@ -201,16 +195,14 @@ policy, cookies, empty = st.columns(spec=[1,1,3], gap='small', vertical_alignmen
 
 policyB = policy.button(
     label='개인정보 처리방침',
-    key='policy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 cookiesB = cookies.button(
     label='쿠키 정책',
-    key='cookiesPolicy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 if policyB:

@@ -6,6 +6,7 @@ class user(BaseModel):
     phoneNumber: str = Field(title='userPhoneNumber')
     age : int = Field(title='userAge')
     address : dict | None = Field(title='userAddress')
+    orderList : dict | None = Field(title='userOrderList')
 
 class item(BaseModel):
     category : str = Field(title='itemCategory')

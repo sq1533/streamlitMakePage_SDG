@@ -67,10 +67,9 @@ with st.sidebar:
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
-            label="signOut",
-            key='signOut',
+            label='signOut',
             type="secondary",
-            use_container_width=True
+            width='stretch'
         )
         if logoutB:
             st.session_state.clear()
@@ -88,15 +87,13 @@ with st.sidebar:
 
         myinfo = myinfo.button(
             label='마이페이지',
-            key='myPage',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
         orderL = orderList.button(
             label='주문내역',
-            key='orderList',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
 
         # 마이페이지
@@ -110,9 +107,8 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            key='signUPIN',
             type='primary',
-            use_container_width=True
+            width='stretch'
         )
         if signIn:
             st.switch_page(page="pages/1signIN.py")
@@ -122,21 +118,18 @@ sporty, daily, about = st.columns(spec=3, gap='small', vertical_alignment='cente
 
 sportyP = sporty.button(
     label='sporty',
-    key='sportyPage',
     type='primary',
-    use_container_width=True
+    width='stretch'
 )
 dailyP = daily.button(
     label='daily',
-    key='dailyPage',
     type='primary',
-    use_container_width=True
+    width='stretch'
 )
 aboutP = about.button(
     label='about us',
-    key='aboutPage',
     type='secondary',
-    use_container_width=True
+    width='stretch'
 )
 
 if sportyP:
@@ -152,16 +145,14 @@ policy, cookies, empty = st.columns(spec=[1,1,3], gap='small', vertical_alignmen
 
 policyB = policy.button(
     label='개인정보 처리방침',
-    key='policy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 cookiesB = cookies.button(
     label='쿠키 정책',
-    key='cookiesPolicy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 if policyB:

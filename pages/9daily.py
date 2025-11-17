@@ -112,11 +112,11 @@ def showItem(itemID, itemIF):
     price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~:red[-{itemIF['discount']}%] {itemIF['price']}원")
 
     buyBTN = buy.button(
-        label="구매하기",
-        key=f"buyItem_{itemID}",
-        type="primary",
+        label='구매하기',
+        key=f'buyItem_{itemID}',
+        type='primary',
         disabled=buyDisable,
-        use_container_width=True
+        width='stretch'
     )
     with st.expander(label="상품 세부정보"):
         info, feed = st.tabs(tabs=['info', '후기'])
@@ -143,10 +143,9 @@ with st.sidebar:
     # 고객 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
-            label="signOut",
-            key='signOut',
-            type="secondary",
-            use_container_width=True
+            label='signOut',
+            type='secondary',
+            width='stretch'
         )
         if logoutB:
             st.session_state.clear()
@@ -164,15 +163,13 @@ with st.sidebar:
 
         myinfo = myinfo.button(
             label='마이페이지',
-            key='myPage',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
         orderL = orderList.button(
             label='주문내역',
-            key='orderList',
             type='tertiary',
-            use_container_width=True
+            width='stretch'
         )
 
         # 마이페이지
@@ -184,9 +181,8 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            key='signUPIN',
             type='primary',
-            use_container_width=True
+            width='stretch'
         )
         if signIn:
             st.switch_page(page="pages/1signIN.py")
@@ -233,7 +229,7 @@ for itemKey in keys:
                 label="상세보기",
                 key=f"loop_item_{itemKey}",
                 type="primary",
-                use_container_width=True
+                width='stretch'
             )
             if viewBTN:
                 showItem(itemID=itemKey, itemIF=itemCard)
@@ -252,16 +248,14 @@ policy, cookies, empty = st.columns(spec=[1,1,3], gap='small', vertical_alignmen
 
 policyB = policy.button(
     label='개인정보 처리방침',
-    key='policy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 cookiesB = cookies.button(
     label='쿠키 정책',
-    key='cookiesPolicy',
     type='tertiary',
-    use_container_width=False
+    width='content'
 )
 
 if policyB:

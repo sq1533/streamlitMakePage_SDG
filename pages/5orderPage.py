@@ -52,9 +52,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHOME',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
@@ -63,22 +62,21 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         col1, col2 = st.columns(spec=[1,3], gap="small", vertical_alignment="top")
 
         col1.image(
-            image=itemIF.get('paths')[0],
-            use_container_width=True
+            image=str(itemIF.paths[0]),
+            width='stretch'
             )
 
         with col2:
-            st.title(body=itemIF.get('name'))
-            st.markdown(body=f' **상품 가격 :** ~~{int((itemIF.get('price')*100/(100-itemIF.get('discount'))//100)*100)}~~:red[-{itemIF.get('discount')}%] {itemIF.get('price')}원')
-            st.markdown(body=' **배송비 :** 무료')
+            st.title(body=itemIF.name)
+            st.markdown(body=f'##### **상품 가격 :** ~~{int((itemIF.price)*100/(100-itemIF.discount)//100)*100}~~:red[-{itemIF.discount}%] {itemIF.price}원')
+            st.markdown(body='##### **배송비 :** 무료')
 
         st.markdown(body=f'###### {st.session_state.user.get('address')['home']}')
 
         buyBTN = st.button(
-            label="결제하기",
-            key='pay',
-            type="primary",
-            use_container_width=True
+            label='결제하기',
+            type='primary',
+            width='stretch'
             )
 
         if buyBTN:
@@ -91,7 +89,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
                     order : bool = api.items.itemOrder(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime, address=st.session_state.user.get('address')['home'])
                     if order:
-                        st.success(body=f"{itemIF.get('name')} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
+                        st.success(body=f"{itemIF.name} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
                         st.session_state.item = None # 구매 후 아이템 세션 초기화
                         time.sleep(2)

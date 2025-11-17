@@ -42,9 +42,8 @@ else:
         # 홈으로 이동
         goHome = st.button(
             label='HOME',
-            key='goHOME',
             type='primary',
-            use_container_width=False,
+            width='content',
             disabled=False
         )
         if goHome:
