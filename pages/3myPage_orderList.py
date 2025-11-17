@@ -69,7 +69,7 @@ if any(value is not None for value in st.session_state.token.values()):
         if goHome:
             st.switch_page(page="mainPage.py")
         
-        st.markdown(body="주문 내역")
+        st.markdown(body="주문내역")
 
         userOrder : dict = st.session_state.user.get('orderList')
 
@@ -117,7 +117,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         disabled=fbDisable
                         )
                     fbB = feedB.button(
-                        label='평가하기',
+                        label='평가',
                         key=f'feedbackAdd_{key}',
                         type='secondary',
                         disabled=fbDisable,
