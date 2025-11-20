@@ -18,6 +18,7 @@ class item(BaseModel):
     price : int = Field(title='itemPrice')
     discount : int = Field(title='itemDiscount')
     event : str | None = Field(default=None, title='itemEvent')
+    created_at : str | None = Field(default=None, title='itemCreatedAt')
 
 class itemFeedback(BaseModel):
     count : int = Field(title='feedbackCount')
