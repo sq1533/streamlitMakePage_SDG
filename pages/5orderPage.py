@@ -101,3 +101,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         st.rerun()
 else:
     st.switch_page(page="mainPage.py")
+
+st.divider()
+st.html(body=utils.database().infoAdmin)

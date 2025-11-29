@@ -106,6 +106,16 @@ else:
             if signIn:
                 st.switch_page(page="pages/1signIN.py")
 
+    # 홈으로 이동
+    goHome = st.button(
+        label='HOME',
+        type='primary',
+        width='content',
+        disabled=False
+    )
+    if goHome:
+        st.switch_page(page="mainPage.py")
+
     itemID : str = st.session_state.item
     itemIF : dict = api.items.showItem().get(itemID)
     itemStatus : dict = api.items.itemStatus(itemId=itemID)

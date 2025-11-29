@@ -138,3 +138,6 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')
 else:
     st.switch_page(page='mainPage.py')
+
+st.divider()
+st.html(body=utils.database().infoAdmin)

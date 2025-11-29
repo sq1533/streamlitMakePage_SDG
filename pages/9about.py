@@ -29,4 +29,17 @@ st.html(
     """
 )
 
+# 홈으로 이동
+goHome = st.button(
+    label='HOME',
+    type='primary',
+    width='content',
+    disabled=False
+)
+if goHome:
+    st.switch_page(page="mainPage.py")
+
 st.title(body='amuredo')
+
+st.divider()
+st.html(body=utils.database().infoAdmin)

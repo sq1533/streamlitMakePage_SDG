@@ -205,6 +205,16 @@ with st.sidebar:
         label_visibility="visible"
         )
 
+# 홈으로 이동
+goHome = st.button(
+    label='HOME',
+    type='primary',
+    width='content',
+    disabled=False
+)
+if goHome:
+    st.switch_page(page="mainPage.py")
+
 count_in_card = 0
 line = keys.__len__()//4 + 1
 
