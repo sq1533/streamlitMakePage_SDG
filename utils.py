@@ -1,6 +1,7 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import db, firestore
+from PIL import Image
 
 from schema.schema import item
 
@@ -61,6 +62,9 @@ class database:
         
         # realtime DB 호출
         self.realtimeDB = db
+
+        # 페이지 icon
+        self.pageIcon = Image.open('database/icon.png')
 
         # SQL 인젝션 방어 키워드
         self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
