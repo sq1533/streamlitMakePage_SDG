@@ -117,33 +117,33 @@ else:
     if goHome:
         st.switch_page(page="mainPage.py")
 
-    itemID : str = st.session_state.item
-    itemIF : dict = api.items.showItem().get(itemID)
-    itemStatus : dict = api.items.itemStatus(itemId=itemID)
-
-    buyDisable = not itemStatus.get('enable')
-    feedT = itemStatus.get('feedback').get('text')
+    item : dict = st.session_state.item
+    key, data = item.items()
+    itemStatus : dict = api.items.itemStatus(itemId=key)
+    buyAble : bool = not itemStatus.get('enable')
+    feedback : dict = itemStatus.get('feedback')
+    feedT = feedback.get('text')
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        imgLoad(str(itemIF.paths[0]))
+        imgLoad(str(data.get('paths')[0]))
     with row2.container():
-        imgLoad(str(itemIF.paths[1]))
+        imgLoad(str(data.get('paths')[1]))
     with row1.container():
-        imgLoad(str(itemIF.paths[2]))
+        imgLoad(str(data.get('paths')[2]))
     with row2.container():
-        imgLoad(str(itemIF.paths[3]))
+        imgLoad(str(data.get('paths')[3]))
     # 상품 이름
-    st.markdown(f"# {itemIF.name}")
+    st.markdown(f"# {data.get('name')}")
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemIF.price*100/(100-itemIF.discount)//100)*100)}~~:red[-{itemIF.discount}%] {itemIF.price}원")
+    price.markdown(f"#### 상품 가격 : ~~{int((data.get('price')*100/(100-data.get('discount'))//100)*100)}~~ :red[-{data.get('discount')}%] {data.get('price')}원")
 
     buyBTN = buy.button(
         label='구매하기',
         type='primary',
-        disabled=buyDisable,
+        disabled=buyAble,
         width='stretch'
     )
     if buyBTN:
@@ -156,7 +156,7 @@ else:
     with st.expander(label="상품 세부정보"):
         info, feed = st.tabs(tabs=['info', '후기'])
         with info:
-            imgLoad(str(itemIF.detail))
+            imgLoad(str(data.get('detail')))
         with feed:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')

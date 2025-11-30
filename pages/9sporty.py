@@ -50,18 +50,26 @@ if 'item' not in st.session_state:
 sportyVanner : dict = utils.database().firestore_vanner.get('vannerSporty')
 itemInfo : dict = api.items.showItem()
 
-keys = []
-color = []
-series = []
+# 아이템 불러오기
+itemList = []
 for key, data in itemInfo.items():
     if data.category == 'sporty':
-        keys.append(key)
-        color.append(data.color)
-        series.append(data.series)
+        itemStatus : dict = api.items.itemStatus(itemId=key)
+        data.sales = itemStatus['sales']
+        data.point = itemStatus['feedback']['point']
+        itemList.append({key:data})
     else:
         pass
-colorPick = list(set(color))
-seriesPick = list(set(series))
+
+# 홈으로 이동
+goHome = st.button(
+    label='HOME',
+    type='primary',
+    width='content',
+    disabled=False
+)
+if goHome:
+    st.switch_page(page="mainPage.py")
 
 # 상단 vanner
 st.html(
@@ -136,59 +144,53 @@ with st.sidebar:
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
-    seriesFilter = st.segmented_control(
-        label='시리즈',
-        options=seriesPick,
+    sortedFilter = st.segmented_control(
+        label='정렬',
+        options=['New', '인기순', '낮은 가격순', '높은 가격순'],
         selection_mode='single',
         default = None,
         label_visibility='visible'
         )
-    colorFilter = st.segmented_control(
-        label='컬러',
-        options=colorPick,
-        selection_mode='single',
-        default = None,
-        label_visibility='visible'
-        )
-
-# 홈으로 이동
-goHome = st.button(
-    label='HOME',
-    type='primary',
-    width='content',
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
 
 count_in_card = 0
-line = keys.__len__()//4 + 1
+line = itemList.__len__()//4 + 1
 
 # 아이템에 따른 행 갯수 수정
 for l in range(line):
     cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
+# 상품 정렬을 위한 키 리스트 정리
+if sortedFilter == 'New':
+    sortedItems = sorted(itemList, key=lambda x: x.get('created_at', 0), reverse=True)
+elif sortedFilter == '인기순':
+    sortedItems = sorted(itemList, key=lambda x: x.get('sales', 0), reverse=True)
+elif sortedFilter == '낮은 가격순':
+    sortedItems = sorted(itemList, key=lambda x: x.get('price', 0), reverse=False)
+elif sortedFilter == '높은 가격순':
+    sortedItems = sorted(itemList, key=lambda x: x.get('price', 0), reverse=True)
+else:
+    sortedItems = itemList[:]
+
 # 아이템 4열 배치
-for itemKey in keys:
-    itemCard : dict = itemInfo.get(itemKey)
-    if (colorFilter == None or colorFilter in itemCard.color) and (seriesFilter == None or seriesFilter in itemCard.series):
+for item in sortedItems:
+    for key, data in item.items():
         with cards[count_in_card].container():
-            itemStatus : dict = api.items.itemStatus(itemId=itemKey)
+            itemStatus : dict = api.items.itemStatus(itemId=key)
             feedback : dict = itemStatus.get('feedback')
 
-            imgLoad(str(itemCard.paths[0]))
+            imgLoad(str(data.paths[0]))
 
-            st.markdown(body=f"###### {itemCard.name}")
-            st.markdown(body=f':heart: {feedback.get('point')}')
+            st.markdown(body=f"###### {data.name}")
+            st.markdown(body=f':heart: {feedback.get('point', 0)}')
 
             viewBTN = st.button(
                 label='상세보기',
-                key=f'loop_item_{itemKey}',
+                key=f'loop_item_{key}',
                 type='primary',
                 width='stretch'
             )
             if viewBTN:
-                st.session_state.item = itemKey
+                st.session_state.item = item
                 st.switch_page(page="pages/7item.py")
 
         count_in_card += 1
@@ -196,8 +198,6 @@ for itemKey in keys:
             count_in_card = 0
         else:
             pass
-    else:
-        pass
 
 st.divider()
 

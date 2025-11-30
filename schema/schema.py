@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from typing import Optional
 
 class user(BaseModel):
     email : EmailStr = Field(title='userEmail')
@@ -18,7 +19,9 @@ class item(BaseModel):
     price : int = Field(title='itemPrice')
     discount : int = Field(title='itemDiscount')
     event : str | None = Field(default=None, title='itemEvent')
-    created_at : str | None = Field(default=None, title='itemCreatedAt')
+    created_at : int | None = Field(default=None, title='itemCreatedAt')
+    sales: Optional[int] = 0
+    point: Optional[int] = 0
 
 class itemFeedback(BaseModel):
     count : int = Field(title='feedbackCount')

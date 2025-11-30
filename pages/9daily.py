@@ -50,19 +50,26 @@ if 'item' not in st.session_state:
 dailyVanner : dict = utils.database().firestore_vanner.get('vannerDaily')
 itemInfo : dict = api.items.showItem()
 
-keys = []
-color = []
-series = []
+# 아이템 불러오기
+itemList = []
 for key, data in itemInfo.items():
     if data.category == 'daily':
-        keys.append(key)
-        color.append(data.color)
-        series.append(data.series)
+        itemStatus : dict = api.items.itemStatus(itemId=key)
+        itemInfo[key]['sales'] = itemStatus['sales']
+        itemInfo[key]['point'] = itemStatus['feedback']['point']
+        itemList.append(itemInfo.get(key))
     else:
         pass
 
-colorPick = list(set(color))
-seriesPick = list(set(series))
+# 홈으로 이동
+goHome = st.button(
+    label='HOME',
+    type='primary',
+    width='content',
+    disabled=False
+)
+if goHome:
+    st.switch_page(page="mainPage.py")
 
 # 상단 vanner
 st.html(
@@ -87,55 +94,6 @@ def imgLoad(path : str):
         )
     else:
         return st.info(body='not image')
-
-# 상품 상세페이지 dialog
-@st.dialog(title='상품 상세', width='medium')
-def showItem(itemID, itemIF):
-    itemStatus : dict = api.items.itemStatus(itemId=itemID)
-    buyDisable = not itemStatus.get('enable')
-    feedT = itemStatus.get('feedback').get('text')
-
-    row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
-    with row1.container():
-        imgLoad(itemIF['paths'][0])
-    with row2.container():
-        imgLoad(itemIF['paths'][1])
-    with row1.container():
-        imgLoad(itemIF['paths'][2])
-    with row2.container():
-        imgLoad(itemIF['paths'][3])
-    # 상품 이름
-    st.markdown(f"# {itemIF['name']}")
-
-    # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemIF['price']*100/(100-itemIF['discount'])//100)*100)}~~:red[-{itemIF['discount']}%] {itemIF['price']}원")
-
-    buyBTN = buy.button(
-        label='구매하기',
-        key=f'buyItem_{itemID}',
-        type='primary',
-        disabled=buyDisable,
-        width='stretch'
-    )
-    with st.expander(label="상품 세부정보"):
-        info, feed = st.tabs(tabs=['info', '후기'])
-        with info:
-            imgLoad(itemIF['detail'])
-        with feed:
-            if feedT.__len__() == 1:
-                st.info(body='아직 후기가 없어요...', icon='😪')
-            else:
-                for i in reversed(feedT[1:]):
-                    st.markdown(body=i.keys())
-                    st.markdown(body=i.values())
-
-    if buyBTN:
-        if any(value is not None for value in st.session_state.token.values()):
-            st.session_state.item = itemID
-            st.switch_page(page="pages/5orderPage.py")
-        else:
-            st.error(body='고객이 확인되지 않습니다.')
 
 # siderbar 정의
 with st.sidebar:
@@ -188,69 +146,59 @@ with st.sidebar:
             st.switch_page(page="pages/1signIN.py")
 
     seriesFilter = st.segmented_control(
-        label = "시리즈",
-        options = seriesPick,
-        selection_mode = "single",
+        label='정렬',
+        options=['New', '인기순', '낮은 가격순', '높은 가격순'],
+        selection_mode='single',
         default = None,
-        key="itemSeries",
-        label_visibility="visible"
+        label_visibility='visible'
         )
-
-    colorFilter = st.segmented_control(
-        label = "컬러",
-        options = colorPick,
-        selection_mode = "single",
-        default = None,
-        key="itemColor",
-        label_visibility="visible"
-        )
-
-# 홈으로 이동
-goHome = st.button(
-    label='HOME',
-    type='primary',
-    width='content',
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
 
 count_in_card = 0
-line = keys.__len__()//4 + 1
+line = itemList.__len__()//4 + 1
 
 # 아이템에 따른 행 갯수 수정
 for l in range(line):
     cards = st.columns(spec=4, gap="small", vertical_alignment="top")
 
+# 상품 정렬을 위한 키 리스트 정리
+if seriesFilter == 'New':
+    sortedItems = itemList.sort(key=lambda x: x['created_at'], reverse=True)
+elif seriesFilter == '인기순':
+    sortedItems = itemList.sort(key=lambda x: x['sales'], reverse=True)
+elif seriesFilter == '낮은 가격순':
+    sortedItems = itemList.sort(key=lambda x: x['price'], reverse=False)
+elif seriesFilter == '높은 가격순':
+    sortedItems = itemList.sort(key=lambda x: x['price'], reverse=True)
+else:
+    sortedItems = itemList
+
 # 아이템 4열 배치
-for itemKey in keys:
-    itemCard : dict = itemInfo.get(itemKey)
-    if (colorFilter == None or colorFilter in itemCard.get('color')) and (seriesFilter == None or seriesFilter in itemCard.get('series')):
-        with cards[count_in_card].container():
-            itemStatus : dict = api.items.itemStatus(itemId=itemKey)
-            feedback : dict = itemStatus.get('feedback')
+for item in sortedItems:
+    key, data = item.items()
+    with cards[count_in_card].container():
+        itemStatus : dict = api.items.itemStatus(itemId=key)
+        feedback : dict = itemStatus.get('feedback')
 
-            imgLoad(itemCard['paths'][0])
+        imgLoad(str(data.get('paths')[0]))
 
-            st.markdown(body=f"###### {itemCard.get('name')}")
-            st.markdown(body=f':heart: {feedback.get('point')}')
+        st.markdown(body=f"###### {data.get('name')}")
+        st.markdown(body=f':heart: {feedback.get('point')}')
 
-            viewBTN = st.button(
-                label="상세보기",
-                key=f"loop_item_{itemKey}",
-                type="primary",
-                width='stretch'
-            )
-            if viewBTN:
-                showItem(itemID=itemKey, itemIF=itemCard)
+        viewBTN = st.button(
+            label='상세보기',
+            key=f'loop_item_{key}',
+            type='primary',
+            width='stretch'
+        )
+        if viewBTN:
+            st.session_state.item = item
+            st.switch_page(page="pages/7item.py")
 
         count_in_card += 1
         if count_in_card == 4:
             count_in_card = 0
         else:
             pass
-    else:
-        pass
 
 st.divider()
 

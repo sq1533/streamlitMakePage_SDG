@@ -45,7 +45,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with st.sidebar:
         st.title(body="상품 주문")
 
-    itemIF : dict = api.items.showItem()[st.session_state.item]
+    item : dict = st.session_state.item
+    key, data = item.items()
 
     empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
 
@@ -63,13 +64,13 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         col1, col2 = st.columns(spec=[1,3], gap="small", vertical_alignment="top")
 
         col1.image(
-            image=str(itemIF.paths[0]),
+            image=str(data.get('paths')[0]),
             width='stretch'
             )
 
         with col2:
-            st.title(body=itemIF.name)
-            st.markdown(body=f'##### **상품 가격 :** ~~{int((itemIF.price)*100/(100-itemIF.discount)//100)*100}~~:red[-{itemIF.discount}%] {itemIF.price}원')
+            st.title(body=data.get('name'))
+            st.markdown(body=f"##### **상품 가격 :** ~~{int((data.get('price')*100/(100-data.get('discount'))//100)*100)}~~ :red[-{data.get('discount')}%] {data.get('price')}원")
             st.markdown(body='##### **배송비 :** 무료')
 
         st.markdown(body=f'###### {st.session_state.user.get('address')['home']}')
@@ -81,14 +82,14 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             )
 
         if buyBTN:
-            itemStatus : dict = api.items.itemStatus(itemId=st.session_state.item)
+            itemStatus : dict = api.items.itemStatus(itemId=key)
             if itemStatus.get('enable'):
                 with st.spinner(text="결제 승인 요청 중...", show_time=False):
                 # requests.post()
                     now = datetime.now(timezone.utc) + timedelta(hours=9)
                     orderTime = now.strftime("%y%m%d%H%M%S")
 
-                    order : bool = api.items.itemOrder(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime, address=st.session_state.user.get('address')['home'])
+                    order : bool = api.items.itemOrder(token=st.session_state.token, itemID=key, orderTime=orderTime, address=st.session_state.user.get('address')['home'])
                     if order:
                         st.success(body=f"{itemIF.name} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
