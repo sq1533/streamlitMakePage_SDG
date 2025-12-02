@@ -63,7 +63,7 @@ def refundCall(key : str, item : str):
         func : bool = api.items.orderRefund(token=st.session_state.token, key=key, itemID=item)
         if func:
             st.info(body='환불 요청 완료, 주문내역으로 이동합니다.')
-            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
+            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
             time.sleep(2)
             st.rerun()

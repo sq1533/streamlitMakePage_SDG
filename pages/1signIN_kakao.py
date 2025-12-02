@@ -36,23 +36,24 @@ if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 
 else:
-    # 카카오 로그인 요청
-    if 'code' in st.query_params and st.query_params.code:
-        kakaoToken : dict = api.guest.kakaoToken(code=st.query_params.code)
-        if kakaoToken.get('allow'):
-            userInfo = requests.post(
-                url='https://kapi.kakao.com/v2/user/me',
-                headers={'Authorization' : f'Bearer {kakaoToken['result']['access_token']}'}
-            )
-            if userInfo.status_code == 200:
-                signIN : dict = api.guest.kakaoUser(response=userInfo.json())
-                if signIN.get('allow'):
-                    st.session_state.token['kakao'] = kakaoToken['result']
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
-                    st.rerun()
+    with st.spinner(text='안녕하세요, 네이버 로그인 승인 요청중입니다. 잠시만 기다려주세요.', show_time=True):
+        # 카카오 로그인 요청
+        if 'code' in st.query_params and st.query_params.code:
+            kakaoToken : dict = api.guest.kakaoToken(code=st.query_params.code)
+            if kakaoToken.get('allow'):
+                userInfo = requests.post(
+                    url='https://kapi.kakao.com/v2/user/me',
+                    headers={'Authorization' : f'Bearer {kakaoToken['result']['access_token']}'}
+                )
+                if userInfo.status_code == 200:
+                    signIN : dict = api.guest.kakaoUser(response=userInfo.json())
+                    if signIN.get('allow'):
+                        st.session_state.token['kakao'] = kakaoToken['result']
+                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                        st.rerun()
+                else:
+                    st.warning(body='고객 정보 확인불가')
             else:
-                st.warning(body='고객 정보 확인불가')
+                st.warning('고객 카카오 로그인 실패')
         else:
-            st.warning('고객 카카오 로그인 실패')
-    else:
-        st.switch_page(page='1signIN.py')
+            st.switch_page(page='1signIN.py')

@@ -36,23 +36,24 @@ if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 
 else:
-    # 고객 네이버 로그인 요청 상태
-    if 'code' in st.query_params and st.query_params.code:
-        naverToken : dict = api.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
-        if naverToken.get('allow'):
-            userInfo = requests.post(
-                url='https://openapi.naver.com/v1/nid/me',
-                headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
-                )
-            if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
-                signIN : dict = api.guest.naverUser(response=userInfo.json()['response'])
-                if signIN.get('allow'):
-                    st.session_state.token['naver'] = naverToken['result']
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
-                    st.rerun()
+    with st.spinner(text='안녕하세요, 네이버 로그인 승인 요청중입니다. 잠시만 기다려주세요.', show_time=True):
+        # 고객 네이버 로그인 요청 상태
+        if 'code' in st.query_params and st.query_params.code:
+            naverToken : dict = api.guest.naverToken(code=st.query_params.code, state=st.query_params.state)
+            if naverToken.get('allow'):
+                userInfo = requests.post(
+                    url='https://openapi.naver.com/v1/nid/me',
+                    headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
+                    )
+                if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
+                    signIN : dict = api.guest.naverUser(response=userInfo.json()['response'])
+                    if signIN.get('allow'):
+                        st.session_state.token['naver'] = naverToken['result']
+                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                        st.rerun()
+                else:
+                    st.warning(body='로그인 실패, 고객 정보 확인불가')
             else:
-                st.warning(body='로그인 실패, 고객 정보 확인불가')
+                st.warning('고객 네이버 로그인 실패')
         else:
-            st.warning('고객 네이버 로그인 실패')
-    else:
-        st.switch_page(page='1signIN.py')
+            st.switch_page(page='1signIN.py')

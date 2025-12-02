@@ -76,7 +76,7 @@ if any(value is not None for value in st.session_state.token.values()):
         signOut = st.button(
             label='회원탈퇴',
             type='primary',
-            width='content'
+            width='stretch'
         )
         if signOut:
             st.switch_page(page="pages/6signOUT.py")
@@ -104,6 +104,13 @@ if any(value is not None for value in st.session_state.token.values()):
         st.text_input(
             label='이름',
             value=st.session_state.user.get('name'),
+            type='default',
+            disabled=True
+        )
+
+        st.text_input(
+            label='생년월일',
+            value=st.session_state.user.get('age'),
             type='default',
             disabled=True
         )
@@ -189,7 +196,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     else:
                         api.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
                         st.button(label='잠시만 기다려주세요.', on_click=clear_address, type='tertiary', disabled=True)
-                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
+                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                         st.rerun()
                 else:
                     st.warning(body='배송지 정보가 잘못 되었습니다.')

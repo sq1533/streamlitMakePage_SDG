@@ -59,7 +59,7 @@ def changeAddr(key : str):
         func = api.items.orderAddrChange(token=st.session_state.token, key=key, addr=st.session_state.cgAddr_select)
         if func:
             st.info(body='배송지 변경 완료, 주문내역으로 이동합니다.')
-            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
+            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             time.sleep(2)
             st.session_state.orderItem = None
             st.rerun()

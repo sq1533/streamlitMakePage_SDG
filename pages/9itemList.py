@@ -32,6 +32,7 @@ st.html(
 
 import api
 import time
+import pandas as pd
 
 # 회원 토큰 및 정보 세선
 if 'token' not in st.session_state:
@@ -43,23 +44,41 @@ if 'token' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 
+# 페이지 진입 구분
+if 'page' not in st.session_state:
+    st.session_state.page = None
+
 # 상품 주문
 if 'item' not in st.session_state:
     st.session_state.item = None
 
-sportyVanner : dict = utils.database().firestore_vanner.get('vannerSporty')
+if st.session_state.page == 'sporty':
+    page = {'vanner':'vannerSporty', 'category':'sporty'}
+elif st.session_state.page == 'daily':
+    page = {'vanner':'vannerDaily', 'category':'daily'}
+else:
+    st.switch_page(page='mainPage.py')
+
+vanner : dict = utils.database().firestore_vanner.get(page.get('vanner'))
 itemInfo : dict = api.items.showItem()
 
 # 아이템 불러오기
 itemList = []
 for key, data in itemInfo.items():
-    if data.category == 'sporty':
+    if data.category == page.get('category'):
+        data = data.model_dump(mode='json')
         itemStatus : dict = api.items.itemStatus(itemId=key)
-        data.sales = itemStatus['sales']
-        data.point = itemStatus['feedback']['point']
-        itemList.append({key:data})
+        data['itemId'] = key
+        data['sales'] = itemStatus['sales']
+        data['point'] = itemStatus['feedback']['point']
+        itemList.append(data)
     else:
         pass
+
+itemDF = pd.DataFrame(
+    data=itemList,
+    columns=['itemId', 'category', 'color', 'series', 'paths', 'name', 'detail', 'price', 'discount', 'event', 'created_at', 'sales', 'point']
+    )
 
 # 홈으로 이동
 goHome = st.button(
@@ -82,7 +101,7 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{sportyVanner.get('path')}" class="fullscreen-gif">
+    <img src="{vanner.get('path')}" class="fullscreen-gif">
     """
 )
 
@@ -161,43 +180,42 @@ for l in range(line):
 
 # 상품 정렬을 위한 키 리스트 정리
 if sortedFilter == 'New':
-    sortedItems = sorted(itemList, key=lambda x: x.get('created_at', 0), reverse=True)
+    sortedItems = itemDF.sort_values(by='created_at', ascending=False)
 elif sortedFilter == '인기순':
-    sortedItems = sorted(itemList, key=lambda x: x.get('sales', 0), reverse=True)
+    sortedItems = itemDF.sort_values(by='sales', ascending=False)
 elif sortedFilter == '낮은 가격순':
-    sortedItems = sorted(itemList, key=lambda x: x.get('price', 0), reverse=False)
+    sortedItems = itemDF.sort_values(by='price', ascending=False)
 elif sortedFilter == '높은 가격순':
-    sortedItems = sorted(itemList, key=lambda x: x.get('price', 0), reverse=True)
+    sortedItems = itemDF.sort_values(by='price', ascending=True)
 else:
-    sortedItems = itemList[:]
+    sortedItems = itemDF
 
 # 아이템 4열 배치
-for item in sortedItems:
-    for key, data in item.items():
-        with cards[count_in_card].container():
-            itemStatus : dict = api.items.itemStatus(itemId=key)
-            feedback : dict = itemStatus.get('feedback')
+for index, item in sortedItems.iterrows():
+    with cards[count_in_card].container():
+        itemStatus : dict = api.items.itemStatus(itemId=item['itemId'])
+        feedback : dict = itemStatus.get('feedback')
 
-            imgLoad(str(data.paths[0]))
+        imgLoad(str(item['paths'][0]))
 
-            st.markdown(body=f"###### {data.name}")
-            st.markdown(body=f':heart: {feedback.get('point', 0)}')
+        st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
+        st.markdown(f"###### ~~{int((item['price']*100/(100-item['discount'])//100)*100)}~~ :red[-{item['discount']}%] {item['price']}원")
 
-            viewBTN = st.button(
-                label='상세보기',
-                key=f'loop_item_{key}',
-                type='primary',
-                width='stretch'
-            )
-            if viewBTN:
-                st.session_state.item = item
-                st.switch_page(page="pages/7item.py")
+        viewBTN = st.button(
+            label='상세보기',
+            key=f'loop_item_{index}',
+            type='primary',
+            width='stretch'
+        )
+        if viewBTN:
+            st.session_state.item = sortedItems.loc[index].to_dict()
+            st.switch_page(page="pages/7item.py")
 
-        count_in_card += 1
-        if count_in_card == 4:
-            count_in_card = 0
-        else:
-            pass
+    count_in_card += 1
+    if count_in_card == 4:
+        count_in_card = 0
+    else:
+        pass
 
 st.divider()
 

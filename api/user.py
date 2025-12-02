@@ -73,10 +73,12 @@ class guest(utils.database):
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 userData = {
-                    'name' : response['name'],
-                    'phoneNumber' : response['mobile'].replace('-',''),
-                    'email' : response['email'],
-                    'age' : int(response['birthyear'] + response['birthday'].replace('-',''))
+                    'name':response['name'],
+                    'phoneNumber':response['mobile'].replace('-',''),
+                    'email':response['email'],
+                    'age':int(response['birthyear'] + response['birthday'].replace('-','')),
+                    'address':'',
+                    'orderList':''
                 }
                 try:
                     userResult = user(**userData)
@@ -132,10 +134,12 @@ class guest(utils.database):
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 userData = {
-                    'name' : response['name'],
-                    'phoneNumber' : response['phone_number'].replace('-',''),
-                    'email' : response['email'],
-                    'age' : int(response['birthyear'] + response['birthday'])
+                    'name':response['name'],
+                    'phoneNumber':response['phone_number'].replace('-',''),
+                    'email':response['email'],
+                    'age':int(response['birthyear'] + response['birthday']),
+                    'address':'',
+                    'orderList':''
                 }
                 try:
                     userResult = user(**userData)
@@ -152,7 +156,7 @@ class guest(utils.database):
     def showUserInfo(token : dict) -> dict:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            return {'failed' : '회원 정보 호출 실패'}
+            return {'result':'토큰 조회 실패'}
 
         uid = uid.get('result')
 
@@ -160,13 +164,14 @@ class guest(utils.database):
             userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
             try:
                 userData = user(**userInfo)
+                return {'result':userData.model_dump()}
             except Exception as e:
                 print(f'파싱 오류 {uid} : {e}')
-            return userData.model_dump()
+                return {'result':'회원 정보 호출 실패'}
 
         except Exception as e:
             print(f'회원 정보 호출 오류 : {e}')
-            return {'failed' : '회원 정보 호출 실패'}         
+            return {'result':'회원 정보 호출 실패'}
 
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
@@ -178,7 +183,7 @@ class guest(utils.database):
         uid = uid.get('result')
 
         userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
-        utils.database().realtimeDB.reference().child(f'user/out_{uid}').set(userInfo)
+        utils.database().realtimeDB.reference().child(f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
         utils.database().realtimeDB.reference().child(f'user/{uid}').delete()
         return True
 

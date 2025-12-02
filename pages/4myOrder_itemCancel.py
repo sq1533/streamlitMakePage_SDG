@@ -57,7 +57,7 @@ def cancelOrder(key : str, itemID : str):
         func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=itemID)
         if func:
             st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
-            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
+            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
             time.sleep(2)
             st.rerun()

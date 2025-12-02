@@ -36,22 +36,28 @@ if 'user' not in st.session_state:
     st.session_state.user = None
 
 # 고객 주소 정보
-if 'address' not in st.session_state:
-    st.session_state.address = None
+if 'firstAddr' not in st.session_state:
+    st.session_state.firstAddr = None
+
+def clear_searchAddr():
+    st.session_state.searchAddr = None
+def clear_firstAddr():
+    st.session_state.firstAddr = None
+    st.session_state.detailAddr = None
 
 # 배송지 추가하기
 @st.dialog(title='주소 검색', width='medium')
 def addrDialog():
     st.text_input(
         label='주소',
-        key='firstAddr',
+        key='searchAddr',
         type='default',
         disabled=False
     )
-    if st.session_state.firstAddr == None:
+    if st.session_state.searchAddr == None:
         st.markdown(body="검색창에 찾을 주소를 입력해주세요.")
     else:
-        findAddr : dict = api.seachAddress(st.session_state.firstAddr)
+        findAddr : dict = api.seachAddress(st.session_state.searchAddr)
         if findAddr.get('allow'):
             for i in findAddr['result']:
                 addrNo, btn = st.columns(spec=[5,1], gap='small', vertical_alignment='center')
@@ -65,7 +71,8 @@ def addrDialog():
                     width='stretch'
                 )
                 if choice:
-                    st.session_state.address = i
+                    st.session_state.firstAddr = i
+                    st.button(label='선택 주소 초기화', on_click=clear_searchAddr, type='tertiary', disabled=True)
                     st.rerun()
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
@@ -83,6 +90,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
         addr.text_input(
             label='기본 배송지',
+            value=st.session_state.firstAddr,
             type='default',
             disabled=True
         )
@@ -118,21 +126,19 @@ if any(value is not None for value in st.session_state.token.values()):
             key='usedAgree'
         )
         # 입력사항 확인 후 기본 배송지 설정
-        if st.session_state.address and st.session_state.detailAddr and condtion and infoUsed:
-            address = st.session_state.address + ' ' + st.session_state.detailAddr
+        if st.session_state.firstAddr and st.session_state.detailAddr and condtion and infoUsed:
+            address = st.session_state.firstAddr + ' ' + st.session_state.detailAddr
 
             addAddrB = st.button(
                 label='기본 배송지 설정하기',
-                key='baseAddr',
                 type='primary',
                 width='stretch'
             )
             if addAddrB:
                 result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
                 if result:
-                    st.info(body='기본 배송지 설정 완료, 메인페이지 이동중 ..')
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
-                    time.sleep(2)
+                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                    st.button(label='설정 완료.', on_click=clear_firstAddr, type='tertiary', disabled=True)
                     st.switch_page(page='mainPage.py')
                 else:
                     st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')

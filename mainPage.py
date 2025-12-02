@@ -43,6 +43,10 @@ if 'token' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 
+# 페이지 진입 구분
+if 'page' not in st.session_state:
+    st.session_state.page = None
+
 mainVanner : dict = utils.database().firestore_vanner.get('vannerMain')
 
 # 상단 vanner
@@ -133,9 +137,11 @@ aboutP = about.button(
 )
 
 if sportyP:
-    st.switch_page(page='pages/9sporty.py')
+    st.session_state.page = 'sporty'
+    st.switch_page(page='pages/9itemList.py')
 if dailyP:
-    st.switch_page(page='pages/9daily.py')
+    st.session_state.page = 'daily'
+    st.switch_page(page='pages/9itemList.py')
 if aboutP:
     st.switch_page(page='pages/9about.py')
 
