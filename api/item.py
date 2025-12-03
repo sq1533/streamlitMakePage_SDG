@@ -14,7 +14,7 @@ class items(utils.database):
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:
         try:
-            itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemId).get()
+            itemStatus : dict = utils.database().realtimeDB.reference(path=f'itemStatus/{itemId}').get()
             return itemStatus
         except Exception as e:
             return {'failed' : str(e)}
@@ -33,10 +33,10 @@ class items(utils.database):
             'address' : address,
             'status' : 'ready'
             }
-        utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(orderTime).set(orderData)
-        utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(orderTime+'_'+uid).set({'item':itemID})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
+        utils.database().realtimeDB.reference(path=f'orderList/newOrder/{orderTime+'_'+uid}').set({'item':itemID})
 
-        itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()
+        itemStatus : dict = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
         countResults = int(itemStatus['count']) - 1
         salesResults = int(itemStatus['sales']) + 1
         # 상품 구매 가능상태 > 재고 10개 이하 구분
@@ -46,7 +46,7 @@ class items(utils.database):
                 'enable' : False,
                 'sales' : salesResults
             }
-            utils.database().realtimeDB.reference().child('itemStatus').child(itemID).update(itemResults)
+            utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
             return True
 
         else:
@@ -54,7 +54,7 @@ class items(utils.database):
                 'count' : countResults,
                 'sales' : salesResults
             }
-            utils.database().realtimeDB.reference().child('itemStatus').child(itemID).update(itemResults)
+            utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
             return True
 
 
@@ -66,15 +66,15 @@ class items(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child(uid).child('orderList').child(key).update({'feedback':feedback})
-        fb = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).child('feedback').get()
+        utils.database().realtimeDB.reference(path=f'{uid}/orderList/{key}').update({'feedback':feedback})
+        fb = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}/feedback').get()
         fb['text'][key] = feedT
         result = {
             'point' : fb.get('point') + feedback,
             'count' : fb.get('count') + 1,
             'text' : fb['text']
         }
-        utils.database().realtimeDB.reference().child('itemStatus').child(itemID).child('feedback').update(result)
+        utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}/feedback').update(result)
         return True
 
     # 주문상품 배송지 변경
@@ -86,7 +86,7 @@ class items(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(key).update({'address':addr})
+        utils.database().realtimeDB.reference(path=f'{uid}/orderList/{key}').update({'address':addr})
         return True
 
     # 주문 취소 및 환불
@@ -99,11 +99,11 @@ class items(utils.database):
         uid = uid.get('result')
 
         # 주문 취소 리스트 이동
-        utils.database().realtimeDB.reference().child('orderList').child('newOrder').child(key+'_'+uid).delete()
-        utils.database().realtimeDB.reference().child('orderList').child('cancel').child(key+'_'+uid).set({'item':itemID})
+        utils.database().realtimeDB.reference(path=f'newOrder/{key+'_'+uid}').delete()
+        utils.database().realtimeDB.reference(path=f'cancel/{key+'_'+uid}').set({'item':itemID})
 
         # 상품 상태 변경
-        itemStatus = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()
+        itemStatus = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
         countResults = int(itemStatus['count']) + 1
         salesResults = int(itemStatus['sales']) - 1
         if itemStatus['enable']:
@@ -123,10 +123,10 @@ class items(utils.database):
                     'enable' : True,
                     'sales' : salesResults
                 }
-        itemStatus = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).update(itemResults)
+        itemStatus = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
 
         # 고객 data 처리
-        itemStatus = utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(key).update({'status':'cancel'})
+        itemStatus = utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'cancel'})
         return True
 
     # 환불 요청
@@ -139,18 +139,18 @@ class items(utils.database):
         uid = uid.get('result')
 
         # 주문 환불 리스트 이동
-        utils.database().realtimeDB.reference().child('orderList').child('delivery').child(key+'_'+uid).delete()
-        utils.database().realtimeDB.reference().child('orderList').child('complete').child(key+'_'+uid).delete()
-        utils.database().realtimeDB.reference().child('orderList').child('refund').child(key+'_'+uid).set({'item':itemID})
+        utils.database().realtimeDB.reference(path=f'orderList/delivery/{key+'_'+uid}').delete()
+        utils.database().realtimeDB.reference(path=f'orderList/complete/{key+'_'+uid}').delete()
+        utils.database().realtimeDB.reference(path=f'orderList/refund/{key+'_'+uid}').set({'item':itemID})
 
         # 환불된 상품 count 처리
-        itemStatus : dict = utils.database().realtimeDB.reference().child('itemStatus').child(itemID).get()
+        itemStatus : dict = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
         refundResults = int(itemStatus['refund']) + 1
         itemResults = {
             'refund' : refundResults
         }
-        utils.database().realtimeDB.reference().child('itemStatus').child(itemID).update(itemResults)
+        utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
 
         # 고객 data 처리
-        utils.database().realtimeDB.reference().child('user').child(uid).child('orderList').child(key).update({'status':'refund'})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'refund'})
         return True

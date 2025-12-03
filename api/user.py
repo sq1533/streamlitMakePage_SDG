@@ -62,7 +62,7 @@ class guest(utils.database):
 
     # 네이버 로그인 고객 firebase 처리
     def naverUser(response : dict) -> bool:
-        realtimeUser = utils.database().realtimeDB.reference().child('user')
+        realtimeUser = utils.database().realtimeDB.reference(path='user')
         try:
             if response['id'] in realtimeUser.get(shallow=True):
                 userInfo = realtimeUser.child(response['id']).get()
@@ -123,7 +123,7 @@ class guest(utils.database):
 
     # 카카오 로그인 고객 firebase 처리
     def kakaoUser(response : dict) -> bool:
-        realtimeUser = utils.database().realtimeDB.reference().child('user')
+        realtimeUser = utils.database().realtimeDB.reference(path='user')
         try:
             if response['id'] in realtimeUser.get(shallow=True):
                 userInfo = realtimeUser.child(response['id']).get()
@@ -161,7 +161,7 @@ class guest(utils.database):
         uid = uid.get('result')
 
         try:
-            userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
+            userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
             try:
                 userData = user(**userInfo)
                 return {'result':userData.model_dump()}
@@ -182,9 +182,9 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        userInfo : dict = utils.database().realtimeDB.reference().child(f'user/{uid}').get()
-        utils.database().realtimeDB.reference().child(f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
-        utils.database().realtimeDB.reference().child(f'user/{uid}').delete()
+        userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
+        utils.database().realtimeDB.reference(path=f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
+        utils.database().realtimeDB.reference(path=f'user/{uid}').delete()
         return True
 
     # 소셜 사용자 기본 배송지 추가
@@ -196,7 +196,7 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').set({'home':addr})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/address').set({'home':addr})
         return True
 
     # 사용자 주소 추가
@@ -208,7 +208,7 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(addAddr)
+        utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(addAddr)
         return True
 
     # 사용자 주소 삭제
@@ -220,7 +220,7 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child(f'address/{delAddrKey}').delete()
+        utils.database().realtimeDB.reference().child(f'user/{uid}/address/{delAddrKey}').delete()
         return True
 
     # 주 배송지 수정
@@ -232,10 +232,10 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        oldAddr = utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').child('home').get()
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').push(oldAddr)
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child('address').update({'home':homeAddr})
-        utils.database().realtimeDB.reference().child(f'user/{uid}').child(f'address/{homeAddrKey}').delete()
+        oldAddr = utils.database().realtimeDB.reference(path=f'user/{uid}/address/home').get()
+        utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(oldAddr)
+        utils.database().realtimeDB.reference(path=f'user/{uid}/address').update({'home':homeAddr})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()
         return True
 
     # # 인증 메일 전송
