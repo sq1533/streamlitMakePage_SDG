@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 import utils
 from api import guest
@@ -7,9 +8,15 @@ class items(utils.database):
 
     # 아이템 ID 정보 조회
     @st.cache_data(ttl=36000)
-    def showItem() -> dict:
+    def showItem() -> pd.DataFrame:
         itemInfo : dict = utils.database().firestore_item
-        return itemInfo
+        itemData = pd.DataFrame(
+            data=list(itemInfo.values()),
+            index=list(itemInfo.keys()),
+            columns=['series', 'color', 'event', 'category', 'name', 'price', 'discount', 'paths', 'detail', 'created_at']
+            )
+        print(itemData)
+        return itemData
 
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:

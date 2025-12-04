@@ -59,26 +59,17 @@ elif st.session_state.page == 'daily':
 else:
     st.switch_page(page='mainPage.py')
 
+# 페이지 배너 가져오기
 vanner : dict = utils.database().firestore_vanner.get(page.get('vanner'))
-itemInfo : dict = api.items.showItem()
+# 아이템 데이터 가져오기
+itemData = api.items.showItem()
+itemData = itemData[itemData['category'].str.contains(page.get('category'), case=False, na=False)]
 
-# 아이템 불러오기
-itemList = []
-for key, data in itemInfo.items():
-    if data.category == page.get('category'):
-        data = data.model_dump(mode='json')
-        itemStatus : dict = api.items.itemStatus(itemId=key)
-        data['itemId'] = key
-        data['sales'] = itemStatus['sales']
-        data['point'] = itemStatus['feedback']['point']
-        itemList.append(data)
-    else:
-        pass
-
-itemDF = pd.DataFrame(
-    data=itemList,
-    columns=['itemId', 'category', 'color', 'series', 'paths', 'name', 'detail', 'price', 'discount', 'event', 'created_at', 'sales', 'point']
-    )
+itemID = itemData.index.tolist()
+for i in itemID:
+    itemStatus : dict = api.items.itemStatus(itemId=i)
+    itemData.loc[i, 'sales'] = itemStatus.get('sales')
+    itemData.loc[i, 'point'] = itemStatus.get('feedback').get('point')
 
 # 홈으로 이동
 goHome = st.button(
@@ -180,15 +171,15 @@ for l in range(line):
 
 # 상품 정렬을 위한 키 리스트 정리
 if sortedFilter == 'New':
-    sortedItems = itemDF.sort_values(by='created_at', ascending=False)
+    sortedItems = itemData.sort_values(by='created_at', ascending=False)
 elif sortedFilter == '인기순':
-    sortedItems = itemDF.sort_values(by='sales', ascending=False)
+    sortedItems = itemData.sort_values(by='sales', ascending=False)
 elif sortedFilter == '낮은 가격순':
-    sortedItems = itemDF.sort_values(by='price', ascending=False)
+    sortedItems = itemData.sort_values(by='price', ascending=False)
 elif sortedFilter == '높은 가격순':
-    sortedItems = itemDF.sort_values(by='price', ascending=True)
+    sortedItems = itemData.sort_values(by='price', ascending=True)
 else:
-    sortedItems = itemDF
+    sortedItems = itemData
 
 # 아이템 4열 배치
 for index, item in sortedItems.iterrows():
