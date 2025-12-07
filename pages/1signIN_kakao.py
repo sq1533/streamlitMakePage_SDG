@@ -36,7 +36,7 @@ if any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 
 else:
-    with st.spinner(text='안녕하세요, 네이버 로그인 승인 요청중입니다. 잠시만 기다려주세요.', show_time=True):
+    with st.spinner(text='안녕하세요, 카카오 로그인 승인 요청중입니다. 잠시만 기다려주세요.', show_time=True):
         # 카카오 로그인 요청
         if 'code' in st.query_params and st.query_params.code:
             kakaoToken : dict = api.guest.kakaoToken(code=st.query_params.code)
@@ -48,7 +48,7 @@ else:
                 if userInfo.status_code == 200:
                     signIN : dict = api.guest.kakaoUser(response=userInfo.json())
                     if signIN.get('allow'):
-                        st.session_state.token['kakao'] = kakaoToken['result']
+                        st.session_state.token['kakao'] = kakaoToken['result']['access_token']
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                         st.rerun()
                 else:

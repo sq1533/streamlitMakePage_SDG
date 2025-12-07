@@ -117,27 +117,28 @@ else:
     if goHome:
         st.switch_page(page="mainPage.py")
 
-    item : dict = st.session_state.item
-    itemStatus : dict = api.items.itemStatus(itemId=item['itemId'])
+    itemKey : str = st.session_state.item
+    itemInfo = api.items.showItem().loc[itemKey]
+    itemStatus : dict = api.items.itemStatus(itemId=itemKey)
     buyAble : bool = not itemStatus.get('enable')
     feedback : dict = itemStatus.get('feedback')
     feedT = feedback.get('text')
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        imgLoad(item['paths'][0])
+        imgLoad(str(itemInfo['paths'][0]))
     with row2.container():
-        imgLoad(item['paths'][1])
+        imgLoad(str(itemInfo['paths'][2]))
     with row1.container():
-        imgLoad(item['paths'][2])
+        imgLoad(str(itemInfo['paths'][1]))
     with row2.container():
-        imgLoad(item['paths'][3])
+        imgLoad(str(itemInfo['paths'][3]))
     # 상품 이름
-    st.markdown(f"# {item['name']}")
+    st.markdown(f"# {itemInfo['name']}")
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((item['price']*100/(100-item['discount'])//100)*100)}~~ :red[-{item['discount']}%] {item['price']}원")
+    price.markdown(f"#### 상품 가격 : ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~ :red[-{itemInfo['discount']}%] {itemInfo['price']}원")
 
     buyBTN = buy.button(
         label='구매하기',
@@ -155,11 +156,14 @@ else:
     with st.expander(label="상품 세부정보"):
         info, feed = st.tabs(tabs=['info', '후기'])
         with info:
-            imgLoad(item['detail'])
+            imgLoad(str(itemInfo['detail']))
         with feed:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')
             else:
-                for i in reversed(feedT[1:]):
-                    st.markdown(body=i.keys())
-                    st.markdown(body=i.values())
+                for key, value in reversed(feedT.items()):
+                    if key == 'defult':
+                        pass
+                    else:
+                        st.markdown(body=f'구매 날짜 : {key}')
+                        st.markdown(body=f'후기 : {value}')

@@ -75,7 +75,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
         if userOrder:
             # 아이템 정보 호출
-            itemList : dict = api.items.showItem()
+            itemInfo = api.items.showItem()
 
             for key, order in reversed(st.session_state.user.get('orderList').items()):
                 # 주문 정보
@@ -86,14 +86,14 @@ if any(value is not None for value in st.session_state.token.values()):
                 status = utils.database().showStatus[order.get('status')]
 
                 # 상품
-                itemIF = itemList.get(itemID)
+                itemIF = itemInfo.loc[itemID]
 
-                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF.name} {status}'):
+                with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, "%y%m%d%H%M%S")} // {itemIF["name"]} {status}'):
                     # 상품 이미지, 정보 호출
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     with image.container():
-                        imgLoad(str(itemIF.paths[0]))
-                    info.markdown(body=f'상품명 : {itemIF.name}\n\n{address}')
+                        imgLoad(str(itemIF['paths'][0]))
+                    info.markdown(body=f'상품명 : {itemIF['name']}\n\n{address}')
 
                     # 후기 유무 검사
                     if feedback:

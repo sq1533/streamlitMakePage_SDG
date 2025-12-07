@@ -163,7 +163,7 @@ with st.sidebar:
         )
 
 count_in_card = 0
-line = itemList.__len__()//4 + 1
+line = itemID.__len__()//4 + 1
 
 # 아이템에 따른 행 갯수 수정
 for l in range(line):
@@ -175,16 +175,16 @@ if sortedFilter == 'New':
 elif sortedFilter == '인기순':
     sortedItems = itemData.sort_values(by='sales', ascending=False)
 elif sortedFilter == '낮은 가격순':
-    sortedItems = itemData.sort_values(by='price', ascending=False)
-elif sortedFilter == '높은 가격순':
     sortedItems = itemData.sort_values(by='price', ascending=True)
+elif sortedFilter == '높은 가격순':
+    sortedItems = itemData.sort_values(by='price', ascending=False)
 else:
     sortedItems = itemData
 
 # 아이템 4열 배치
 for index, item in sortedItems.iterrows():
     with cards[count_in_card].container():
-        itemStatus : dict = api.items.itemStatus(itemId=item['itemId'])
+        itemStatus : dict = api.items.itemStatus(itemId=index)
         feedback : dict = itemStatus.get('feedback')
 
         imgLoad(str(item['paths'][0]))
@@ -199,7 +199,7 @@ for index, item in sortedItems.iterrows():
             width='stretch'
         )
         if viewBTN:
-            st.session_state.item = sortedItems.loc[index].to_dict()
+            st.session_state.item = index
             st.switch_page(page="pages/7item.py")
 
     count_in_card += 1

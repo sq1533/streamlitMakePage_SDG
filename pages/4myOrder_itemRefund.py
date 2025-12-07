@@ -65,7 +65,7 @@ def refundCall(key : str, item : str):
             st.info(body='환불 요청 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
-            time.sleep(2)
+            st.session_state.orderItem = None
             st.rerun()
         else:
             st.warning(body='환불 요청 실패, 다시 시도해주세요.')
@@ -96,18 +96,18 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         status = utils.database().showStatus[orderInfo.get('status')]
 
         # 아이템 정보
-        itemIF = api.items.showItem.get(itemID)
+        itemIF = api.items.showItem.loc[itemID]
         with st.container(height=250, border=True):
             image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
             image.image(
-                image=str(itemIF.paths[0]),
+                image=str(itemIF['paths'][0]),
                 caption=None,
                 clamp=False,
                 output_format='auto'
                 )
             info.markdown(
                 body=f"""
-                상품명 : {itemIF.name}\n\n
+                상품명 : {itemIF['name']}\n\n
                 주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
                 주문 상태 : {status}\n\n
                 {address}

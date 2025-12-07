@@ -10,12 +10,16 @@ class items(utils.database):
     @st.cache_data(ttl=36000)
     def showItem() -> pd.DataFrame:
         itemInfo : dict = utils.database().firestore_item
+        keys = list(itemInfo.keys())
+        items = []
+        for key in keys:
+            items.append(itemInfo.get(key).model_dump())
+
         itemData = pd.DataFrame(
-            data=list(itemInfo.values()),
-            index=list(itemInfo.keys()),
+            data=items,
+            index=keys,
             columns=['series', 'color', 'event', 'category', 'name', 'price', 'discount', 'paths', 'detail', 'created_at']
             )
-        print(itemData)
         return itemData
 
     # 특정 아이템 수량 및 상태
@@ -33,7 +37,7 @@ class items(utils.database):
             print('고객정보 호출 실패')
             return False
         
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         orderData = {
             'item' : itemID,
@@ -71,9 +75,9 @@ class items(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
-        utils.database().realtimeDB.reference(path=f'{uid}/orderList/{key}').update({'feedback':feedback})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'feedback':feedback})
         fb = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}/feedback').get()
         fb['text'][key] = feedT
         result = {
@@ -91,9 +95,9 @@ class items(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
-        utils.database().realtimeDB.reference(path=f'{uid}/orderList/{key}').update({'address':addr})
+        utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'address':addr})
         return True
 
     # 주문 취소 및 환불
@@ -103,7 +107,7 @@ class items(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         # 주문 취소 리스트 이동
         utils.database().realtimeDB.reference(path=f'newOrder/{key+'_'+uid}').delete()
@@ -143,7 +147,7 @@ class items(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         # 주문 환불 리스트 이동
         utils.database().realtimeDB.reference(path=f'orderList/delivery/{key+'_'+uid}').delete()

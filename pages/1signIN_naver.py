@@ -48,7 +48,7 @@ else:
                 if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
                     signIN : dict = api.guest.naverUser(response=userInfo.json()['response'])
                     if signIN.get('allow'):
-                        st.session_state.token['naver'] = naverToken['result']
+                        st.session_state.token['naver'] = naverToken['result']['access_token']
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                         st.rerun()
                 else:

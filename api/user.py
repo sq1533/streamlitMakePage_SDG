@@ -15,14 +15,21 @@ class guest(utils.database):
             if token.get('naver') != None:
                 userInfo = requests.post(
                     url='https://openapi.naver.com/v1/nid/me',
-                    headers={'Authorization':f'Bearer {token.get('naver')['access_token']}'}
+                    headers={'Authorization':f'Bearer {token.get('naver')}'}
                     )
                 if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
                     return {'allow':True, 'result':userInfo.json()['response']['id']}
                 else:
                     return {'allow':False, 'result':'네이버 고객정보 확인 실패'}
             elif token.get('kakao') != None:
-                pass
+                userInfo = requests.post(
+                    url='https://kapi.kakao.com/v2/user/me',
+                    headers={'Authorization':f'Bearer {token.get('kakao')}'}
+                    )
+                if userInfo.status_code == 200:
+                    return {'allow':True, 'result':userInfo.json()['id']}
+                else:
+                    return {'allow':False, 'result':'카카오 고객정보 확인 실패'}
             elif token.get('gmail') != None:
                 pass
             else:
@@ -64,27 +71,28 @@ class guest(utils.database):
     def naverUser(response : dict) -> bool:
         realtimeUser = utils.database().realtimeDB.reference(path='user')
         try:
-            if response['id'] in realtimeUser.get(shallow=True):
-                userInfo = realtimeUser.child(response['id']).get()
+            userId = str(response.get('id'))
+            if userId in realtimeUser.get(shallow=True):
+                userInfo = realtimeUser.child(userId).get()
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    print(f'파싱 오류 {response['id']} : {e}')
+                    print(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 userData = {
-                    'name':response['name'],
-                    'phoneNumber':response['mobile'].replace('-',''),
-                    'email':response['email'],
-                    'age':int(response['birthyear'] + response['birthday'].replace('-','')),
+                    'name':response.get('name'),
+                    'phoneNumber':response.get('mobile').replace('-',''),
+                    'email':response.get('email'),
+                    'age':int(response.get('birthyear') + response.get('birthday').replace('-','')),
                     'address':'',
                     'orderList':''
                 }
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    print(f'파싱 오류 {response['id']} : {e}')
-                realtimeUser.child(response['id']).set(value=userResult.model_dump())
+                    print(f'파싱 오류 {userId} : {e}')
+                realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
         except Exception as e:
             print(e)
@@ -93,17 +101,17 @@ class guest(utils.database):
     # 카카오 로그인 요청
     def kakaoSignUP() -> str:
         kakaoSignInParams = {
-            'response_type':'code',
             'client_id':st.secrets['kakao_api']['client_id'],
-            'state':secrets.randbits(k=16),
-            'redirect_uri':st.secrets['kakao_api']['redirect_uri']
+            'redirect_uri':st.secrets['kakao_api']['redirect_uri'],
+            'response_type':'code',
+            'state':secrets.randbits(k=16)
         }
         encoded_params = urllib.parse.urlencode(kakaoSignInParams)
         return f'https://kauth.kakao.com/oauth/authorize?{encoded_params}'
 
     # 카카오 토큰 발행
     def kakaoToken(code : str) -> dict:
-        kakaoHeader = "Content-Type: application/x-www-form-urlencoded;charset=utf-8"
+        kakaoHeader = {'Content-Type' : 'application/x-www-form-urlencoded;charset=utf-8'}
         kakaoParams = {
             'grant_type':'authorization_code',
             'client_id':st.secrets['kakao_api']['client_id'],
@@ -125,27 +133,28 @@ class guest(utils.database):
     def kakaoUser(response : dict) -> bool:
         realtimeUser = utils.database().realtimeDB.reference(path='user')
         try:
-            if response['id'] in realtimeUser.get(shallow=True):
-                userInfo = realtimeUser.child(response['id']).get()
+            userId = str(response.get('id'))
+            if userId in realtimeUser.get(shallow=True):
+                userInfo = realtimeUser.child(userId).get()
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    print(f'파싱 오류 {response['id']} : {e}')
+                    print(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 userData = {
-                    'name':response['name'],
-                    'phoneNumber':response['phone_number'].replace('-',''),
-                    'email':response['email'],
-                    'age':int(response['birthyear'] + response['birthday']),
+                    'name':response.get('kakao_account').get('name'),
+                    'phoneNumber':'0' + response.get('kakao_account').get('phone_number').split(' ')[1].replace('-',''),
+                    'email':response.get('kakao_account').get('email'),
+                    'age':int(response.get('kakao_account').get('birthyear') + response.get('kakao_account').get('birthday')),
                     'address':'',
                     'orderList':''
                 }
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    print(f'파싱 오류 {response['id']} : {e}')
-                realtimeUser.child(response['id']).set(value=userResult.model_dump())
+                    print(f'파싱 오류 {userId} : {e}')
+                realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
 
         except Exception as e:
