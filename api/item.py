@@ -110,8 +110,8 @@ class items(utils.database):
         uid = str(uid.get('result'))
 
         # 주문 취소 리스트 이동
-        utils.database().realtimeDB.reference(path=f'newOrder/{key+'_'+uid}').delete()
-        utils.database().realtimeDB.reference(path=f'cancel/{key+'_'+uid}').set({'item':itemID})
+        utils.database().realtimeDB.reference(path=f'orderList/newOrder/{key+'_'+uid}').delete()
+        utils.database().realtimeDB.reference(path=f'orderList/cancel/{key+'_'+uid}').set({'item':itemID})
 
         # 상품 상태 변경
         itemStatus = utils.database().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
