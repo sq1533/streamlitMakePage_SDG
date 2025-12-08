@@ -33,19 +33,7 @@ st.html(
 import api
 import time
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 페이지 진입 구분
-if 'page' not in st.session_state:
-    st.session_state.page = None
+utils.init_session()
 
 mainVanner : dict = utils.database().firestore_vanner.get('vannerMain')
 
@@ -60,7 +48,7 @@ st.html(
             object-fit: cover;
         }}
     </style>
-    <img src="{mainVanner['path']}" class="fullscreen-gif">
+    <img src="{mainVanner.get('path')}" class="fullscreen-gif">
     """
 )
 
@@ -71,7 +59,7 @@ with st.sidebar:
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
-            label='signOut',
+            label='sign_out',
             type="secondary",
             width='stretch'
         )

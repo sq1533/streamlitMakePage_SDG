@@ -21,13 +21,7 @@ st.html(
 import api
 import time
 
-# 회원 토큰 관리
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
+utils.init_session()
 
 # 회원 로그인 상태 점검
 if any(value is not None for value in st.session_state.token.values()):

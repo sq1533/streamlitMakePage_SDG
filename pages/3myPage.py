@@ -19,19 +19,12 @@ st.html(
 )
 
 import api
+import time
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
+utils.init_session()
 
-# 상세 주소 선택 구분
-if 'selectAddr' not in st.session_state:
+# 선택된 주소 초기화
+def clear_address():
     st.session_state.selectAddr = None
 
 # 배송지 추가하기
@@ -64,10 +57,6 @@ def addrDialog():
                     st.rerun()
         else:
             st.markdown(body="검색 실패, 다시 시도해주세요.")
-
-# 선택된 주소 초기화
-def clear_address():
-    st.session_state.selectAddr = None
 
 # 회원 로그인 검증
 if any(value is not None for value in st.session_state.token.values()):
@@ -132,7 +121,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 pass
             else:
                 st.markdown(body=f"###### {address}")
-                empty, homeAddrB, deleteB,  = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
+                empty, homeAddrB, deleteB = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
                 deleteBTN = deleteB.button(
                     label='삭제',
                     key=f'delete_{key}',
@@ -151,9 +140,10 @@ if any(value is not None for value in st.session_state.token.values()):
                     width='content'
                     )
                 if homeAddrBTN:
-                    api.guest.homeAddr(token=st.session_state.token, homeAddrKey=key, homeAddr=address)
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)
-                    st.rerun()
+                    with st.spinner(text='주소 변경중...', show_time=True):
+                        api.guest.homeAddr(token=st.session_state.token, homeAddrKey=key, homeAddr=address)
+                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                        st.rerun()
 
         # 신규 배송지 등록
         with st.expander(label='신규 배송지 등록'):

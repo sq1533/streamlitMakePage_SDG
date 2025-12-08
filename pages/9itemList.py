@@ -34,23 +34,7 @@ import api
 import time
 import pandas as pd
 
-# 회원 토큰 및 정보 세선
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 페이지 진입 구분
-if 'page' not in st.session_state:
-    st.session_state.page = None
-
-# 상품 주문
-if 'item' not in st.session_state:
-    st.session_state.item = None
+utils.init_session()
 
 if st.session_state.page == 'sporty':
     page = {'vanner':'vannerSporty', 'category':'sporty'}
@@ -66,10 +50,15 @@ itemData = api.items.showItem()
 itemData = itemData[itemData['category'].str.contains(page.get('category'), case=False, na=False)]
 
 itemID = itemData.index.tolist()
-for i in itemID:
-    itemStatus : dict = api.items.itemStatus(itemId=i)
-    itemData.loc[i, 'sales'] = itemStatus.get('sales')
-    itemData.loc[i, 'point'] = itemStatus.get('feedback').get('point')
+
+all_status = api.items.getAllItemStatus()
+itemData['sales'] = itemData.index.map(
+    lambda x: all_status.get(x, {}).get('sales', 0)
+)
+
+itemData['point'] = itemData.index.map(
+    lambda x: all_status.get(x, {}).get('feedback', {}).get('point', 0)
+)
 
 # 홈으로 이동
 goHome = st.button(
@@ -111,7 +100,7 @@ with st.sidebar:
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
-            label='signOut',
+            label='sign_out',
             type='secondary',
             width='stretch'
         )
@@ -190,7 +179,7 @@ for index, item in sortedItems.iterrows():
         imgLoad(str(item['paths'][0]))
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
-        st.markdown(f"###### ~~{int((item['price']*100/(100-item['discount'])//100)*100)}~~ :red[-{item['discount']}%] {item['price']}원")
+        st.markdown(f"###### :red[{item['discount']}%] {item['price']}원")
 
         viewBTN = st.button(
             label='상세보기',

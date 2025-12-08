@@ -167,7 +167,7 @@ class guest(utils.database):
         if not uid.get('allow'):
             return {'result':'토큰 조회 실패'}
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         try:
             userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
@@ -189,7 +189,7 @@ class guest(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
         utils.database().realtimeDB.reference(path=f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
@@ -203,7 +203,7 @@ class guest(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         utils.database().realtimeDB.reference(path=f'user/{uid}/address').set({'home':addr})
         return True
@@ -215,7 +215,7 @@ class guest(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
         utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(addAddr)
         return True
@@ -239,9 +239,9 @@ class guest(utils.database):
             print('고객정보 호출 실패')
             return False
 
-        uid = uid.get('result')
+        uid = str(uid.get('result'))
 
-        oldAddr = utils.database().realtimeDB.reference(path=f'user/{uid}/address/home').get()
+        oldAddr : str = utils.database().realtimeDB.reference(path=f'user/{uid}/address/home').get()
         utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(oldAddr)
         utils.database().realtimeDB.reference(path=f'user/{uid}/address').update({'home':homeAddr})
         utils.database().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()

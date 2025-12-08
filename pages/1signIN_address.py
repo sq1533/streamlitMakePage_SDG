@@ -25,19 +25,7 @@ st.html(
 import api
 import time
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 고객 주소 정보
-if 'firstAddr' not in st.session_state:
-    st.session_state.firstAddr = None
+utils.init_session()
 
 def clear_searchAddr():
     st.session_state.searchAddr = None

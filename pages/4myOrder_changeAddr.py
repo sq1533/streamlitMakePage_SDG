@@ -25,19 +25,7 @@ import api
 import time
 from datetime import datetime
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 주문 상품 정보
-if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = None
+utils.init_session()
 
 # 배송지 변경 dialog
 @st.dialog(title='배송지 변경', width='medium')
@@ -46,6 +34,13 @@ def changeAddr(key : str):
         label='주소 선택',
         options=st.session_state.user.get('address').values(),
         key='cgAddr_select'
+    )
+    st.text_input(
+        label='배송 요청사항',
+        value=None,
+        max_chars=100,
+        key='delicomment',
+        placeholder='배송 요청사항을 입력해주세요.'
     )
 
     empty, btn = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
@@ -56,7 +51,7 @@ def changeAddr(key : str):
         width='stretch'
     )
     if goBtn:
-        func = api.items.orderAddrChange(token=st.session_state.token, key=key, addr=st.session_state.cgAddr_select)
+        func = api.items.orderAddrChange(token=st.session_state.token, key=key, addr=st.session_state.cgAddr_select, comment=st.session_state.delicomment)
         if func:
             st.info(body='배송지 변경 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']

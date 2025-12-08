@@ -21,15 +21,7 @@ st.html(
 import api
 import requests
 
-# 회원 로그인 구분
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
+utils.init_session()
 
 # 회원 소셜 로그인 상태
 if any(value is not None for value in st.session_state.token.values()):

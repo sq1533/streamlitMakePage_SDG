@@ -33,19 +33,7 @@ st.html(
 import api
 import time
 
-# 회원 토큰 및 정보 세선
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 상품 주문
-if 'item' not in st.session_state:
-    st.session_state.item = None
+utils.init_session()
 
 def imgLoad(path : str):
     if path:
@@ -65,7 +53,7 @@ else:
         # 회원 로그인 정보 검증
         if any(value is not None for value in st.session_state.token.values()):
             logoutB = st.button(
-                label='signOut',
+                label='sign_out',
                 type='secondary',
                 width='stretch'
             )
@@ -133,12 +121,16 @@ else:
         imgLoad(str(itemInfo['paths'][1]))
     with row2.container():
         imgLoad(str(itemInfo['paths'][3]))
+    
+    # 상품 카테고리
+    st.markdown(body=f"#### :gray[amuredo > {itemInfo['category']}]")
     # 상품 이름
     st.markdown(f"# {itemInfo['name']}")
 
     # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap="small", vertical_alignment="top")
-    price.markdown(f"#### 상품 가격 : ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~ :red[-{itemInfo['discount']}%] {itemInfo['price']}원")
+    st.markdown(f"##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~")
+    price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
+    price.markdown(f"## :red[{itemInfo['discount']}%] {itemInfo['price']}원")
 
     buyBTN = buy.button(
         label='구매하기',
@@ -161,9 +153,6 @@ else:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')
             else:
-                for key, value in reversed(feedT.items()):
-                    if key == 'defult':
-                        pass
-                    else:
-                        st.markdown(body=f'구매 날짜 : {key}')
-                        st.markdown(body=f'후기 : {value}')
+                for i in reversed(feedT[1:]):
+                    st.markdown(body=f'구매 날짜 : {i.split('_')[0]}')
+                    st.markdown(body=f'후기 : {i.split('_')[1]}')

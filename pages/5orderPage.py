@@ -26,19 +26,7 @@ import requests
 import time
 from datetime import datetime, timezone, timedelta
 
-# 회원 토큰 정보 및 유저 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 상품 주문
-if 'item' not in st.session_state:
-    st.session_state.item = None
+utils.init_session()
 
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
@@ -61,19 +49,27 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         if goHome:
             st.switch_page(page="mainPage.py")
 
-        col1, col2 = st.columns(spec=[1,3], gap="small", vertical_alignment="top")
+        col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 
-        col1.image(
+        with col1:
+            st.title(body=itemInfo['name'])
+            st.markdown(f"##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~")
+            st.markdown(body=f"#### :red[{itemInfo['discount']}%] {itemInfo['price']}원")
+            st.markdown(body='##### 배송비 :blue[무료배송]')
+
+        col2.image(
             image=str(itemInfo['paths'][0]),
             width='stretch'
             )
 
-        with col2:
-            st.title(body=itemInfo['name'])
-            st.markdown(body=f"##### **상품 가격 :** ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~ :red[-{itemInfo['discount']}%] {itemInfo['price']}원")
-            st.markdown(body='##### ~~배송비~~ :red[0]원')
-
-        st.markdown(body=f'###### {st.session_state.user.get('address')['home']}')
+        st.markdown(body=f'##### {st.session_state.user.get('address')['home']}')
+        st.text_input(
+            label='배송 요청사항',
+            value=None,
+            max_chars=100,
+            key='delicomment',
+            placeholder='배송 요청사항을 입력해주세요.'
+        )
 
         buyBTN = st.button(
             label='결제하기',
@@ -89,7 +85,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     now = datetime.now(timezone.utc) + timedelta(hours=9)
                     orderTime = now.strftime("%y%m%d%H%M%S")
 
-                    order : bool = api.items.itemOrder(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime, address=st.session_state.user.get('address')['home'])
+                    order : bool = api.items.itemOrder(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime, address=st.session_state.user.get('address')['home'], comment=st.session_state.delicomment)
                     if order:
                         st.success(body=f"{itemInfo['name']} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                         st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']

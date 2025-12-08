@@ -32,6 +32,28 @@ def firebaseInitializeApp():
 
 firebaseInitializeApp()
 
+def init_session():
+    # 회원 토큰 세션 및 정보 / dict
+    if 'token' not in st.session_state:
+        st.session_state.token = {'naver': None, 'kakao': None, 'gmail': None}
+    if 'user' not in st.session_state:
+        st.session_state.user = None
+
+    # 페이지 진입 구분 / str
+    if 'page' not in st.session_state:
+        st.session_state.page = None
+
+    # 신규 고객 주소 정보 / str
+    if 'firstAddr' not in st.session_state:
+        st.session_state.firstAddr = None
+
+    # 상품 상세페이지 / str
+    if 'item' not in st.session_state:
+        st.session_state.item = None
+    # 주문 상품 / str
+    if 'orderItem' not in st.session_state:
+        st.session_state.orderItem = None
+
 class database:
     def __init__(self):
         fs_client = firestore.client()

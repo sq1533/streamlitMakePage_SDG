@@ -25,22 +25,7 @@ import api
 import time
 from datetime import datetime
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 상품 주문
-if 'item' not in st.session_state:
-    st.session_state.item = None
-# 주문 상품 정보
-if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = None
+utils.init_session()
 
 def imgLoad(path : str):
     if path:
@@ -82,6 +67,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 orderTime = key
                 itemID = order.get('item')
                 address = order.get('address')
+                comment = order.get('comment')
                 feedback = order.get('feedback')
                 status = utils.database().showStatus[order.get('status')]
 
@@ -93,7 +79,13 @@ if any(value is not None for value in st.session_state.token.values()):
                     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                     with image.container():
                         imgLoad(str(itemIF['paths'][0]))
-                    info.markdown(body=f'상품명 : {itemIF['name']}\n\n{address}')
+                    with info.container():
+                        st.markdown(body=f'##### {itemIF['name']}')
+                        st.markdown(body=f'##### {address}')
+                        if comment:
+                            st.markdown(body=f'##### {comment}')
+                        else:
+                            pass
 
                     # 후기 유무 검사
                     if feedback:
@@ -101,7 +93,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     else:
                         fbDisable = False
                     # 후기 입력
-                    feedT, feed, feedB = info.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
+                    feedT, feed, feedB = st.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
                     fdt = feedT.text_input(
                         label='후기 남기기',
                         value=None,

@@ -25,19 +25,7 @@ import api
 import time
 from datetime import datetime
 
-# 회원 토큰 세션 및 정보
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
-if 'user' not in st.session_state:
-    st.session_state.user = None
-
-# 주문 상품 정보
-if 'orderItem' not in st.session_state:
-    st.session_state.orderItem = None
+utils.init_session()
 
 def clearOrderItem():
     st.session_state.orderItem = None

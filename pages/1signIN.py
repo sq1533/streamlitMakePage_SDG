@@ -21,13 +21,7 @@ st.markdown(
 
 import api
 
-# 회원 로그인 구분
-if 'token' not in st.session_state:
-    st.session_state.token = {
-        'naver':None,
-        'kakao':None,
-        'gmail':None
-    }
+utils.init_session()
 
 # 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
