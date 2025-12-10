@@ -130,7 +130,7 @@ else:
                     <span class="social-logo kakao-logo"></span>
                     <span class="btn-text">카카오로 시작하기</span>
                 </a>
-                <a href="{None}" class="social-login-btn gmail-login" target="_self">
+                <a href="{api.guest.gmailSignUP()}" class="social-login-btn gmail-login" target="_self">
                     <span class="social-logo gmail-logo"></span>
                     <span class="btn-text">Gmail로 시작하기</span>
                 </a>

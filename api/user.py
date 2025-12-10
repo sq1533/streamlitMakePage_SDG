@@ -31,7 +31,17 @@ class guest(utils.database):
                 else:
                     return {'allow':False, 'result':'카카오 고객정보 확인 실패'}
             elif token.get('gmail') != None:
-                pass
+                userInfo = requests.get(
+                    url='https://people.googleapis.com/v1/people/me',
+                    params={'personFields': 'names'},
+                    headers={'Authorization': f'Bearer {token.get("gmail")}'}
+                )
+                if userInfo.status_code == 200:
+                    res_name = userInfo.json().get('resourceName', '')
+                    user_id = res_name.split('/')[-1] if '/' in res_name else res_name
+                    return {'allow': True, 'result': user_id}
+                else:
+                    return {'allow': False, 'result': '구글 고객정보 확인 실패'}
             else:
                 {'allow':False, 'result':'회원 정보 없음'}
         except Exception as e:
@@ -160,6 +170,101 @@ class guest(utils.database):
         except Exception as e:
             print(e)
             return {'allow':False, 'result':e}
+
+    # 구글 gmail 요청
+    def gmailSignUP() -> str:
+        scopes = [
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/user.birthday.read',
+            'https://www.googleapis.com/auth/user.phonenumbers.read'
+        ]
+        
+        googleSignInParams = {
+            'client_id': st.secrets['google_api']['client_id'],
+            'redirect_uri': st.secrets['google_api']['redirect_uri'],
+            'response_type': 'code',
+            'scope': ' '.join(scopes), # 공백으로 구분하여 합침
+            'access_type': 'offline',
+            'state': secrets.randbits(k=16)
+        }
+        encoded_params = urllib.parse.urlencode(googleSignInParams)
+        return f'https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}'
+
+    # gmail 토큰 발행
+    def gmailToken(code : str) -> dict:
+        googleParams = {
+            'client_id': st.secrets['google_api']['client_id'],
+            'client_secret': st.secrets['google_api']['client_sc'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': st.secrets['google_api']['redirect_uri']
+        }
+        try:
+            tokenResponse = requests.post("https://oauth2.googleapis.com/token", data=googleParams)
+            if tokenResponse.status_code == 200:
+                return {'allow': True, 'result': tokenResponse.json()}
+            else:
+                return {'allow': False, 'result': '토큰 발행 실패'}
+        except Exception as e:
+            return {'allow': False, 'result': e}
+
+    # gmail 로그인 고객 firebase 처리
+    def gmailUser(response : dict) -> bool:
+        realtimeUser = utils.database().realtimeDB.reference(path='user')
+        try:
+            res_name = response.get('resourceName', '') # google People API (people/userID)
+            userId = res_name.split('/')[-1] if '/' in res_name else res_name
+            if userId in realtimeUser.get(shallow=True):
+                userInfo = realtimeUser.child(userId).get()
+                try:
+                    userResult = user(**userInfo)
+                except Exception as e:
+                    print(f'파싱 오류 {userId} : {e}')
+                return {'allow': True, 'result': userResult.model_dump()}
+            else:
+                # 1. 이름 파싱
+                names = response.get('names', [])
+                name = names[0].get('displayName') if names else 'Unknown'
+
+                # 2. 이메일 파싱
+                emails = response.get('emailAddresses', [])
+                email = emails[0].get('value') if emails else ''
+
+                # 3. 전화번호 파싱 및 정제
+                phones = response.get('phoneNumbers', [])
+                raw_phone = phones[0].get('value') if phones else '00000000000'
+                phoneNumber = raw_phone.replace('-', '').replace(' ', '').replace('+82', '0')
+
+                # 4. 생년월일 파싱 및 나이 계산
+                birthdays = response.get('birthdays', [])
+                age = 0
+                if birthdays:
+                    date = birthdays[0].get('date', {})
+                    year = date.get('year')
+                    month = date.get('month')
+                    day = date.get('day')
+                    if year and month and day:
+                        age = int(f"{year}{month:02d}{day:02d}")
+
+                userData = {
+                    'name': name,
+                    'phoneNumber': phoneNumber,
+                    'email': email,
+                    'age': age,
+                    'address': '',
+                    'orderList': ''
+                }
+                try:
+                    userResult = user(**userData)
+                except Exception as e:
+                    print(f'파싱 오류 {userId} : {e}')
+                realtimeUser.child(userId).set(value=userResult.model_dump())
+                return {'allow': True, 'result': userResult.model_dump()}
+
+        except Exception as e:
+            print(e)
+            return {'allow': False, 'result': e}
 
     # 회원 정보호출
     def showUserInfo(token : dict) -> dict:
