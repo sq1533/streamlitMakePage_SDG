@@ -135,7 +135,7 @@ if aboutP:
 
 st.divider()
 
-policy, cookies, empty = st.columns(spec=[1,1,3], gap='small', vertical_alignment='center')
+policy, cookies, terms, empty = st.columns(spec=[1,1,1,2], gap='small', vertical_alignment='center')
 
 policyB = policy.button(
     label='개인정보 처리방침',
@@ -149,10 +149,18 @@ cookiesB = cookies.button(
     width='content'
 )
 
+termsB = terms.button(
+    label='이용약관',
+    type='tertiary',
+    width='content'
+)
+
 if policyB:
     st.switch_page(page='pages/0policy.py')
 
 if cookiesB:
     st.switch_page(page='pages/0cookies.py')
+if termsB:
+    st.switch_page(page='pages/0useTerms.py')
 
 st.html(body=utils.database().infoAdmin)
