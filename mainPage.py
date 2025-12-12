@@ -41,14 +41,24 @@ mainVanner : dict = utils.database().firestore_vanner.get('vannerMain')
 st.html(
     body=f"""
     <style>
-        .fullscreen-gif {{
+        .banner-video {{
             width: 100%;
             height: auto;
             aspect-ratio: 21 / 9;
             object-fit: cover;
         }}
     </style>
-    <img src="{mainVanner.get('path')}" class="fullscreen-gif">
+    <video
+        class="banner-video"
+        autoplay
+        muted
+        loop
+        playsinline 
+        poster="{mainVanner.get('path')}">
+
+        <source src="{mainVanner.get('video_webm')}" type="video/webm">
+        <source src="{mainVanner.get('video_mp4')}" type="video/mp4">
+    </video>
     """
 )
 

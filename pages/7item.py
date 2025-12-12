@@ -33,12 +33,15 @@ st.html(
 import api
 import time
 
+deliveryInfo : dict = utils.database().firestore_vanner.get('deliveryInfo')
+
 utils.init_session()
 
 def imgLoad(path : str):
     if path:
         return st.image(
             image=path,
+            width='stretch',
             output_format='JPEG'
         )
     else:
@@ -128,9 +131,13 @@ else:
     st.markdown(f"# {itemInfo['name']}")
 
     # 상품 가격 및 구매 버튼
-    st.markdown(f"##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~")
     price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
-    price.markdown(f"## :red[{itemInfo['discount']}%] {itemInfo['price']}원")
+    price.markdown(
+        body=f'''
+        ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
+        ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
+        '''
+        )
 
     buyBTN = buy.button(
         label='구매하기',
@@ -149,10 +156,16 @@ else:
         info, feed = st.tabs(tabs=['info', '후기'])
         with info:
             imgLoad(str(itemInfo['detail']))
+            imgLoad(str(itemInfo['package']))
+            imgLoad(deliveryInfo.get('path'))
         with feed:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')
             else:
                 for i in reversed(feedT[1:]):
-                    st.markdown(body=f'구매 날짜 : {i.split('_')[0]}')
-                    st.markdown(body=f'후기 : {i.split('_')[1]}')
+                    st.markdown(
+                        body=f'''
+                        구매 날짜 : {i.split('_')[0]}
+                        후기 : {i.split('_')[1]}
+                        '''
+                        )

@@ -53,8 +53,12 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         with col1:
             st.title(body=itemInfo['name'])
-            st.markdown(f"##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100)}~~")
-            st.markdown(body=f"#### :red[{itemInfo['discount']}%] {itemInfo['price']}원")
+            st.markdown(
+                body=f'''
+                ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
+                ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
+                '''
+                )
             st.markdown(body='##### 배송비 :blue[무료배송]')
 
         col2.image(

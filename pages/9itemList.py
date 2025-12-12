@@ -74,14 +74,24 @@ if goHome:
 st.html(
     body=f"""
     <style>
-        .fullscreen-gif {{
+        .banner-video {{
             width: 100%;
             height: auto;
             aspect-ratio: 21 / 9;
             object-fit: cover;
         }}
     </style>
-    <img src="{vanner.get('path')}" class="fullscreen-gif">
+    <video
+        class="banner-video"
+        autoplay
+        muted
+        loop
+        playsinline 
+        poster="{vanner.get('path')}">
+
+        <source src="{vanner.get('video_webm')}" type="video/webm">
+        <source src="{vanner.get('video_mp4')}" type="video/mp4">
+    </video>
     """
 )
 
@@ -179,7 +189,7 @@ for index, item in sortedItems.iterrows():
         imgLoad(str(item['paths'][0]))
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
-        st.markdown(f"###### :red[{item['discount']}%] {item['price']}원")
+        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
 
         viewBTN = st.button(
             label='상세보기',
