@@ -118,6 +118,9 @@ class database:
             self.infoUsed = file.read()
         with open(file='database/infoAdmin.txt', mode='r', encoding='utf-8') as file:
             self.infoAdmin = file.read()
+        
+        # 로고 불러오기
+        self.tosspayLogo = Image.open('database/logo-toss-pay.png')
 
 # utils.py 전역에 싱글톤 인스턴스 관리
 _db_instance = None

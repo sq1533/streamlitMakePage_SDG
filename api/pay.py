@@ -8,7 +8,11 @@ class pay:
     def __init__(self):
         self.naverpayKey = st.secrets['naverpay']
         self.kakaopayKey = st.secrets['kakaopay']
+
+        # 토스페이 기본 정보
         self.tosspayKey = st.secrets['tosspay']['testKey']
+        self.tosspayRetUrl = st.secrets['tosspay']['retUrl']
+        self.tosspayRetCancelUrl = st.secrets['tosspay']['retCancelUrl']
     
     # 네이버페이
     def naverpay():
@@ -18,7 +22,7 @@ class pay:
     def kakaopay():
         pass
     
-    def create_tosspay_auto(self, orderNo: str, itemName: str, amount: int, retCancelUrl: str, resultCallback: str):
+    def tosspayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
         url = 'https://pay.toss.im/api/v2/payments'
         headers = {'Content-Type':'application/json'}
         payload = {
@@ -27,8 +31,8 @@ class pay:
             'amountTaxFree':0,
             'productDesc':itemName,
             'apiKey':self.tosspayKey,
-            'retUrl':'https://localhost:8080/orderPage',
-            'retCancelUrl':'https://localhost:8080/orderPage',
+            'retUrl':self.tosspayRetUrl,
+            'retCancelUrl':self.tosspayRetCancelUrl,
             'autoExecute':False
         }
 
@@ -48,14 +52,13 @@ class pay:
             return {'access': False, 'message': str(e)}
 
     # [2단계] 결제 승인 (필수)
-    def confirm_tosspay(self, payToken: str, orderNo: str, amount: int):
+    def confirm_tosspay(self, payToken: str, orderNo: str) -> dict:
         url = 'https://pay.toss.im/api/v2/execute'
         headers = {'Content-Type':'application/json'}
         payload = {
             'apiKey': self.tosspayKey,
             'payToken': payToken,
-            'orderNo': orderNo,
-            'amount': amount
+            'orderNo': orderNo
         }
         
         try:
@@ -63,8 +66,8 @@ class pay:
             res_json = response.json()
             
             if response.status_code == 200 and res_json.get('code') == 0:
-                return {"success": True, "data": res_json}
+                return {'access': True, 'data': res_json}
             else:
-                return {"success": False, "message": res_json.get('msg')}
+                return {'access': False, 'message': res_json.get('msg')}
         except Exception as e:
-            return {"success": False, "message": str(e)}
+            return {'access': False, 'message': str(e)}

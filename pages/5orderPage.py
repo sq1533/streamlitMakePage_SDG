@@ -75,34 +75,105 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             placeholder='배송 요청사항을 입력해주세요.'
         )
 
-        buyBTN = st.button(
-            label='결제하기',
+        # 버튼 스타일 변경 분기점
+        st.markdown('<div id="pay-section-marker"></div>', unsafe_allow_html=True)
+
+        st.markdown(
+            """
+            <style>
+            /* 1번 네이버페이 (초록) */
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(1) button {
+                background-color: #03C75A !important;
+                color: white !important;
+                border: none !important;
+                font-weight: bold !important;
+            }
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(1) button:hover {
+                background-color: #02B350 !important;
+            }
+
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button {
+                background-color: #FEE500 !important;
+                color: #191919 !important;
+                border: none !important;
+                font-weight: bold !important;
+            }
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button:hover {
+                background-color: #E6CE00 !important;
+            }
+
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(3) button {
+                background-color: #0064FF !important;
+                color: white !important;
+                border: none !important;
+                font-weight: bold !important;
+            }
+            div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(3) button:hover {
+                background-color: #0050CC !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        naverpay, kakaopay, tosspay = st.columns(spec=3, gap='small', vertical_alignment='center')
+
+        naverpayBTN = naverpay.button(
+            label='Naver Pay',
             type='primary',
             width='stretch'
             )
 
-        if buyBTN:
+        kakaopayBTN = kakaopay.button(
+            label='kakao Pay',
+            type='primary',
+            width='stretch'
+            )
+
+        tosspayBTN = tosspay.button(
+            label='Toss Pay', 
+            type='primary', 
+            use_container_width=True
+        )
+
+        if tosspayBTN:
             itemStatus : dict = api.items.itemStatus(itemId=item)
             if itemStatus.get('enable'):
-                with st.spinner(text="결제 승인 요청 중...", show_time=False):
-                # requests.post()
-                    now = datetime.now(timezone.utc) + timedelta(hours=9)
-                    orderTime = now.strftime("%y%m%d%H%M%S")
+                # 고객 주문 key == 주문 시간
+                now = datetime.now(timezone.utc) + timedelta(hours=9)
+                orderTime = now.strftime("%y%m%d%H%M%S")
+                orderNo = f'{orderTime}{item}{st.session_state.user.get('email')[:10]}'
+                # 토스 페이 토큰 발급
+                callTosspayToken : dict = api.pay().tosspayToken(
+                    orderNo=orderNo,
+                    itemName=itemInfo['name'],
+                    amount=int(itemInfo['price'])
+                    )
+                
+                if callTosspayToken.get('access'):
+                    st.session_state.payToken : str = callTosspayToken.get('payToken')
+                    checkoutPage_url : str = callTosspayToken.get('checkoutPage')
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
 
-                    order : bool = api.items.itemOrder(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime, address=st.session_state.user.get('address')['home'], comment=st.session_state.delicomment)
-                    if order:
-                        st.success(body=f"{itemInfo['name']} 주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
-                        st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                        st.session_state.item = None # 구매 후 아이템 세션 초기화
-                        time.sleep(2)
-                        st.switch_page("pages/3myPage_orderList.py")
-                    else:
-                        st.warning(body='주문 중 오류가 발생했습니다. 다시 시도해주세요.')
-                        time.sleep(2)
-                        st.session_state.item = None
-                        st.rerun()
+                    st.info("결제창으로 이동합니다. 이동하지 않으면 아래 링크를 클릭하세요.")
+                    st.link_button("결제창 열기", checkoutPage_url)
+                else:
+                    st.warning(f"결제 생성 실패: {callTosspayToken.get('message')}")
+                    time.sleep(2)
+                    st.session_state.item = None
+                    st.rerun()
+            else:
+                st.warning(body='상품 구매가 불가합니다 - soldout')
+                time.sleep(2)
+                st.session_state.item = None
+                st.rerun()
 else:
     st.switch_page(page="mainPage.py")
 
 st.divider()
 st.html(body=utils.database().infoAdmin)
+
+### 결과 url -- https://localhost:8080/orderPage?status=PAY_APPROVED&orderNo=251216162437sporty002618356@nav&payMethod=TOSS_MONEY&bankCode=092
