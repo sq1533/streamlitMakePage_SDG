@@ -42,12 +42,12 @@ class pay:
             
             if response.status_code == 200 and res_json.get('code') == 0:
                 return {
-                    'access': True,
-                    'payToken': res_json.get('payToken'),
-                    'checkoutPage': res_json.get('checkoutPage')
+                    'access':True,
+                    'payToken':res_json.get('payToken'),
+                    'checkoutPage':res_json.get('checkoutPage')
                 }
             else:
-                return {'access': False, 'message': res_json.get('msg')}
+                return {'access':False, 'message':res_json.get('msg')}
         except Exception as e:
             return {'access': False, 'message': str(e)}
 
@@ -56,9 +56,9 @@ class pay:
         url = 'https://pay.toss.im/api/v2/execute'
         headers = {'Content-Type':'application/json'}
         payload = {
-            'apiKey': self.tosspayKey,
-            'payToken': payToken,
-            'orderNo': orderNo
+            'apiKey':self.tosspayKey,
+            'payToken':payToken,
+            'orderNo':orderNo
         }
         
         try:
@@ -66,8 +66,31 @@ class pay:
             res_json = response.json()
             
             if response.status_code == 200 and res_json.get('code') == 0:
-                return {'access': True, 'data': res_json}
+                return {'access':True, 'data':res_json}
             else:
-                return {'access': False, 'message': res_json.get('msg')}
+                return {'access':False, 'message':res_json.get('msg')}
         except Exception as e:
             return {'access': False, 'message': str(e)}
+    
+    # 토스페이 결제 환불
+    def refund_tosspay(self, payToken : str, refundNo : str, reason : str) -> bool:
+        url = 'https://pay.toss.im/api/v2/refunds'
+        params = {
+            'apiKey':self.tosspayKey,
+            'payToken':payToken,
+            'refundNo' : refundNo,
+            'reason' : reason
+        }
+        
+        try:
+            response = requests.post(url, json=params)
+            res_json = response.json()
+            
+            if response.status_code == 200 and res_json.get('code') == 0:
+                return True
+            else:
+                print(res_json.get('msg'))
+                return False
+        except Exception as e:
+            print(e)
+            return False

@@ -19,9 +19,39 @@ st.html(
 )
 
 import api
-import requests
+import time
 
 utils.init_session()
+
+# 세션 복구
+def try_restore_session():
+    # URL 파라미터 확인
+    if 'status' not in st.query_params or 'orderNo' not in st.query_params:
+        return False
+
+    orderNo : str = st.query_params['orderNo']
+
+    try:
+        ref = utils.utilsDb().realtimeDB.reference(f'payment_temp/{orderNo}')
+        data = ref.get()
+        
+        if data:
+            st.session_state.token = data.get('token', st.session_state.token)
+            st.session_state.payToken = data.get('payToken')
+            st.session_state.item = data.get('item')
+            st.session_state.delicomment = data.get('delicomment')
+            # 고객정보 재호출
+            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+            
+            ref.delete()
+            return True
+        else:
+            print("복구할 데이터가 없습니다.")
+    except Exception as e:
+        print(f"DB 오류: {e}")
+    return False
+
+try_restore_session()
 
 # 결제 요청정보 초기화
 def orderInfo_clear():
@@ -46,7 +76,9 @@ if any(value is not None for value in st.session_state.token.values()):
                     itemID=st.session_state.item,
                     orderTime=orderTime,
                     address=st.session_state.user.get('address')['home'],
-                    comment=st.session_state.delicomment
+                    comment=st.session_state.delicomment,
+                    payToken=st.session_state.payToken,
+                    pay='toss'
                     )
                 if order:
                     st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")

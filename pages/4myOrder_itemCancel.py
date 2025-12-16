@@ -23,7 +23,6 @@ st.html(
 
 import api
 import time
-import requests
 from datetime import datetime
 
 
@@ -31,11 +30,21 @@ utils.init_session()
 
 def clearOrderItem():
     st.session_state.orderItem = None
+    st.session_state.reason = None
 
 # 주문 취소 dialog
 @st.dialog(title='주문 취소', width='medium')
-def cancelOrder(key : str, itemID : str):
+def cancelOrder(key : str, itemID : str, orderInfo : dict):
     st.markdown(body='주문 취소하시겠습니까?')
+
+    st.selectbox(
+        label='취소사유',
+        options=['단순 변심', '상품 불량', '상품과 다르게 수령', '기타'],
+        index=0,
+        placeholder='취소사유를 선택해주세요.',
+        key='reason',
+        width='stretch'
+    )
 
     empty, cancel = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
     cancelB = cancel.button(
@@ -43,13 +52,27 @@ def cancelOrder(key : str, itemID : str):
         type='primary',
     )
     if cancelB:
-        func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=itemID)
-        if func:
-            st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
-            st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-            st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
-            st.session_state.orderItem = None
-            st.rerun()
+        # 결제 수단 분류 및 결제 취소(pay)
+        payWay = orderInfo.get('pay')
+        if payWay == 'naver':
+            pass
+        elif payWay == 'kakao':
+            pass
+        elif payWay == 'toss':
+            refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payToken'), refundNo=None, reason=st.session_state.reason)
+        else:
+            refundResult = False
+
+        # 결제 취소 진행(firebase)
+        if refundResult:
+            func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=itemID)
+            if func:
+                st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
+                st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
+                st.rerun()
+            else:
+                st.warning(body='주문 취소 실패, 다시 시도해주세요.')
         else:
             st.warning(body='주문 취소 실패, 다시 시도해주세요.')
 
@@ -108,7 +131,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             width='stretch'
         )
         if cancelItemB:
-            #requests.post()
-            cancelOrder(key=key, itemID=itemID)
+            cancelOrder(key=key, itemID=itemID, orderInfo=orderInfo)
 else:
     st.switch_page(page='pages/3myPage_orderList.py')

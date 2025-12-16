@@ -22,7 +22,6 @@ st.html(
 )
 
 import api
-import requests
 import time
 from datetime import datetime, timezone, timedelta
 
@@ -136,6 +135,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             use_container_width=True
         )
 
+        # 토스페이 결제 요청
         if tosspayBTN:
             itemStatus : dict = api.items.itemStatus(itemId=item)
             if itemStatus.get('enable'):
@@ -151,8 +151,24 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     )
                 
                 if callTosspayToken.get('access'):
-                    st.session_state.payToken : str = callTosspayToken.get('payToken')
+                    payToken : str = callTosspayToken.get('payToken')
                     checkoutPage_url : str = callTosspayToken.get('checkoutPage')
+
+                    # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
+                    try:
+                        ref = utils.database().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref.set({
+                            'token':st.session_state.token,
+                            'payToken':payToken,
+                            'item':st.session_state.item,
+                            'delicomment':st.session_state.get('delicomment'),
+                            'user_address':st.session_state.user.get('address').get('home')
+                        })
+                        print(f"임시 저장 완료: {orderNo}")
+                    except Exception as e:
+                        print(f"임시 저장 실패: {e}")
+                    
+                    # 토스페이 결제창 전환
                     st.markdown(
                         body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
                         unsafe_allow_html=True
@@ -175,5 +191,3 @@ else:
 
 st.divider()
 st.html(body=utils.database().infoAdmin)
-
-### 결과 url -- https://localhost:8080/orderPage?status=PAY_APPROVED&orderNo=251216162437sporty002618356@nav&payMethod=TOSS_MONEY&bankCode=092

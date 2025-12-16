@@ -40,7 +40,7 @@ class items(utils.database):
             return {'failed' : str(e)}
 
     # 아이템 구매 및 상태 변경
-    def itemOrder(token : dict, itemID : str, orderTime : str, address : str, comment : str|None) -> bool:
+    def itemOrder(token : dict, itemID : str, orderTime : str, address : str, comment : str|None, payToken : str, pay : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
             print('고객정보 호출 실패')
@@ -52,7 +52,9 @@ class items(utils.database):
             'item' : itemID,
             'address' : address,
             'comment' : comment,
-            'status' : 'ready'
+            'status' : 'ready',
+            'payToken' : payToken,
+            'pay' : pay
             }
         utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
         utils.database().realtimeDB.reference(path=f'orderList/newOrder/{orderTime+'_'+uid}').set({'item':itemID})

@@ -167,7 +167,6 @@ termsB = terms.button(
 
 if policyB:
     st.switch_page(page='pages/0policy.py')
-
 if cookiesB:
     st.switch_page(page='pages/0cookies.py')
 if termsB:
