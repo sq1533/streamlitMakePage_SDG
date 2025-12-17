@@ -8,24 +8,13 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
+
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 # 페이지 UI 변경 사항
 st.html(
     """
     <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    video::-webkit-media-controls {
-        display: none !important;
-    }
-    video {
-        width: 100% !important;
-        aspect-ratio: 20 / 9;
-        object-fit: fill;
-    }
     .feature-card {
         background-color: #f8f9fa;
         padding: 20px;

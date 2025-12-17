@@ -8,20 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='collapsed'
 )
-
 # 페이지 UI 변경 사항
-st.html(
-    """
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+utils.set_page_ui()
 
 # 홈으로 이동
 goHome = st.button(

@@ -8,16 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-st.markdown(
-    body="""
-    <style>
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 import api
 
@@ -64,9 +56,6 @@ else:
                 justify-content: center;
                 text-decoration: none;
                 border-radius: 6px;
-                font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', Dotum, '돋움', sans-serif;
-                font-size: 16px;
-                font-weight: 500;
                 cursor: pointer;
                 box-sizing: border-box;
                 position: relative;

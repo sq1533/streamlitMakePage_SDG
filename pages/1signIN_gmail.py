@@ -8,15 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-st.html(
-    body="""
-    <style>
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 import api
 import requests

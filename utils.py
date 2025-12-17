@@ -2,6 +2,7 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import db, firestore
 from PIL import Image
+import base64
 
 from schema.schema import item
 
@@ -118,6 +119,42 @@ class database:
             self.infoUsed = file.read()
         with open(file='database/infoAdmin.txt', mode='r', encoding='utf-8') as file:
             self.infoAdmin = file.read()
+
+def set_page_ui():
+    try:
+        with open(file='database/Hahmlet-Bold.ttf', mode='rb') as f:
+            data = f.read()
+            b64_data = base64.b64encode(data).decode()
+    except Exception as e:
+        print(f"폰트 로딩 오류: {e}")
+
+    common_css = f"""
+    <style>
+    [data-testid="stHeaderActionElements"] {{
+        display: none !important;
+    }}
+    div[data-testid="stElementToolbar"] {{
+        display: none !important;
+    }}
+
+    @font-face {{
+        font-family:'Hahmlet-Bold';
+        src:url(data:font/ttf;base64,{b64_data}) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}
+
+    html, body, p, h1, h2, h3, h4, h5, h6, label, button, input, textarea, div {{
+        font-family: 'Hahmlet-Bold', sans-serif;
+    }}
+    
+    [data-testid="stIcon"], .material-icons, .material-symbols-rounded {{
+        font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+    }}
+    </style>
+    """
+
+    st.html(common_css)
 
 # utils.py 전역에 싱글톤 인스턴스 관리
 _db_instance = None

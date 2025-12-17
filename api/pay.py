@@ -78,8 +78,8 @@ class pay:
         params = {
             'apiKey':self.tosspayKey,
             'payToken':payToken,
-            'refundNo' : refundNo,
-            'reason' : reason
+            'refundNo':refundNo,
+            'reason':reason
         }
         
         try:

@@ -8,18 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 import api
 import time
@@ -85,7 +75,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         # 아이템 정보
         itemIF = api.items.showItem.loc[itemID]
-        with st.container(height=250, border=True):
+        with st.container(height='content', border=True):
             image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
             image.image(
                 image=str(itemIF['paths'][0]),

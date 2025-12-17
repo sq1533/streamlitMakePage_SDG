@@ -9,18 +9,7 @@ st.set_page_config(
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
-st.html(
-    """
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+utils.set_page_ui()
 
 import api
 import time

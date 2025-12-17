@@ -8,18 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 import api
 import time
@@ -142,7 +132,12 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                 # 고객 주문 key == 주문 시간
                 now = datetime.now(timezone.utc) + timedelta(hours=9)
                 orderTime = now.strftime("%y%m%d%H%M%S")
-                orderNo = f'{orderTime}{item}{st.session_state.user.get('email')[:10]}'
+                
+                # orderNo 생성
+                email = str(st.session_state.user.get('email')).split('@')[0]
+                raw_order_no = f"{orderTime}{item}{email}"
+                orderNo = raw_order_no.ljust(35, '0')[:35]
+
                 # 토스 페이 토큰 발급
                 callTosspayToken : dict = api.pay().tosspayToken(
                     orderNo=orderNo,

@@ -8,18 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-st.html(
-    body="""
-    <style>
-    div[data-testid="stElementToolbar"] {
-        display: none !important;
-    }
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
-    </style>
-    """
-)
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 import api
 import time
@@ -59,7 +49,10 @@ def cancelOrder(key : str, itemID : str, orderInfo : dict):
         elif payWay == 'kakao':
             pass
         elif payWay == 'toss':
-            refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payToken'), refundNo=None, reason=st.session_state.reason)
+            email = str(st.session_state.user.get('email')).split('@')[0]
+            raw_order_no = f"{key}{orderInfo.get('item')}{email}"
+            orderNo = raw_order_no.ljust(35, '0')[:35]
+            refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payToken'), refundNo=orderNo, reason=st.session_state.reason)
         else:
             refundResult = False
 
@@ -105,7 +98,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
         # 아이템 정보
         itemIF = api.items.showItem().loc[itemID]
-        with st.container(height=250, border=True):
+        with st.container(height='content', border=True):
             image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
 
             image.image(
