@@ -134,13 +134,28 @@ with st.sidebar:
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
-    sortedFilter = st.segmented_control(
+    st.markdown(
+        """
+        <style>
+        /* 라디오 버튼의 옵션 텍스트(label) 스타일링 */
+        [data-testid="stRadio"] div[role="radiogroup"] label {
+            font-size:1.2rem;
+            border:1px solid #8D6E63;  /* 테두리 추가 */
+            border-radius:8px;         /* 모서리 둥글게 */
+            padding:10px;              /* 텍스트와 테두리 사이 여백 */
+            margin-bottom:5px;         /* 항목 간 간격 */
+            width:100%;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    sortedFilter = st.radio(
         label='정렬',
         options=['New', '인기순', '낮은 가격순', '높은 가격순'],
-        selection_mode='single',
-        default = None,
-        label_visibility='visible'
-        )
+        label_visibility='collapsed'
+    )
 
 count_in_card = 0
 line = itemID.__len__()//4 + 1

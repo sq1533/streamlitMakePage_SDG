@@ -96,6 +96,25 @@ with st.sidebar:
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
+    st.divider()
+    # sporty 및 daily 하위모델( new, best 필터 적용 페이지 switch 버튼 )
+    # st.session_state.sort = 'new'
+
+    st.divider()
+
+    st.page_link(
+        page='pages/0notice.py',
+        label='이벤트 및 공지사항',
+        icon='📢',
+        help='놓치면 후회할 특별한 혜택!'
+    )
+
+    st.page_link(
+        page='pages/0cs.py',
+        label='문의하기',
+        icon='🎧'
+    )
+
 # 네비게이션
 sporty, daily, about = st.columns(spec=3, gap='small', vertical_alignment='center')
 
