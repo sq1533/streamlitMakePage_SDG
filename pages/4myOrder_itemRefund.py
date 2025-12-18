@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -53,52 +53,49 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with st.sidebar:
         st.title(body="환불 요청")
 
-    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
+    # 홈으로 이동
+    goHome = st.button(
+        label='HOME',
+        type='primary',
+        width='content',
+        disabled=False
+    )
+    if goHome:
+        st.switch_page(page="mainPage.py")
 
-    with main.container():
-        # 홈으로 이동
-        goHome = st.button(
-            label='HOME',
-            type='primary',
-            width='content',
-            disabled=False
-        )
-        if goHome:
-            st.switch_page(page="mainPage.py")
+    key = st.session_state.orderItem[0]
+    orderInfo = st.session_state.orderItem[1]
 
-        key = st.session_state.orderItem[0]
-        orderInfo = st.session_state.orderItem[1]
+    itemID = orderInfo.get('item')
+    address = orderInfo.get('address')
+    status = utils.database().showStatus[orderInfo.get('status')]
 
-        itemID = orderInfo.get('item')
-        address = orderInfo.get('address')
-        status = utils.database().showStatus[orderInfo.get('status')]
-
-        # 아이템 정보
-        itemIF = api.items.showItem.loc[itemID]
-        with st.container(height='content', border=True):
-            image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-            image.image(
-                image=str(itemIF['paths'][0]),
-                caption=None,
-                clamp=False,
-                output_format='auto'
-                )
-            info.markdown(
-                body=f"""
-                상품명 : {itemIF['name']}\n\n
-                주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
-                주문 상태 : {status}\n\n
-                {address}
-                """
-                )
-
-            empty, refundItem = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
-            refundItemB = refundItem.button(
-                label='환불 요청하기',
-                type='primary',
-                width='stretch'
+    # 아이템 정보
+    itemIF = api.items.showItem.loc[itemID]
+    with st.container(height='content', border=True):
+        image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
+        image.image(
+            image=str(itemIF['paths'][0]),
+            caption=None,
+            clamp=False,
+            output_format='auto'
             )
-            if refundItemB:
-                refundCall(key=key, item=itemID)
+        info.markdown(
+            body=f"""
+            상품명 : {itemIF['name']}\n\n
+            주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
+            주문 상태 : {status}\n\n
+            {address}
+            """
+            )
+
+        empty, refundItem = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
+        refundItemB = refundItem.button(
+            label='환불 요청하기',
+            type='primary',
+            width='stretch'
+        )
+        if refundItemB:
+            refundCall(key=key, item=itemID)
 else:
     st.switch_page(page='pages/3myPage_orderList.py')

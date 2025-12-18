@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -97,10 +97,32 @@ with st.sidebar:
             st.switch_page(page="pages/1signIN.py")
 
     st.divider()
-    # sporty 및 daily 하위모델( new, best 필터 적용 페이지 switch 버튼 )
-    # st.session_state.sort = 'new'
+
+    st.markdown(body='### 무엇을 찾으시나요?')
+
+    glassesBTN = st.button(
+        label='glasses',
+        type='tertiary',
+        icon=':material/eyeglasses_2:',
+        width='content'
+    )
+    sunglassesBTN = st.button(
+        label='sunglasses',
+        type='tertiary',
+        icon=':material/sunny:',
+        width='content'
+    )
+
+    if glassesBTN:
+        st.session_state.page = 'glasses'
+        st.switch_page(page='pages/9itemList.py')
+    if sunglassesBTN:
+        st.session_state.page = 'sunglasses'
+        st.switch_page(page='pages/9itemList.py')
 
     st.divider()
+
+    st.markdown(body='### Information')
 
     st.page_link(
         page='pages/0notice.py',
@@ -145,7 +167,7 @@ if aboutP:
 
 st.divider()
 
-policy, cookies, terms, empty = st.columns(spec=[1,1,1,2], gap='small', vertical_alignment='center')
+policy, cookies, terms = st.columns(spec=3, gap='small', vertical_alignment='center')
 
 policyB = policy.button(
     label='개인정보 처리방침',

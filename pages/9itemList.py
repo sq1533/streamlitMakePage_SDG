@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -21,14 +21,20 @@ if st.session_state.page == 'sporty':
     page = {'vanner':'vannerSporty', 'category':'sporty'}
 elif st.session_state.page == 'daily':
     page = {'vanner':'vannerDaily', 'category':'daily'}
+elif st.session_state.page == 'glasses':
+    page = {'vanner':'vannerDaily', 'sort':'glasses'}
+elif st.session_state.page == 'sunglasses':
+    page = {'vanner':'vannerDaily', 'sort':'sunglasses'}
 else:
     st.switch_page(page='mainPage.py')
+
+index = list(page.keys())[1]
 
 # 페이지 배너 가져오기
 vanner : dict = utils.database().firestore_vanner.get(page.get('vanner'))
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
-itemData = itemData[itemData['category'].str.contains(page.get('category'), case=False, na=False)]
+itemData = itemData[itemData[index] == page.get(index)]
 
 itemID = itemData.index.tolist()
 
@@ -158,11 +164,11 @@ with st.sidebar:
     )
 
 count_in_card = 0
-line = itemID.__len__()//4 + 1
+line = itemID.__len__()//3 + 1
 
 # 아이템에 따른 행 갯수 수정
 for l in range(line):
-    cards = st.columns(spec=4, gap="small", vertical_alignment="top")
+    cards = st.columns(spec=3, gap="small", vertical_alignment="top")
 
 # 상품 정렬을 위한 키 리스트 정리
 if sortedFilter == 'New':
@@ -176,7 +182,7 @@ elif sortedFilter == '높은 가격순':
 else:
     sortedItems = itemData
 
-# 아이템 4열 배치
+# 아이템 3열 배치
 for index, item in sortedItems.iterrows():
     with cards[count_in_card].container():
         itemStatus : dict = api.items.itemStatus(itemId=index)
@@ -198,38 +204,11 @@ for index, item in sortedItems.iterrows():
             st.switch_page(page="pages/7item.py")
 
     count_in_card += 1
-    if count_in_card == 4:
+    if count_in_card == 3:
         count_in_card = 0
     else:
         pass
 
 st.divider()
-
-policy, cookies, terms, empty = st.columns(spec=[1,1,1,2], gap='small', vertical_alignment='center')
-
-policyB = policy.button(
-    label='개인정보 처리방침',
-    type='tertiary',
-    width='content'
-)
-
-cookiesB = cookies.button(
-    label='쿠키 정책',
-    type='tertiary',
-    width='content'
-)
-
-termsB = terms.button(
-    label='이용약관',
-    type='tertiary',
-    width='content'
-)
-
-if policyB:
-    st.switch_page(page='pages/0policy.py')
-if cookiesB:
-    st.switch_page(page='pages/0cookies.py')
-if termsB:
-    st.switch_page(page='pages/0useTerms.py')
 
 st.html(body=utils.database().infoAdmin)

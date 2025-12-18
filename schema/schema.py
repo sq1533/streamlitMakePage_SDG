@@ -27,6 +27,7 @@ class item(BaseModel):
     category : str = Field(title='itemCategory')
     color : str = Field(title='itemColor')
     series : str = Field(title='itemSerises')
+    sort : str = Field(title='glasses / sunglasses')
 
     paths : list[HttpUrl] = Field(title='itemImagePaths')
     detail : HttpUrl = Field(title='itemDetail')
@@ -36,7 +37,6 @@ class item(BaseModel):
     discount : int = Field(title='itemDiscount')
     event : Optional[str] = Field(default=None, title='itemEvent')
 
-    itemId : Optional[str] = Field(default=None, title='itemId')
     sales : Optional[int] = 0
     point : Optional[int] = 0
 

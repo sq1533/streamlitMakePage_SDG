@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -55,57 +55,54 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with st.sidebar:
         st.title(body="배송지 변경")
 
-    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
+    # 홈으로 이동
+    goHome = st.button(
+        label='HOME',
+        type='primary',
+        width='content',
+        disabled=False
+    )
+    if goHome:
+        st.switch_page(page="mainPage.py")
 
-    with main.container():
-        # 홈으로 이동
-        goHome = st.button(
-            label='HOME',
-            type='primary',
-            width='content',
-            disabled=False
-        )
-        if goHome:
-            st.switch_page(page="mainPage.py")
+    st.title(body="배송지 변경 요청")
 
-        st.title(body="배송지 변경 요청")
+    key = st.session_state.orderItem[0]
+    orderInfo = st.session_state.orderItem[1]
+        
+    orderTime = key
+    itemID = orderInfo.get('item')
+    address = orderInfo.get('address')
+    status = utils.database().showStatus[orderInfo.get('status')]
 
-        key = st.session_state.orderItem[0]
-        orderInfo = st.session_state.orderItem[1]
-            
-        orderTime = key
-        itemID = orderInfo.get('item')
-        address = orderInfo.get('address')
-        status = utils.database().showStatus[orderInfo.get('status')]
+    # 아이템 정보
+    itemIF = api.items.showItem().loc[itemID]
 
-        # 아이템 정보
-        itemIF = api.items.showItem().loc[itemID]
+    with st.container(height='content', border=True):
+        image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
+        image.image(
+            image=str(itemIF['paths'][0]),
+            caption=None,
+            clamp=False,
+            output_format="auto"
+            )
+        info.markdown(
+            body=f"""
+            상품명 : {itemIF['name']}\n\n
+            주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')}\n\n
+            주문 상태 : {status}\n\n
+            {address}
+            """
+            )
 
-        with st.container(height='content', border=True):
-            image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-            image.image(
-                image=str(itemIF['paths'][0]),
-                caption=None,
-                clamp=False,
-                output_format="auto"
-                )
-            info.markdown(
-                body=f"""
-                상품명 : {itemIF['name']}\n\n
-                주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')}\n\n
-                주문 상태 : {status}\n\n
-                {address}
-                """
-                )
+    empty, cgAddr = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
 
-        empty, cgAddr = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
-
-        changeAddrB = cgAddr.button(
-            label='배송지 변경',
-            type='primary',
-            width='stretch'
-        )
-        if changeAddrB:
-            changeAddr(key=key)
+    changeAddrB = cgAddr.button(
+        label='배송지 변경',
+        type='primary',
+        width='stretch'
+    )
+    if changeAddrB:
+        changeAddr(key=key)
 else:
     st.switch_page(page='pages/3myPage_orderList.py')

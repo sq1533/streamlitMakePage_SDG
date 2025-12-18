@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항

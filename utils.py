@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import db, firestore
 from PIL import Image
 import base64
+import json
 
 from schema.schema import item
 
@@ -44,9 +45,15 @@ def init_session():
     if 'page' not in st.session_state:
         st.session_state.page = None
 
+    # 주소 찾기 defult 값 / str
+    if 'searchAddr' not in st.session_state:
+        st.session_state.searchAddr = None
     # 신규 고객 주소 정보 / str
     if 'firstAddr' not in st.session_state:
         st.session_state.firstAddr = None
+    # 상세 주소 정보 / str
+    if 'detailAddr' not in st.session_state:
+        st.session_state.detailAddr = None
 
     # 상품 상세페이지 / str
     if 'item' not in st.session_state:
@@ -114,11 +121,15 @@ class database:
 
         # 약관 및 정보
         with open(file='database/condition.txt', mode='r', encoding='utf-8') as file:
-            self.condition = file.read()
+            self.condition : str = file.read()
         with open(file='database/infoUsed.txt', mode='r', encoding='utf-8') as file:
-            self.infoUsed = file.read()
+            self.infoUsed : str = file.read()
         with open(file='database/infoAdmin.txt', mode='r', encoding='utf-8') as file:
-            self.infoAdmin = file.read()
+            self.infoAdmin : str = file.read()
+        with open(file='database/notice.json', mode='r', encoding='utf-8') as file:
+            notice_list = json.load(file)
+            notice_list.sort(key=lambda x: x['date'], reverse=True)
+            self.notice = notice_list
 
 def set_page_ui():
     try:

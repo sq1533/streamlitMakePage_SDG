@@ -18,7 +18,7 @@ class items(utils.database):
         itemData = pd.DataFrame(
             data=items,
             index=keys,
-            columns=['series', 'color', 'event', 'category', 'name', 'price', 'discount', 'paths', 'detail', 'package', 'created_at']
+            columns=['series', 'color', 'event', 'category', 'sort', 'name', 'price', 'discount', 'paths', 'detail', 'package', 'created_at']
             )
         return itemData
 

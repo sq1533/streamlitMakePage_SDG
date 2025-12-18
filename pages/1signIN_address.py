@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -59,66 +59,62 @@ if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body='기본 배송지 설정')
 
-    # 기본 배송지 설정 페이지
-    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
+    addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
 
-    with main.container():
-        addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
+    addr.text_input(
+        label='기본 배송지',
+        value=st.session_state.firstAddr,
+        type='default',
+        disabled=True
+    )
 
-        addr.text_input(
-            label='기본 배송지',
-            value=st.session_state.firstAddr,
-            type='default',
-            disabled=True
-        )
+    searchAddrB = searchAddr.button(
+        label='찾아보기',
+        type='primary',
+        width='stretch'
+    )
 
-        searchAddrB = searchAddr.button(
-            label='찾아보기',
+    if searchAddrB:
+        addrDialog()
+
+    st.text_input(
+        label='상세주소',
+        key='detailAddr',
+        type='default'
+    )
+
+    # 약관 동의 및 개인정보 이용 동의
+    conditionMain, conditionBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
+    infoUsedMain, infoUsedBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')        
+    with conditionMain.expander(label='[필수] 이용약관 동의'):
+        st.text(body=utils.database().condition)
+    with infoUsedMain.expander(label='[필수] 개인정보 이용 동의'):
+        st.html(body=utils.database().infoUsed)
+    condtion = conditionBox.checkbox(
+        label='동의',
+        key='conditionAgree'
+    )
+    infoUsed = infoUsedBox.checkbox(
+        label='동의',
+        key='usedAgree'
+    )
+    # 입력사항 확인 후 기본 배송지 설정
+    if st.session_state.firstAddr and st.session_state.detailAddr and condtion and infoUsed:
+        address = st.session_state.firstAddr + ' ' + st.session_state.detailAddr
+
+        addAddrB = st.button(
+            label='기본 배송지 설정하기',
             type='primary',
             width='stretch'
         )
-
-        if searchAddrB:
-            addrDialog()
-
-        st.text_input(
-            label='상세주소',
-            key='detailAddr',
-            type='default'
-        )
-
-        # 약관 동의 및 개인정보 이용 동의
-        conditionMain, conditionBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
-        infoUsedMain, infoUsedBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')        
-        with conditionMain.expander(label='[필수] 이용약관 동의'):
-            st.text(body=utils.database().condition)
-        with infoUsedMain.expander(label='[필수] 개인정보 이용 동의'):
-            st.html(body=utils.database().infoUsed)
-        condtion = conditionBox.checkbox(
-            label='동의',
-            key='conditionAgree'
-        )
-        infoUsed = infoUsedBox.checkbox(
-            label='동의',
-            key='usedAgree'
-        )
-        # 입력사항 확인 후 기본 배송지 설정
-        if st.session_state.firstAddr and st.session_state.detailAddr and condtion and infoUsed:
-            address = st.session_state.firstAddr + ' ' + st.session_state.detailAddr
-
-            addAddrB = st.button(
-                label='기본 배송지 설정하기',
-                type='primary',
-                width='stretch'
-            )
-            if addAddrB:
-                result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
-                if result:
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                    st.button(label='설정 완료.', on_click=clear_firstAddr, type='tertiary', disabled=True)
-                    st.switch_page(page='mainPage.py')
-                else:
-                    st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')
+        if addAddrB:
+            result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
+            if result:
+                st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                st.button(label='설정 완료.', on_click=clear_firstAddr, type='tertiary', disabled=True)
+                st.switch_page(page='mainPage.py')
+            else:
+                st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')
 else:
     st.switch_page(page='mainPage.py')
 

@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.database().pageIcon,
-    layout='wide',
+    layout='centered',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -21,44 +21,41 @@ if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
         st.title(body="회원 탈퇴")
 
-    empty, main, empty = st.columns(spec=[1,4,1], gap="small", vertical_alignment="top")
+    # 홈으로 이동
+    goHome = st.button(
+        label='HOME',
+        type='primary',
+        width='content',
+        disabled=False
+    )
+    if goHome:
+        st.switch_page(page="mainPage.py")
 
-    with main.container():
-        # 홈으로 이동
-        goHome = st.button(
-            label='HOME',
-            type='primary',
-            width='content',
-            disabled=False
-        )
-        if goHome:
+    st.title(body="회원을 탈퇴 하시겠습니까?")
+    st.info(body='간편 로그인 회원의 경우, amuredo가 관리하는 정보만 삭제됩니다.\n원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')
+    NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
+    
+    DontOut = NO.button(
+        label='탈퇴 안하기',
+        type='secondary',
+        width='stretch'
+    )
+    out = YES.button(
+        label='탈퇴하기',
+        type='primary',
+        width='stretch'
+    )
+    if DontOut:
+        with st.spinner(text="함께 해주셔서 감사합니다. :smile:"):
+            st.info(body="home으로 이동중...")
+            time.sleep(2)
             st.switch_page(page="mainPage.py")
-
-        st.title(body="회원을 탈퇴 하시겠습니까?")
-        st.info(body='간편 로그인 회원의 경우, amuredo가 관리하는 정보만 삭제됩니다.\n원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')
-        NO, YES = st.columns(spec=2, gap="small", vertical_alignment="top")
-        
-        DontOut = NO.button(
-            label='탈퇴 안하기',
-            type='secondary',
-            width='stretch'
-        )
-        out = YES.button(
-            label='탈퇴하기',
-            type='primary',
-            width='stretch'
-        )
-        if DontOut:
-            with st.spinner(text="함께 해주셔서 감사합니다. :smile:"):
-                st.info(body="home으로 이동중...")
-                time.sleep(2)
-                st.switch_page(page="mainPage.py")
-        if out:
-            with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
-                api.guest.guestOUT(token=st.session_state.token)
-                st.info(body="회원 탈퇴 완료")
-                time.sleep(2)
-                st.session_state.clear()
-                st.switch_page(page="mainPage.py")
+    if out:
+        with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
+            api.guest.guestOUT(token=st.session_state.token)
+            st.info(body="회원 탈퇴 완료")
+            time.sleep(2)
+            st.session_state.clear()
+            st.switch_page(page="mainPage.py")
 else:
     st.switch_page(page="mainPage.py")
