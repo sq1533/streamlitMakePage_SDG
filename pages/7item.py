@@ -143,10 +143,18 @@ else:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')
             else:
-                for i in reversed(feedT[1:]):
+                 for i in reversed(feedT[1:]):
+                    parts = i.split('_', 1)
+                    if len(parts) < 2:
+                        continue
+
+                    date = parts[0]
+                    content = parts[1]
+
                     st.markdown(
-                        body=f'''
-                        구매 날짜 : {i.split('_')[0]}
-                        후기 : {i.split('_')[1]}
-                        '''
-                        )
+                        f"""
+                        **📅 {date}**
+                        > {content}
+                        """
+                    )
+                    st.divider()

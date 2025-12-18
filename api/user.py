@@ -4,6 +4,9 @@ import re
 import requests
 import urllib.parse
 import secrets
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from schema.schema import user
 
@@ -352,42 +355,51 @@ class guest(utils.database):
         utils.database().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()
         return True
 
-    # # 인증 메일 전송
-    # def sendEmail(userMail: str) -> bool:
-    #     findUser = database().auth.get_user_by_email(email=userMail)
-    #     settingCode = database().auth.ActionCodeSettings(
-    #         url=f"{database().emailAccess['DEPLOYED_BASE_URL']}/success?email={userMail}",
-    #         handle_code_in_app=True
-    #     )
-    #     link = database().auth.generate_email_verification_link(
-    #         email=userMail,
-    #         action_code_settings=settingCode
-    #     )
-    #     emailMain = EmailMessage()
-    #     emailMain['Subject'] = 'amuredo 회원가입, 이메일 인증 입니다.'
-    #     emailMain['From'] = database().emailAccess['SENDER_EMAIL']
-    #     emailMain['To'] = userMail
-    #     emailMain.set_content(database().emailMain + link)
-    #     try:
-    #         with smtplib.SMTP(
-    #             host=database().emailAccess['SENDER_SERVER'],
-    #             port=database().emailAccess['SENDER_PORT']
-    #             ) as smtp_server:
-    #             smtp_server.ehlo() # 서버에 자신을 소개
-    #             smtp_server.starttls() # TLS 암호화 시작
-    #             smtp_server.login(database().emailAccess['SENDER_EMAIL'], database().emailAccess['SENDER_APP_PASSWORD'])
-    #             smtp_server.send_message(emailMain)
-    #         database().auth.update_user(uid=findUser.uid, disabled=False)
-    #         return True
-    #     except smtplib.SMTPAuthenticationError:
-    #         print('오류: SMTP 인증 실패.')
-    #         return False
-    #     except smtplib.SMTPServerDisconnected:
-    #         print('오류: SMTP 서버 연결 끊김.')
-    #         return False
-    #     except Exception as e:
-    #         print(e)
-    #         return False
+    # 고객 문의, 이메일전송(amuredo_shop@naver.com)
+    def sendEmail(userInfo : dict, title : str, content : str) -> bool:
+        # 고객정보 확인
+        name = userInfo.get('name')
+        phoneNumber = userInfo.get('phoneNumber')
+        email = userInfo.get('email')
+
+        # 이메일 셋팅
+        emailMain = MIMEMultipart()
+        emailMain['Subject'] = f'amuredo 문의 : {title}'
+        emailMain['From'] = 'amuredo_shop@naver.com'
+        emailMain['To'] = 'amuredo_shop@naver.com'
+        body = f"""
+        고객 이름 : {name}
+        고객 이메일 : {email}
+        고객 연락처 : {phoneNumber}
+        [고객 문의 내용]
+        {content}
+        """        
+        # 본문 추가
+        emailMain.attach(MIMEText(body, 'plain'))
+
+        # 이메일 전송
+        try:
+            with smtplib.SMTP(
+                host=utils.database().emailAccess['SENDER_SERVER'],
+                port=utils.database().emailAccess['SENDER_PORT']
+                ) as smtp_server:
+                smtp_server.ehlo() # 서버에 자신을 소개
+                smtp_server.starttls() # TLS 암호화 시작
+                smtp_server.login(utils.database().emailAccess['SENDER_EMAIL'], utils.database().emailAccess['SENDER_APP_PASSWORD'])
+                smtp_server.send_message(emailMain)
+            return True
+
+        except smtplib.SMTPAuthenticationError:
+            print('오류: SMTP 인증 실패.')
+            return False
+
+        except smtplib.SMTPServerDisconnected:
+            print('오류: SMTP 서버 연결 끊김.')
+            return False
+
+        except Exception as e:
+            print(e)
+            return False
 
 # 주소 검색
 def seachAddress(address : str) -> dict:
