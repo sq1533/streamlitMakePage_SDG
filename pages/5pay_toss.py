@@ -55,9 +55,7 @@ def orderInfo_clear():
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
-        print('결제 승인창 진입')
         if 'status' in st.query_params and st.query_params.get('status') == 'PAY_APPROVED':
-            print('파라미터 검증')
             confirmResult : dict = api.pay().confirm_tosspay(
                 payToken=st.session_state.payToken,
                 orderNo=st.query_params.orderNo
