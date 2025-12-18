@@ -49,7 +49,7 @@ def cancelOrder(key : str, itemID : str, orderInfo : dict):
         elif payWay == 'kakao':
             pass
         elif payWay == 'toss':
-            email = str(st.session_state.user.get('email')).split('@')[0]
+            email = str(st.session_state.user.get('email')).split('@', 1)[0]
             raw_order_no = f"{key}{orderInfo.get('item')}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
             refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payToken'), refundNo=orderNo, reason=st.session_state.reason)

@@ -131,7 +131,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             orderTime = now.strftime("%y%m%d%H%M%S")
             
             # orderNo 생성
-            email = str(st.session_state.user.get('email')).split('@')[0]
+            email = str(st.session_state.user.get('email')).split('@', 1)[0]
             raw_order_no = f"{orderTime}{item}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
 
