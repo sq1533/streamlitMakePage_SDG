@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -46,7 +46,7 @@ if st.session_state.selected_notice:
 
 else:
     st.subheader('공지사항')
-    for notice in utils.database().notice:
+    for notice in utils.utilsDb().notice:
         selectBTN = st.button(
             label=f'{notice.get('date')} | {notice.get('title')}',
             type='tertiary',

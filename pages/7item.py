@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -14,7 +14,7 @@ utils.set_page_ui()
 import api
 import time
 
-deliveryInfo : dict = utils.database().firestore_vanner.get('deliveryInfo')
+deliveryInfo : dict = utils.utilsDb().firestore_vanner.get('deliveryInfo')
 
 utils.init_session()
 

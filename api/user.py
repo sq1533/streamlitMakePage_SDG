@@ -82,7 +82,7 @@ class guest(utils.database):
 
     # 네이버 로그인 고객 firebase 처리
     def naverUser(response : dict) -> bool:
-        realtimeUser = utils.database().realtimeDB.reference(path='user')
+        realtimeUser = utils.utilsDb().realtimeDB.reference(path='user')
         try:
             userId = str(response.get('id'))
             if userId in realtimeUser.get(shallow=True):
@@ -144,7 +144,7 @@ class guest(utils.database):
 
     # 카카오 로그인 고객 firebase 처리
     def kakaoUser(response : dict) -> bool:
-        realtimeUser = utils.database().realtimeDB.reference(path='user')
+        realtimeUser = utils.utilsDb().realtimeDB.reference(path='user')
         try:
             userId = str(response.get('id'))
             if userId in realtimeUser.get(shallow=True):
@@ -214,7 +214,7 @@ class guest(utils.database):
 
     # gmail 로그인 고객 firebase 처리
     def gmailUser(response : dict) -> bool:
-        realtimeUser = utils.database().realtimeDB.reference(path='user')
+        realtimeUser = utils.utilsDb().realtimeDB.reference(path='user')
         try:
             res_name = response.get('resourceName', '') # google People API (people/userID)
             userId = res_name.split('/')[-1] if '/' in res_name else res_name
@@ -278,7 +278,7 @@ class guest(utils.database):
         uid = str(uid.get('result'))
 
         try:
-            userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
+            userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').get()
             try:
                 userData = user(**userInfo)
                 return {'result':userData.model_dump()}
@@ -299,9 +299,9 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        userInfo : dict = utils.database().realtimeDB.reference(path=f'user/{uid}').get()
-        utils.database().realtimeDB.reference(path=f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
-        utils.database().realtimeDB.reference(path=f'user/{uid}').delete()
+        userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').get()
+        utils.utilsDb().realtimeDB.reference(path=f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').delete()
         return True
 
     # 소셜 사용자 기본 배송지 추가
@@ -313,7 +313,7 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.database().realtimeDB.reference(path=f'user/{uid}/address').set({'home':addr})
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').set({'home':addr})
         return True
 
     # 사용자 주소 추가
@@ -325,7 +325,7 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(addAddr)
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').push(addAddr)
         return True
 
     # 사용자 주소 삭제
@@ -337,7 +337,7 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        utils.database().realtimeDB.reference().child(f'user/{uid}/address/{delAddrKey}').delete()
+        utils.utilsDb().realtimeDB.reference().child(f'user/{uid}/address/{delAddrKey}').delete()
         return True
 
     # 주 배송지 수정
@@ -349,10 +349,10 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        oldAddr : str = utils.database().realtimeDB.reference(path=f'user/{uid}/address/home').get()
-        utils.database().realtimeDB.reference(path=f'user/{uid}/address').push(oldAddr)
-        utils.database().realtimeDB.reference(path=f'user/{uid}/address').update({'home':homeAddr})
-        utils.database().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()
+        oldAddr : str = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address/home').get()
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').push(oldAddr)
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').update({'home':homeAddr})
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()
         return True
 
     # 고객 문의, 이메일전송(amuredo_shop@naver.com)
@@ -365,8 +365,8 @@ class guest(utils.database):
         # 이메일 셋팅
         emailMain = MIMEMultipart()
         emailMain['Subject'] = f'amuredo 문의 : {title}'
-        emailMain['From'] = 'amuredo_shop@naver.com'
-        emailMain['To'] = 'amuredo_shop@naver.com'
+        emailMain['From'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
+        emailMain['To'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
         body = f"""
         고객 이름 : {name}
         고객 이메일 : {email}
@@ -380,12 +380,12 @@ class guest(utils.database):
         # 이메일 전송
         try:
             with smtplib.SMTP(
-                host=utils.database().emailAccess['SENDER_SERVER'],
-                port=utils.database().emailAccess['SENDER_PORT']
+                host=utils.utilsDb().emailAccess['SENDER_SERVER'],
+                port=utils.utilsDb().emailAccess['SENDER_PORT']
                 ) as smtp_server:
                 smtp_server.ehlo() # 서버에 자신을 소개
                 smtp_server.starttls() # TLS 암호화 시작
-                smtp_server.login(utils.database().emailAccess['SENDER_EMAIL'], utils.database().emailAccess['SENDER_APP_PASSWORD'])
+                smtp_server.login(utils.utilsDb().emailAccess['SENDER_EMAIL'], utils.utilsDb().emailAccess['SENDER_APP_PASSWORD'])
                 smtp_server.send_message(emailMain)
             return True
 
@@ -406,7 +406,7 @@ def seachAddress(address : str) -> dict:
     # SQL 인젝션 및 특수문자 방어
     if re.search(r"[\]\[%;<>=]", address):
         return {'allow':False, 'result':'특수문자는 포함할 수 없습니다.'}
-    if any(i in address.upper() for i in utils.database().sqlInjection):
+    if any(i in address.upper() for i in utils.utilsDb().sqlInjection):
         return {'allow':False, 'result':'포함할 수 없는 단어가 존재합니다.'}
 
     addressKey = {

@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -87,9 +87,9 @@ if any(value is not None for value in st.session_state.token.values()):
     conditionMain, conditionBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')
     infoUsedMain, infoUsedBox = st.columns(spec=[6,1], gap='small', vertical_alignment='top')        
     with conditionMain.expander(label='[필수] 이용약관 동의'):
-        st.text(body=utils.database().condition)
+        st.text(body=utils.utilsDb().condition)
     with infoUsedMain.expander(label='[필수] 개인정보 이용 동의'):
-        st.html(body=utils.database().infoUsed)
+        st.html(body=utils.utilsDb().infoUsed)
     condtion = conditionBox.checkbox(
         label='동의',
         key='conditionAgree'
@@ -119,4 +119,4 @@ else:
     st.switch_page(page='mainPage.py')
 
 st.divider()
-st.html(body=utils.database().infoAdmin)
+st.html(body=utils.utilsDb().infoAdmin)

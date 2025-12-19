@@ -1,38 +1,53 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import db, firestore
+from firebase_admin import db, firestore, credentials
 from PIL import Image
 import base64
 import json
 
 from schema.schema import item
 
-@st.cache_resource()
-def firebaseInitializeApp():
-    private_key = st.secrets["firebaseKey"]["private_key"].replace('\\n', '\n')
-    
-    firebaseKey = {
-        "type" : st.secrets["firebaseKey"]["type"],
-        "project_id" : st.secrets["firebaseKey"]["project_id"],
-        "private_key_id" : st.secrets["firebaseKey"]["private_key_id"],
-        "private_key" : private_key, # 수정된 private_key 사용
-        "client_email" : st.secrets["firebaseKey"]["client_email"],
-        "client_id" : st.secrets["firebaseKey"]["client_id"],
-        "auth_uri" : st.secrets["firebaseKey"]["auth_uri"],
-        "token_uri" : st.secrets["firebaseKey"]["token_uri"],
-        "auth_provider_x509_cert_url" : st.secrets["firebaseKey"]["auth_provider_x509_cert_url"],
-        "client_x509_cert_url" : st.secrets["firebaseKey"]["client_x509_cert_url"],
-        "universe_domain" : st.secrets["firebaseKey"]["universe_domain"]
-    }
+# 1. Firebase 앱 초기화 (싱글톤 패턴 강화)
+@st.cache_resource
+def get_firebase_app():
+    if firebase_admin._apps:
+        return firebase_admin.get_app()
 
-    if not firebase_admin._apps:
-        cred = firebase_admin.credentials.Certificate(firebaseKey)
-        firebase_admin.initialize_app(
+    try:
+        firebase_config = st.secrets["firebaseKey"]
+
+        private_key = firebase_config.get("private_key", "")
+        if "\\n" in private_key:
+            private_key = private_key.replace('\\n', '\n')
+
+        cred_dict = {
+            "type": firebase_config.get("type"),
+            "project_id": firebase_config.get("project_id"),
+            "private_key_id": firebase_config.get("private_key_id"),
+            "private_key": private_key,
+            "client_email": firebase_config.get("client_email"),
+            "client_id": firebase_config.get("client_id"),
+            "auth_uri": firebase_config.get("auth_uri"),
+            "token_uri": firebase_config.get("token_uri"),
+            "auth_provider_x509_cert_url": firebase_config.get("auth_provider_x509_cert_url"),
+            "client_x509_cert_url": firebase_config.get("client_x509_cert_url"),
+            "universe_domain": firebase_config.get("universe_domain")
+        }
+        cred = credentials.Certificate(cred_dict)
+        app = firebase_admin.initialize_app(
             credential=cred,
-            options={'databaseURL' : st.secrets["firebaseKey"]["databaseURL"]}
+            options={
+                'databaseURL': firebase_config.get("databaseURL")
+            }
         )
+        return app
 
-firebaseInitializeApp()
+    except Exception as e:
+        st.error(f"Firebase 초기화 에러: {e}")
+        return None
+
+# 앱 초기화 실행
+get_firebase_app()
 
 def init_session():
     # 회원 토큰 세션 및 정보 / dict
@@ -64,49 +79,70 @@ def init_session():
 
 class database:
     def __init__(self):
-        fs_client = firestore.client()
-        # firestore 배너
-        self.firestore_vanner : dict = {}
-        vannerSnapshot = fs_client.collection('vanner').stream()
-        for doc in vannerSnapshot:
-            data : dict = doc.to_dict()
-            if not data:
-                continue
-            try:
-                self.firestore_vanner[doc.id] = data
-            except Exception as e:
-                print(f'파싱 오류 {doc.id} : {e}')
-
-        # firestore 아이템 수집
-        self.firestore_item : dict = {}
-        itemSnapshot = fs_client.collection('item').stream()
-        for doc in itemSnapshot:
-            data : dict = doc.to_dict()
-            if not data:
-                continue
-            try:
-                itemData = item(**data)
-                self.firestore_item[doc.id] = itemData
-            except Exception as e:
-                print(f'파싱 오류 {doc.id} : {e}')
+        try:
+            self.fs_client = firestore.client()
+            self.realtimeDB = db
+        except Exception as e:
+            st.error(f"DB 클라이언트 연결 실패: {e}")
+            self.fs_client = None
+            self.realtimeDB = None
         
-        # realtime DB 호출
-        self.realtimeDB = db
+        # 데이터 수집 초기화
+        self.firestore_vanner = {}
+        self.firestore_item = {}
+        
+        # 데이터 로딩 실행
+        self._load_data()
+        self._load_configs()
 
+    def _load_data(self):
+        if not self.fs_client: return
+
+        # 1. 배너 로딩
+        try:
+            vannerSnapshot = self.fs_client.collection('vanner').stream()
+            for doc in vannerSnapshot:
+                data = doc.to_dict()
+                if data:
+                    self.firestore_vanner[doc.id] = data
+        except Exception as e:
+            print(f"배너 로딩 실패: {e}")
+
+        # 2. 아이템 로딩
+        try:
+            itemSnapshot = self.fs_client.collection('item').stream()
+            for doc in itemSnapshot:
+                data = doc.to_dict()
+                if data:
+                    try:
+                        itemData = item(**data) # 스키마 적용
+                        self.firestore_item[doc.id] = itemData
+                    except Exception as e:
+                        print(f"아이템 파싱 오류 {doc.id}: {e}")
+        except Exception as e:
+            print(f"아이템 목록 로딩 실패: {e}")
+
+    def _load_configs(self):
         # 페이지 icon
-        self.pageIcon = Image.open('database/icon.png')
+        try:
+            self.pageIcon = Image.open('database/icon.png')
+        except:
+            self.pageIcon = None
 
         # SQL 인젝션 방어 키워드
         self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
 
         # email 발송 keys
-        self.emailAccess = {
-            'SENDER_EMAIL':st.secrets["email_credentials"]["sender_email"],
-            'SENDER_APP_PASSWORD':st.secrets["email_credentials"]["sender_password"],
-            'SENDER_SERVER':st.secrets["email_credentials"]["smtp_server"],
-            'SENDER_PORT':st.secrets["email_credentials"]["smtp_port"],
-            'DEPLOYED_BASE_URL':st.secrets["email_credentials"]["base_url"]
-        }
+        try:
+            self.emailAccess = {
+                'SENDER_EMAIL':st.secrets["email_credentials"]["sender_email"],
+                'SENDER_APP_PASSWORD':st.secrets["email_credentials"]["sender_password"],
+                'SENDER_SERVER':st.secrets["email_credentials"]["smtp_server"],
+                'SENDER_PORT':st.secrets["email_credentials"]["smtp_port"],
+                'DEPLOYED_BASE_URL':st.secrets["email_credentials"]["base_url"]
+            }
+        except Exception:
+            self.emailAccess = {}
 
         # 주문 상태 메세지
         self.showStatus = {
@@ -119,17 +155,25 @@ class database:
                 'refunded':'환불 완료'
             }
 
-        # 약관 및 정보
-        with open(file='database/condition.txt', mode='r', encoding='utf-8') as file:
-            self.condition : str = file.read()
-        with open(file='database/infoUsed.txt', mode='r', encoding='utf-8') as file:
-            self.infoUsed : str = file.read()
-        with open(file='database/infoAdmin.txt', mode='r', encoding='utf-8') as file:
-            self.infoAdmin : str = file.read()
-        with open(file='database/notice.json', mode='r', encoding='utf-8') as file:
-            notice_list = json.load(file)
-            notice_list.sort(key=lambda x: x['date'], reverse=True)
-            self.notice = notice_list
+        # 약관 및 정보 (파일 읽기 예외처리 추가)
+        self.condition = self._read_file('database/condition.txt')
+        self.infoUsed = self._read_file('database/infoUsed.txt')
+        self.infoAdmin = self._read_file('database/infoAdmin.txt')
+
+        try:
+            with open(file='database/notice.json', mode='r', encoding='utf-8') as file:
+                notice_list = json.load(file)
+                notice_list.sort(key=lambda x: x['date'], reverse=True)
+                self.notice = notice_list
+        except:
+            self.notice = []
+
+    def _read_file(self, path):
+        try:
+            with open(path, mode='r', encoding='utf-8') as file:
+                return file.read()
+        except:
+            return ""
 
 def set_page_ui():
     try:
@@ -138,6 +182,7 @@ def set_page_ui():
             b64_data = base64.b64encode(data).decode()
     except Exception as e:
         print(f"폰트 로딩 오류: {e}")
+        b64_data = ""
 
     common_css = f"""
     <style>

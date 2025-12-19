@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -34,6 +34,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     )
     if goHome:
         st.switch_page(page="mainPage.py")
+
+    st.info(body='결제 시스템 준비중입니다. 네이버페이(미구현) 카카오페이(미구현) 토스페이(테스트 결제)')
 
     col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 
@@ -148,7 +150,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
                 # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
                 try:
-                    ref = utils.database().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                    ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
                     ref.set({
                         'token':st.session_state.token,
                         'payToken':payToken,
@@ -182,4 +184,4 @@ else:
     st.switch_page(page="mainPage.py")
 
 st.divider()
-st.html(body=utils.database().infoAdmin)
+st.html(body=utils.utilsDb().infoAdmin)

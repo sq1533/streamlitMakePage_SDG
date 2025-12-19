@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -68,7 +68,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
     itemID = orderInfo.get('item')
     address = orderInfo.get('address')
-    status = utils.database().showStatus[orderInfo.get('status')]
+    status = utils.utilsDb().showStatus[orderInfo.get('status')]
 
     # 아이템 정보
     itemIF = api.items.showItem.loc[itemID]

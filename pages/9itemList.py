@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -31,7 +31,7 @@ else:
 index = list(page.keys())[1]
 
 # 페이지 배너 가져오기
-vanner : dict = utils.database().firestore_vanner.get(page.get('vanner'))
+vanner : dict = utils.utilsDb().firestore_vanner.get(page.get('vanner'))
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
 itemData = itemData[itemData[index] == page.get(index)]
@@ -41,10 +41,6 @@ itemID = itemData.index.tolist()
 all_status = api.items.getAllItemStatus()
 itemData['sales'] = itemData.index.map(
     lambda x: all_status.get(x, {}).get('sales', 0)
-)
-
-itemData['point'] = itemData.index.map(
-    lambda x: all_status.get(x, {}).get('feedback', {}).get('point', 0)
 )
 
 # 홈으로 이동
@@ -211,4 +207,4 @@ for index, item in sortedItems.iterrows():
 
 st.divider()
 
-st.html(body=utils.database().infoAdmin)
+st.html(body=utils.utilsDb().infoAdmin)

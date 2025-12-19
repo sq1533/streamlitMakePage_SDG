@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='wide',
     initial_sidebar_state='collapsed'
 )
@@ -24,7 +24,7 @@ if goHome:
 st.title(body='이용약관')
 
 # 이용약관 내용 출력
-st.text(body=utils.database().condition)
+st.text(body=utils.utilsDb().condition)
 
 st.divider()
-st.html(body=utils.database().infoAdmin)
+st.html(body=utils.utilsDb().infoAdmin)

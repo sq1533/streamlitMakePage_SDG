@@ -4,7 +4,7 @@ import utils
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
-    page_icon=utils.database().pageIcon,
+    page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
@@ -16,7 +16,7 @@ import time
 
 utils.init_session()
 
-mainVanner : dict = utils.database().firestore_vanner.get('vannerMain')
+mainVanner : dict = utils.utilsDb().firestore_vanner.get('vannerMain')
 
 # 상단 vanner
 st.html(
@@ -41,6 +41,19 @@ st.html(
         <source src="{mainVanner.get('video_mp4')}" type="video/mp4">
     </video>
     """
+)
+
+# item 정보 불러오기 pandas
+itemData = api.items.showItem()
+glassesData = itemData[itemData['sort'] == 'glasses']
+sunglassesData = itemData[itemData['sort'] == 'sunglasses']
+
+all_status = api.items.getAllItemStatus()
+glassesData['sales'] = glassesData.index.map(
+    lambda x: all_status.get(x, {}).get('sales', 0)
+)
+sunglassesData['sales'] = sunglassesData.index.map(
+    lambda x: all_status.get(x, {}).get('sales', 0)
 )
 
 # siderbar 정의
@@ -138,16 +151,16 @@ with st.sidebar:
     )
 
 # 네비게이션
-sporty, daily, about = st.columns(spec=3, gap='small', vertical_alignment='center')
+daily, sporty, about = st.columns(spec=3, gap='small', vertical_alignment='center')
 
-sportyP = sporty.button(
-    label='sporty',
-    type='primary',
-    width='stretch'
-)
 dailyP = daily.button(
     label='daily',
-    type='primary',
+    type='secondary',
+    width='stretch'
+)
+sportyP = sporty.button(
+    label='sporty',
+    type='secondary',
     width='stretch'
 )
 aboutP = about.button(
@@ -156,14 +169,79 @@ aboutP = about.button(
     width='stretch'
 )
 
-if sportyP:
-    st.session_state.page = 'sporty'
-    st.switch_page(page='pages/9itemList.py')
 if dailyP:
     st.session_state.page = 'daily'
     st.switch_page(page='pages/9itemList.py')
+if sportyP:
+    st.session_state.page = 'sporty'
+    st.switch_page(page='pages/9itemList.py')
 if aboutP:
     st.switch_page(page='pages/9about.py')
+
+st.divider()
+
+# glassesData의 sort행 상위 3개
+st.markdown(body='### :orange[Best] Glasses')
+count_in_card = 0
+cards = st.columns(spec=3, gap="small", vertical_alignment="top")
+bestGlasses = glassesData.sort_values(by='sales', ascending=False).head(3)
+
+for index, item in bestGlasses.iterrows():
+    with cards[count_in_card].container():
+        itemStatus : dict = api.items.itemStatus(itemId=index)
+        feedback : dict = itemStatus.get('feedback')
+
+        st.image(
+            image=str(item['paths'][0]),
+            output_format='JPEG'
+        )
+
+        st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
+        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+
+        viewBTN = st.button(
+            label='상세보기',
+            key=f'loop_item_{index}',
+            type='primary',
+            width='stretch'
+        )
+        if viewBTN:
+            st.session_state.item = index
+            st.switch_page(page="pages/7item.py")
+
+    count_in_card += 1
+
+# sunglassesData의 sort행 상위 3개
+st.markdown(body='### :orange[Best] Sunglasses')
+
+count_in_card = 0
+cards = st.columns(spec=3, gap="small", vertical_alignment="top")
+bestSunglasses = sunglassesData.sort_values(by='sales', ascending=False).head(3)
+
+for index, item in bestSunglasses.iterrows():
+    with cards[count_in_card].container():
+        itemStatus : dict = api.items.itemStatus(itemId=index)
+        feedback : dict = itemStatus.get('feedback')
+
+        st.image(
+            image=str(item['paths'][0]),
+            output_format='JPEG'
+        )
+
+        st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
+        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+
+        viewBTN = st.button(
+            label='상세보기',
+            key=f'loop_item_{index}',
+            type='primary',
+            width='stretch'
+        )
+        if viewBTN:
+            st.session_state.item = index
+            st.switch_page(page="pages/7item.py")
+
+    count_in_card += 1
 
 st.divider()
 
@@ -194,4 +272,4 @@ if cookiesB:
 if termsB:
     st.switch_page(page='pages/0useTerms.py')
 
-st.html(body=utils.database().infoAdmin)
+st.html(body=utils.utilsDb().infoAdmin)
