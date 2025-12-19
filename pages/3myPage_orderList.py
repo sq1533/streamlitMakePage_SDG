@@ -116,7 +116,13 @@ if any(value is not None for value in st.session_state.token.values()):
                         st.info(body='평가 미입력, 재확인 바랍니다.')
 
                 # 주문 상태 확인 및 설정 변경
-                changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
+                changeAddr, aboutItem, changeStatus, exchangeCheck = st.columns(spec=4, gap="small", vertical_alignment="center")
+
+                exchangeBtnStatus = {
+                    'label': '교환 요청',
+                    'disabled': True,
+                    'switchPagePath': 'pages/4myOrder_itemExchange.py'
+                }
 
                 if order.get('status') == 'ready': # 상품 준비중 > 배송지 변경 가능, 주문 취소 가능
                     btnStatus = {
@@ -153,6 +159,15 @@ if any(value is not None for value in st.session_state.token.values()):
                         'statusChange' : '환불 완료',
                         'switchPagePath' : 'mainPage.py'
                     }
+                elif order.get('status') == 'exchange': # 교환 요청 > 배송지 변경 불가, 주문 상태 변경 불가
+                    btnStatus = {
+                        'addressChange' : True,
+                        'cancelB' : True,
+                        'statusChange' : '교환 진행 중..',
+                        'switchPagePath' : 'mainPage.py'
+                    }
+                    exchangeBtnStatus['disabled'] = True
+
                 else: # 상품 배송중 or 상품 배송완료( 7일 경과 전 )
                     btnStatus = {
                         'addressChange' : True,
@@ -160,6 +175,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         'statusChange' : '환불 요청',
                         'switchPagePath' : 'pages/4myOrder_itemRefund.py'
                     }
+                    exchangeBtnStatus['disabled'] = False
 
                 # 주문 상품 배송지 변경
                 changeAddrB = changeAddr.button(
@@ -195,6 +211,18 @@ if any(value is not None for value in st.session_state.token.values()):
                 if chagneStatusB:
                     st.session_state.orderItem = [key, order]
                     st.switch_page(page=btnStatus.get('switchPagePath'))
+
+                # 교환 요청
+                exchangeB = exchangeCheck.button(
+                    label=exchangeBtnStatus.get('label'),
+                    key=f'exchange_{key}',
+                    type='primary',
+                    disabled=exchangeBtnStatus.get('disabled'),
+                    width='stretch'
+                )
+                if exchangeB:
+                    st.session_state.orderItem = [key, order]
+                    st.switch_page(page=exchangeBtnStatus.get('switchPagePath'))
     else:
         st.info(body="주문내역 확인 불가")
 else:

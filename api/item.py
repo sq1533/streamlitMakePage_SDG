@@ -57,7 +57,7 @@ class items(utils.database):
             'pay' : pay
             }
         utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/newOrder/{orderTime+'_'+uid}').set({'item':itemID})
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{orderTime+'_'+uid}").set({'item':itemID})
 
         itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
         countResults = int(itemStatus.get('count')) - 1
@@ -122,8 +122,8 @@ class items(utils.database):
         uid = str(uid.get('result'))
 
         # 주문 취소 리스트 이동
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/cancel/{key+'_'+uid}').set({'item':itemID})
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/newOrder/{key+'_'+uid}').delete()
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item':itemID})
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
 
         # 상품 상태 변경
         itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
@@ -162,9 +162,9 @@ class items(utils.database):
         uid = str(uid.get('result'))
 
         # 주문 환불 리스트 이동
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/delivery/{key+'_'+uid}').delete()
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/complete/{key+'_'+uid}').delete()
-        utils.utilsDb().realtimeDB.reference(path=f'orderList/refund/{key+'_'+uid}').set({'item':itemID})
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/refund/{key+'_'+uid}").set({'item':itemID})
 
         # 환불된 상품 count 처리
         itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
@@ -173,4 +173,22 @@ class items(utils.database):
 
         # 고객 data 처리
         utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'refund'})
+        return True
+
+    # 교환 요청
+    def orderExchange(token : dict, key : str, itemID : str) -> bool:
+        uid : dict = guest.tokenToUid(token=token)
+        if not uid.get('allow'):
+            print('고객정보 호출 실패')
+            return False
+
+        uid = str(uid.get('result'))
+
+        # 주문 교환 리스트 이동
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
+        utils.utilsDb().realtimeDB.reference(path=f"orderList/exchange/{key+'_'+uid}").set({'item':itemID})
+
+        # 고객 data 처리
+        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'exchange'})
         return True

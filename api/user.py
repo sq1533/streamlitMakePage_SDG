@@ -18,7 +18,7 @@ class guest(utils.database):
             if token.get('naver') != None:
                 userInfo = requests.post(
                     url='https://openapi.naver.com/v1/nid/me',
-                    headers={'Authorization':f'Bearer {token.get('naver')}'}
+                    headers={'Authorization':f"Bearer {token.get('naver')}"}
                     )
                 if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
                     return {'allow':True, 'result':userInfo.json()['response']['id']}
@@ -27,7 +27,7 @@ class guest(utils.database):
             elif token.get('kakao') != None:
                 userInfo = requests.post(
                     url='https://kapi.kakao.com/v2/user/me',
-                    headers={'Authorization':f'Bearer {token.get('kakao')}'}
+                    headers={'Authorization':f"Bearer {token.get('kakao')}"}
                     )
                 if userInfo.status_code == 200:
                     return {'allow':True, 'result':userInfo.json()['id']}
@@ -37,7 +37,7 @@ class guest(utils.database):
                 userInfo = requests.get(
                     url='https://people.googleapis.com/v1/people/me',
                     params={'personFields': 'names'},
-                    headers={'Authorization': f'Bearer {token.get("gmail")}'}
+                    headers={'Authorization': f"Bearer {token.get('gmail')}"}
                 )
                 if userInfo.status_code == 200:
                     res_name = userInfo.json().get('resourceName', '')

@@ -45,8 +45,8 @@ st.html(
 
 # item 정보 불러오기 pandas
 itemData = api.items.showItem()
-glassesData = itemData[itemData['sort'] == 'glasses']
-sunglassesData = itemData[itemData['sort'] == 'sunglasses']
+glassesData = itemData[itemData['sort'] == 'glasses'].copy()
+sunglassesData = itemData[itemData['sort'] == 'sunglasses'].copy()
 
 all_status = api.items.getAllItemStatus()
 glassesData['sales'] = glassesData.index.map(
