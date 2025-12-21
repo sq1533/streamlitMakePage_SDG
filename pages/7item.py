@@ -18,6 +18,9 @@ deliveryInfo : dict = utils.utilsDb().firestore_vanner.get('deliveryInfo')
 
 utils.init_session()
 
+if "item_id" in st.query_params:
+    st.session_state.item = st.query_params["item_id"]
+
 def imgLoad(path : str):
     if path:
         return st.image(
