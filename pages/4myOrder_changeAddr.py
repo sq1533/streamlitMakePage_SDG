@@ -45,7 +45,8 @@ def changeAddr(key : str):
         if func:
             st.info(body='배송지 변경 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-            st.session_state.orderItem = None
+            if 'orderItem' in st.session_state:
+                del st.session_state.orderItem
             st.rerun()
         else:
             st.warning(body='배송지 변경 실패, 다시 시도해주세요.')

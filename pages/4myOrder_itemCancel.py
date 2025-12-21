@@ -15,12 +15,7 @@ import api
 import time
 from datetime import datetime
 
-
 utils.init_session()
-
-def clearOrderItem():
-    st.session_state.orderItem = None
-    st.session_state.reason = None
 
 # 주문 취소 dialog
 @st.dialog(title='주문 취소', width='medium')
@@ -62,7 +57,10 @@ def cancelOrder(key : str, itemID : str, orderInfo : dict):
             if func:
                 st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                st.button(label='잠시만 기다려주세요...', on_click=clearOrderItem, type='tertiary', disabled=True)
+                if 'orderItem' in st.session_state:
+                    del st.session_state.orderItem
+                if 'reason' in st.session_state:
+                    del st.session_state.reason
                 st.rerun()
             else:
                 st.warning(body='주문 취소 실패, 다시 시도해주세요.')

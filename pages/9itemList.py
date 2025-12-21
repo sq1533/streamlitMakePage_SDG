@@ -78,15 +78,6 @@ st.html(
     """
 )
 
-def imgLoad(path : str):
-    if path:
-        return st.image(
-            image=path,
-            output_format='JPEG'
-        )
-    else:
-        return st.info(body='not image')
-
 # siderbar 정의
 with st.sidebar:
     st.title(body='amuredo')
@@ -184,23 +175,23 @@ for index, item in sortedItems.iterrows():
         itemStatus : dict = api.items.itemStatus(itemId=index)
         feedback : dict = itemStatus.get('feedback')
 
-        img_url = str(item['paths'][0])
-        target_url = f"item?item_id={index}" 
-
-        st.html(
-            body=f"""
-            <a href="{target_url}" target="_self" style="text-decoration: none; color: inherit;">
-                <img src="{img_url}" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
-                <div style="font-weight: bold; font-size: 1rem;">
-                    {item['name']} <span style="font-size: 0.8rem;">❤️ {feedback.get('point', 0)}</span>
-                </div>
-                <div>
-                    <span style="color: #ff4b4b; font-weight: bold;">{item['discount']}%</span>
-                    {item['price']:,}원
-                </div>
-            </a>
-            """
+        st.image(
+            image=str(item['paths'][0]),
+            output_format='JPEG'
         )
+
+        st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
+        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+
+        viewBTN = st.button(
+            label='상세보기',
+            key=f'loop_item_{index}',
+            type='primary',
+            width='stretch'
+        )
+        if viewBTN:
+            st.session_state.item = index
+            st.switch_page(page="pages/7item.py")
 
     count_in_card += 1
     if count_in_card == 3:

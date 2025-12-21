@@ -151,6 +151,8 @@ class database:
                 'complete':'배송 완료',
                 'Done':'배송 완료',
                 'cancel':'취소 완료',
+                'exchange':'교환 요청 완료',
+                'exchanged':'교환 완료',
                 'refund':'환불 요청 완료',
                 'refunded':'환불 완료'
             }

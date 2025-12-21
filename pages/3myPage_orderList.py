@@ -17,15 +17,6 @@ from datetime import datetime
 
 utils.init_session()
 
-def imgLoad(path : str):
-    if path:
-        return st.image(
-            image=path,
-            output_format='JPEG'
-        )
-    else:
-        return st.info(body='not image')
-
 # 회원 로그인 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
@@ -65,7 +56,10 @@ if any(value is not None for value in st.session_state.token.values()):
                 # 상품 이미지, 정보 호출
                 image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                 with image.container():
-                    imgLoad(str(itemIF['paths'][0]))
+                    st.image(
+                        image=str(itemIF['paths'][0]),
+                        output_format='JPEG'
+                    )
                 with info.container():
                     st.markdown(body=f'##### {itemIF['name']}')
                     st.markdown(body=f'##### {address}')
@@ -116,13 +110,7 @@ if any(value is not None for value in st.session_state.token.values()):
                         st.info(body='평가 미입력, 재확인 바랍니다.')
 
                 # 주문 상태 확인 및 설정 변경
-                changeAddr, aboutItem, changeStatus, exchangeCheck = st.columns(spec=4, gap="small", vertical_alignment="center")
-
-                exchangeBtnStatus = {
-                    'label': '교환 요청',
-                    'disabled': True,
-                    'switchPagePath': 'pages/4myOrder_itemExchange.py'
-                }
+                changeAddr, aboutItem, changeStatus = st.columns(spec=3, gap="small", vertical_alignment="center")
 
                 if order.get('status') == 'ready': # 상품 준비중 > 배송지 변경 가능, 주문 취소 가능
                     btnStatus = {
@@ -166,16 +154,13 @@ if any(value is not None for value in st.session_state.token.values()):
                         'statusChange' : '교환 진행 중..',
                         'switchPagePath' : 'mainPage.py'
                     }
-                    exchangeBtnStatus['disabled'] = True
-
                 else: # 상품 배송중 or 상품 배송완료( 7일 경과 전 )
                     btnStatus = {
                         'addressChange' : True,
                         'cancelB' : False,
-                        'statusChange' : '환불 요청',
+                        'statusChange' : '교환 및 환불',
                         'switchPagePath' : 'pages/4myOrder_itemRefund.py'
                     }
-                    exchangeBtnStatus['disabled'] = False
 
                 # 주문 상품 배송지 변경
                 changeAddrB = changeAddr.button(
@@ -212,17 +197,6 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.session_state.orderItem = [key, order]
                     st.switch_page(page=btnStatus.get('switchPagePath'))
 
-                # 교환 요청
-                exchangeB = exchangeCheck.button(
-                    label=exchangeBtnStatus.get('label'),
-                    key=f'exchange_{key}',
-                    type='primary',
-                    disabled=exchangeBtnStatus.get('disabled'),
-                    width='stretch'
-                )
-                if exchangeB:
-                    st.session_state.orderItem = [key, order]
-                    st.switch_page(page=exchangeBtnStatus.get('switchPagePath'))
     else:
         st.info(body="주문내역 확인 불가")
 else:

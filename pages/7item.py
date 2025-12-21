@@ -21,16 +21,6 @@ utils.init_session()
 if "item_id" in st.query_params:
     st.session_state.item = st.query_params["item_id"]
 
-def imgLoad(path : str):
-    if path:
-        return st.image(
-            image=path,
-            width='stretch',
-            output_format='JPEG'
-        )
-    else:
-        return st.info(body='not image')
-
 # 상품 키 확인
 if not st.session_state.item:
     st.switch_page(page='mainPage.py')
@@ -101,13 +91,25 @@ else:
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
     with row1.container():
-        imgLoad(str(itemInfo['paths'][0]))
+        st.image(
+            image=str(itemInfo['paths'][0]),
+            output_format='JPEG'
+        )
     with row2.container():
-        imgLoad(str(itemInfo['paths'][2]))
+        st.image(
+            image=str(itemInfo['paths'][2]),
+            output_format='JPEG'
+        )
     with row1.container():
-        imgLoad(str(itemInfo['paths'][1]))
+        st.image(
+            image=str(itemInfo['paths'][1]),
+            output_format='JPEG'
+        )
     with row2.container():
-        imgLoad(str(itemInfo['paths'][3]))
+        st.image(
+            image=str(itemInfo['paths'][3]),
+            output_format='JPEG'
+        )
     
     # 상품 카테고리
     st.markdown(body=f"#### :gray[amuredo > {itemInfo['category']}]")
@@ -139,9 +141,18 @@ else:
     with st.expander(label="상품 세부정보"):
         info, feed = st.tabs(tabs=['info', '후기'])
         with info:
-            imgLoad(str(itemInfo['detail']))
-            imgLoad(str(itemInfo['package']))
-            imgLoad(deliveryInfo.get('path'))
+            st.image(
+                image=str(itemInfo['detail']),
+                output_format='JPEG'
+            )
+            st.image(
+                image=str(itemInfo['package']),
+                output_format='JPEG'
+            )
+            st.image(
+                image=str(deliveryInfo.get('path')),
+                output_format='JPEG'
+            )
         with feed:
             if feedT.__len__() == 1:
                 st.info(body='아직 후기가 없어요...', icon='😪')
