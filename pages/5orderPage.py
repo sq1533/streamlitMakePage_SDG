@@ -22,6 +22,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with st.sidebar:
         st.title(body="상품 주문")
 
+    email : str = str(st.session_state.user.get('email')).split('@', 1)[0]
     item : str = st.session_state.item
     itemInfo = api.items.showItem().loc[item]
 
@@ -124,16 +125,84 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         use_container_width=True
     )
 
+    # 네이버페이 결제 요청
+    if naverpayBTN:
+        itemStatus : dict = api.items.itemStatus(itemId=item)
+        if itemStatus.get('enable'):
+            now = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now.strftime("%y%m%d%H%M%S")
+
+            raw_order_no = f"{orderTime}{item}{email}"
+            orderNo = raw_order_no.ljust(35, '0')[:35]
+
+            reserved = api.items.reserveItem(
+                token=st.session_state.token,
+                itemID=item,
+                orderTime=orderTime
+            )
+
+            if reserved:
+                callNaverpay : dict = api.pay().naverpayToken(
+                    orderNo=orderNo,
+                    itemName=itemInfo['name'],
+                    amount=int(itemInfo['price'])
+                    )
+                
+                if callNaverpay.get('access'):
+                    reserveId : str = callNaverpay.get('reserveId')
+                    checkoutPage_url = callNaverpay.get('checkoutPage_url')
+
+                    # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
+                    try:
+                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref.set({
+                            'token':st.session_state.token,
+                            'payToken':reserveId, # reserveId 저장
+                            'item':st.session_state.item,
+                            'delicomment':st.session_state.get('delicomment'),
+                            'user_address':st.session_state.user.get('address').get('home'),
+                            'pay_method': 'naver' # 결제 수단 구분
+                        })
+                        print(f"임시 저장 완료 (Naver): {orderNo}")
+                    except Exception as e:
+                        print(f"임시 저장 실패: {e}")
+
+                    # 네이버페이 결제창 전환
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
+
+                    st.info("네이버페이 결제창으로 이동합니다.")
+                    st.link_button("결제창 열기", checkoutPage_url)
+                else:
+                    # 토큰 발급 실패 시 예약 취소
+                    api.items.cancelReservation(st.session_state.token, item, orderTime)
+                    st.warning(f"결제 생성 실패: {callNaverpay.get('message')}")
+                    time.sleep(2)
+                    if 'item' in st.session_state:
+                        del st.session_state.item
+                    st.rerun()
+            else:
+                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
+                 time.sleep(2)
+                 if 'item' in st.session_state:
+                    del st.session_state.item
+                 st.rerun()
+        else:
+            st.warning(body='상품 구매가 불가합니다 - soldout')
+            time.sleep(2)
+            if 'item' in st.session_state:
+                del st.session_state.item
+            st.rerun()
+
     # 토스페이 결제 요청
     if tosspayBTN:
         itemStatus : dict = api.items.itemStatus(itemId=item)
         if itemStatus.get('enable'):
-            # 고객 주문 key == 주문 시간
             now = datetime.now(timezone.utc) + timedelta(hours=9)
             orderTime = now.strftime("%y%m%d%H%M%S")
-            
-            # orderNo 생성
-            email = str(st.session_state.user.get('email')).split('@', 1)[0]
+
             raw_order_no = f"{orderTime}{item}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
 
@@ -183,18 +252,21 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
                     st.warning(f"결제 생성 실패: {callTosspayToken.get('message')}")
                     time.sleep(2)
-                    st.session_state.item = None
+                    if 'item' in st.session_state:
+                        del st.session_state.item
                     st.rerun()
             else:
-                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
-                 time.sleep(2)
-                 st.session_state.item = None
-                 st.rerun()
+                st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
+                time.sleep(2)
+                if 'item' in st.session_state:
+                    del st.session_state.item
+                st.rerun()
 
         else:
             st.warning(body='상품 구매가 불가합니다 - soldout')
             time.sleep(2)
-            st.session_state.item = None
+            if 'item' in st.session_state:
+                del st.session_state.item
             st.rerun()
 else:
     st.switch_page(page="mainPage.py")

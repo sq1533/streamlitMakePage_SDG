@@ -16,10 +16,34 @@ import time
 
 utils.init_session()
 
+# 파라미터 및 결제 시도 오류 > 재고 복구
+def cancelReservation():
+    orderTime = None
+
+    if 'orderNo' in st.query_params:
+        orderTime = st.query_params['orderNo'][:12]
+
+    if orderTime:
+        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
+
+        if 'payToken' in st.session_state:
+            del st.session_state.payToken
+        if 'item' in st.session_state:
+            del st.session_state.item
+        if 'delicomment' in st.session_state:
+            del st.session_state.delicomment
+
 # 세션 복구
 def try_restore_session():
     # URL 파라미터 확인
-    if 'status' not in st.query_params or 'orderNo' not in st.query_params:
+    if 'status' not in st.query_params:
+        cancelReservation()
+        return False
+    if 'orderNo' not in st.query_params:
+        cancelReservation()
+        return False
+    if st.query_params.get('status') != 'PAY_APPROVED':
+        cancelReservation()
         return False
 
     orderNo : str = st.query_params['orderNo']
@@ -49,92 +73,57 @@ try_restore_session()
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
-        if 'status' in st.query_params and st.query_params.get('status') == 'PAY_APPROVED':
+        if 'payToken' not in st.session_state:
+            st.warning("유효하지 않은 접근이거나 이미 처리된 주문입니다.")
+            time.sleep(2)
+            st.switch_page("mainPage.py")
 
-            if 'payToken' not in st.session_state:
-                st.warning("유효하지 않은 접근이거나 이미 처리된 주문입니다.")
-                time.sleep(2)
-                st.switch_page("mainPage.py")
-
-            confirmResult : dict = api.pay().confirm_tosspay(
+        confirmResult : dict = api.pay().confirm_tosspay(
+            payToken=st.session_state.payToken,
+            orderNo=st.query_params.orderNo
+            )
+        if confirmResult.get('access'):
+            orderTime : str = st.query_params.orderNo[:12]
+            order : bool = api.items.itemOrder(
+                token=st.session_state.token,
+                itemID=st.session_state.item,
+                orderTime=orderTime,
+                address=st.session_state.user.get('address')['home'],
+                comment=st.session_state.delicomment,
                 payToken=st.session_state.payToken,
-                orderNo=st.query_params.orderNo
+                pay='toss'
                 )
-            if confirmResult.get('access'):
-                orderTime : str = st.query_params.orderNo[:12]
-                order : bool = api.items.itemOrder(
-                    token=st.session_state.token,
-                    itemID=st.session_state.item,
-                    orderTime=orderTime,
-                    address=st.session_state.user.get('address')['home'],
-                    comment=st.session_state.delicomment,
-                    payToken=st.session_state.payToken,
-                    pay='toss'
-                    )
-                if order:
-                    st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                    if 'payToken' in st.session_state:
-                         del st.session_state.payToken
-                    if 'item' in st.session_state:
-                         del st.session_state.item
-                    if 'delicomment' in st.session_state:
-                         del st.session_state.delicomment
-                    time.sleep(2)
-                    st.switch_page("pages/3myPage_orderList.py")
-                else:
-                    print('주문 트랜잭션 실패 -> 자동 환불 진행')
-                    st.error('상품 재고가 소진되어 주문이 취소되었습니다. 결제가 자동 환불됩니다.')
-
-                    refund_result = api.pay().refund_tosspay(
-                        payToken=st.session_state.payToken,
-                        refundNo=st.query_params.orderNo,
-                        reason="재고 소진으로 인한 자동 취소"
-                    )
-                    
-                    if refund_result:
-                        st.info("환불이 완료되었습니다.")
-                    else:
-                        st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
-
-                    if 'payToken' in st.session_state:
-                         del st.session_state.payToken
-                    if 'item' in st.session_state:
-                         del st.session_state.item
-                    if 'delicomment' in st.session_state:
-                         del st.session_state.delicomment
-                    st.rerun()
-            else:
-                print(f'결제 승인 실패: {confirmResult.get("message")}')
-                # 결제 승인 실패 시 예약 취소 -> 재고 복구
-                if 'orderNo' in st.query_params:
-                    orderTime = st.query_params.orderNo[:12]
-                    api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
-
-                st.warning(body=f'결제 승인 실패: {confirmResult.get("message")}')
-                time.sleep(2)
+            if order:
+                st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
+                st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                 if 'payToken' in st.session_state:
-                     del st.session_state.payToken
+                    del st.session_state.payToken
                 if 'item' in st.session_state:
-                     del st.session_state.item
+                    del st.session_state.item
                 if 'delicomment' in st.session_state:
-                     del st.session_state.delicomment
+                    del st.session_state.delicomment
+                time.sleep(2)
+                st.switch_page("pages/3myPage_orderList.py")
+            else:
+                print('주문 트랜잭션 실패 -> 자동 환불 진행')
+                st.error('상품 재고가 소진되어 주문이 취소되었습니다. 결제가 자동 환불됩니다.')
+                refund_result = api.pay().refund_tosspay(
+                    payToken=st.session_state.payToken,
+                    refundNo=st.query_params.orderNo,
+                    reason="재고 소진으로 인한 자동 취소"
+                )
+                if refund_result:
+                    st.info("환불이 완료되었습니다.")
+                else:
+                    st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
+
+                time.sleep(2)
+                cancelReservation()
                 st.rerun()
         else:
-            print('결제 승인 요청이 실패했습니다. 다시 시도해주세요.')
-            # 결제 승인 요청 실패 시 예약 취소 (status가 approved가 아닌 경우)
-            if 'orderNo' in st.query_params:
-                    orderTime = st.query_params.orderNo[:12]
-                    api.items.cancelReservation(st.session_state.token, st.session_state.item, orderTime)
-
-            st.warning(body='결제 승인 요청이 실패했습니다. 다시 시도해주세요.')
-            time.sleep(2)
-            if 'payToken' in st.session_state:
-                 del st.session_state.payToken
-            if 'item' in st.session_state:
-                 del st.session_state.item
-            if 'delicomment' in st.session_state:
-                 del st.session_state.delicomment
+            print(f'결제 승인 실패: {confirmResult.get("message")}')
+            st.error(f'결제 승인 실패: {confirmResult.get("message")}')
+            cancelReservation()
             st.rerun()
 
 else:
