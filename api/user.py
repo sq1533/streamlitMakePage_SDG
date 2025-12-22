@@ -7,6 +7,7 @@ import secrets
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from datetime import date
 
 from schema.schema import user
 
@@ -93,11 +94,17 @@ class guest(utils.database):
                     print(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
+                # 신규 가입 시도
+                birthdate_int = int(response.get('birthyear') + response.get('birthday').replace('-',''))
+
+                if check_under_14(birthdate_int):
+                    return {'allow': False, 'result': '만 14세 이하는 회원가입이 불가능합니다.'}
+
                 userData = {
                     'name':response.get('name'),
                     'phoneNumber':response.get('mobile').replace('-',''),
                     'email':response.get('email'),
-                    'age':int(response.get('birthyear') + response.get('birthday').replace('-','')),
+                    'age':birthdate_int,
                     'address':'',
                     'orderList':''
                 }
@@ -155,11 +162,17 @@ class guest(utils.database):
                     print(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
+                # 신규 가입 시도
+                birthdate_int = int(response.get('kakao_account').get('birthyear') + response.get('kakao_account').get('birthday'))
+
+                if check_under_14(birthdate_int):
+                    return {'allow': False, 'result': '만 14세 이하는 회원가입이 불가능합니다.'}
+
                 userData = {
                     'name':response.get('kakao_account').get('name'),
                     'phoneNumber':'0' + response.get('kakao_account').get('phone_number').split(' ')[1].replace('-',''),
                     'email':response.get('kakao_account').get('email'),
-                    'age':int(response.get('kakao_account').get('birthyear') + response.get('kakao_account').get('birthday')),
+                    'age':birthdate_int,
                     'address':'',
                     'orderList':''
                 }
@@ -249,6 +262,9 @@ class guest(utils.database):
                     day = date.get('day')
                     if year and month and day:
                         age = int(f"{year}{month:02d}{day:02d}")
+
+                if check_under_14(age):
+                    return {'allow': False, 'result': '만 14세 이하는 회원가입이 불가능합니다.'}
 
                 userData = {
                     'name': name,
@@ -400,6 +416,17 @@ class guest(utils.database):
         except Exception as e:
             print(e)
             return False
+
+# 나이 검증_만 14세 이하 (연도 기준)
+def check_under_14(birthdate_int: int) -> bool:
+    if not birthdate_int:
+        return True
+    today = date.today()
+    birth_year = birthdate_int // 10000
+
+    age_by_year = today.year - birth_year
+
+    return age_by_year <= 14
 
 # 주소 검색
 def seachAddress(address : str) -> dict:
