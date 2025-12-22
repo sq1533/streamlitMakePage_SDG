@@ -50,6 +50,12 @@ try_restore_session()
 if any(value is not None for value in st.session_state.token.values()):
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
         if 'status' in st.query_params and st.query_params.get('status') == 'PAY_APPROVED':
+
+            if 'payToken' not in st.session_state:
+                st.warning("유효하지 않은 접근이거나 이미 처리된 주문입니다.")
+                time.sleep(2)
+                st.switch_page("mainPage.py")
+
             confirmResult : dict = api.pay().confirm_tosspay(
                 payToken=st.session_state.payToken,
                 orderNo=st.query_params.orderNo
@@ -77,9 +83,20 @@ if any(value is not None for value in st.session_state.token.values()):
                     time.sleep(2)
                     st.switch_page("pages/3myPage_orderList.py")
                 else:
-                    print('주문 중 오류가 발생했습니다. 다시 시도해주세요.')
-                    st.warning(body='주문 중 오류가 발생했습니다. 다시 시도해주세요.')
-                    time.sleep(2)
+                    print('주문 트랜잭션 실패 -> 자동 환불 진행')
+                    st.error('상품 재고가 소진되어 주문이 취소되었습니다. 결제가 자동 환불됩니다.')
+
+                    refund_result = api.pay().refund_tosspay(
+                        payToken=st.session_state.payToken,
+                        refundNo=st.query_params.orderNo,
+                        reason="재고 소진으로 인한 자동 취소"
+                    )
+                    
+                    if refund_result:
+                        st.info("환불이 완료되었습니다.")
+                    else:
+                        st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
+
                     if 'payToken' in st.session_state:
                          del st.session_state.payToken
                     if 'item' in st.session_state:

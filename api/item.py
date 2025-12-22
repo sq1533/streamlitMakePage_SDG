@@ -39,7 +39,7 @@ class items(utils.database):
         except Exception as e:
             return {'failed' : str(e)}
 
-    # 아이템 구매 및 상태 변경
+    # 아이템 구매 및 상태 변경 (트랜잭션 적용)
     def itemOrder(token : dict, itemID : str, orderTime : str, address : str, comment : str|None, payToken : str, pay : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
@@ -48,37 +48,56 @@ class items(utils.database):
         
         uid = str(uid.get('result'))
 
-        orderData = {
-            'item' : itemID,
-            'address' : address,
-            'comment' : comment,
-            'status' : 'ready',
-            'payToken' : payToken,
-            'pay' : pay
-            }
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{orderTime+'_'+uid}").set({'item':itemID})
+        # 트랜잭션 함수 정의
+        def order_transaction(current_data):
+            if current_data is None:
+                return None
 
-        itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
-        countResults = int(itemStatus.get('count')) - 1
-        salesResults = int(itemStatus.get('sales')) + 1
-        # 상품 구매 가능상태 > 재고 10개 이하 구분
-        if countResults <= 10:
-            itemResults = {
-                'count' : countResults,
-                'enable' : False,
-                'sales' : salesResults
-            }
-            utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
-            return True
+            try:
+                current_count = int(current_data.get('count', 0))
+            except ValueError:
+                return None
+                
+            if current_count > 0:
+                current_data['count'] = current_count - 1
+                current_data['sales'] = int(current_data.get('sales', 0)) + 1
 
-        else:
-            itemResults = {
-                'count' : countResults,
-                'sales' : salesResults
-            }
-            utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
-            return True
+                if current_data['count'] <= 10:
+                     current_data['enable'] = False
+
+                return current_data
+            else:
+                return None
+
+        try:
+            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+            result = ref.transaction(order_transaction)
+
+            if result is not None:
+                orderData = {
+                    'item' : itemID,
+                    'address' : address,
+                    'comment' : comment,
+                    'status' : 'ready',
+                    'payToken' : payToken,
+                    'pay' : pay
+                    }
+                utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{orderTime+'_'+uid}").set({'item':itemID})
+                return True
+            else:
+                print("재고 부족 또는 트랜잭션 실패")
+                return False
+                
+        except Exception as e:
+            import traceback
+            print("=== 트랜잭션 오류 상세 로그 ===")
+            print(f"에러 메시지: {e}")
+            print(f"에러 타입: {type(e)}")
+            print(f"에러 args: {e.args}")
+            traceback.print_exc()
+            print("=============================")
+            return False
 
     def addFeedback(token : dict, key : str, itemID : str, feedback : int, feedT : str|None) -> bool:
         uid : dict = guest.tokenToUid(token=token)
@@ -112,7 +131,7 @@ class items(utils.database):
         utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'address':addr, 'comment':comment})
         return True
 
-    # 주문 취소 및 환불
+    # 주문 취소 및 환불 (트랜잭션 적용)
     def orderCancel(token : dict, key : str, itemID : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
@@ -121,38 +140,41 @@ class items(utils.database):
 
         uid = str(uid.get('result'))
 
-        # 주문 취소 리스트 이동
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item':itemID})
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
+        # 트랜잭션 함수 정의
+        def cancel_transaction(current_data):
+            if current_data is None:
+                return None
 
-        # 상품 상태 변경
-        itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
-        countResults = int(itemStatus.get('count')) + 1
-        salesResults = int(itemStatus.get('sales')) - 1
-        if itemStatus.get('enable'):
-            itemResults = {
-                'count' : countResults,
-                'sales' : salesResults
-            }
-        else:
-            if countResults <= 10:
-                itemResults = {
-                    'count' : countResults,
-                    'sales' : salesResults
-                }
+            current_count = int(current_data.get('count', 0)) + 1
+            current_sales = int(current_data.get('sales', 0)) - 1
+            
+            current_data['count'] = current_count
+            current_data['sales'] = current_sales
+
+            if current_count > 10:
+                current_data['enable'] = True
+
+            return current_data
+
+        try:
+            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+            result = ref.transaction(cancel_transaction)
+            
+            if result is not None:
+                # 주문 취소 리스트 이동 및 고객 상태 업데이트
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item':itemID})
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'cancel'})
+                return True
             else:
-                itemResults = {
-                    'count' : countResults,
-                    'enable' : True,
-                    'sales' : salesResults
-                }
-        itemStatus = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').update(itemResults)
+                print("취소 트랜잭션 실패")
+                return False
 
-        # 고객 data 처리
-        itemStatus = utils.database().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'cancel'})
-        return True
+        except Exception as e:
+            print(f"취소 트랜잭션 오류: {e}")
+            return False
 
-    # 환불 요청
+    # 환불 요청 (트랜잭션 적용)
     def orderRefund(token : dict, key : str, itemID : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
@@ -161,19 +183,33 @@ class items(utils.database):
 
         uid = str(uid.get('result'))
 
-        # 주문 환불 리스트 이동
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
-        utils.utilsDb().realtimeDB.reference(path=f"orderList/refund/{key+'_'+uid}").set({'item':itemID})
+        # 트랜잭션 함수 정의 (환불 카운트 증가)
+        def refund_transaction(current_data):
+            if current_data is None:
+                return None
+            
+            current_refund = int(current_data.get('refund', 0)) + 1
+            current_data['refund'] = current_refund
+            return current_data
 
-        # 환불된 상품 count 처리
-        itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').get()
-        refundResults = int(itemStatus.get('refund')) + 1
-        utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}').update({'refund':refundResults})
-
-        # 고객 data 처리
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'refund'})
-        return True
+        try:
+            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+            result = ref.transaction(refund_transaction)
+            
+            if result is not None:
+                # 주문 환불 리스트 이동
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/refund/{key+'_'+uid}").set({'item':itemID})
+                
+                # 고객 data 처리
+                utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'status':'refund'})
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f"환불 트랜잭션 오류: {e}")
+            return False
 
     # 교환 요청
     def orderExchange(token : dict, key : str, itemID : str) -> bool:
