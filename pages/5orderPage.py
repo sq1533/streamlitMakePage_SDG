@@ -137,44 +137,60 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             raw_order_no = f"{orderTime}{item}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
 
-            # 토스 페이 토큰 발급
-            callTosspayToken : dict = api.pay().tosspayToken(
-                orderNo=orderNo,
-                itemName=itemInfo['name'],
-                amount=int(itemInfo['price'])
-                )
-            
-            if callTosspayToken.get('access'):
-                payToken : str = callTosspayToken.get('payToken')
-                checkoutPage_url : str = callTosspayToken.get('checkoutPage')
+            # 재고 예약
+            reserved = api.items.reserveItem(
+                token=st.session_state.token,
+                itemID=item,
+                orderTime=orderTime
+            )
 
-                # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
-                try:
-                    ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
-                    ref.set({
-                        'token':st.session_state.token,
-                        'payToken':payToken,
-                        'item':st.session_state.item,
-                        'delicomment':st.session_state.get('delicomment'),
-                        'user_address':st.session_state.user.get('address').get('home')
-                    })
-                    print(f"임시 저장 완료: {orderNo}")
-                except Exception as e:
-                    print(f"임시 저장 실패: {e}")
-                
-                # 토스페이 결제창 전환
-                st.markdown(
-                    body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
-                    unsafe_allow_html=True
+            if reserved:
+                # 토스 페이 토큰 발급
+                callTosspayToken : dict = api.pay().tosspayToken(
+                    orderNo=orderNo,
+                    itemName=itemInfo['name'],
+                    amount=int(itemInfo['price'])
                     )
+                
+                if callTosspayToken.get('access'):
+                    payToken : str = callTosspayToken.get('payToken')
+                    checkoutPage_url : str = callTosspayToken.get('checkoutPage')
 
-                st.info("결제창으로 이동합니다. 이동하지 않으면 아래 링크를 클릭하세요.")
-                st.link_button("결제창 열기", checkoutPage_url)
+                    # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
+                    try:
+                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref.set({
+                            'token':st.session_state.token,
+                            'payToken':payToken,
+                            'item':st.session_state.item,
+                            'delicomment':st.session_state.get('delicomment'),
+                            'user_address':st.session_state.user.get('address').get('home')
+                        })
+                        print(f"임시 저장 완료: {orderNo}")
+                    except Exception as e:
+                        print(f"임시 저장 실패: {e}")
+                    
+                    # 토스페이 결제창 전환
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
+
+                    st.info("결제창으로 이동합니다. 이동하지 않으면 아래 링크를 클릭하세요.")
+                    st.link_button("결제창 열기", checkoutPage_url)
+                else:
+                    # 토큰 발급 실패 시 예약 취소
+                    api.items.cancelReservation(st.session_state.token, item, orderTime)
+                    st.warning(f"결제 생성 실패: {callTosspayToken.get('message')}")
+                    time.sleep(2)
+                    st.session_state.item = None
+                    st.rerun()
             else:
-                st.warning(f"결제 생성 실패: {callTosspayToken.get('message')}")
-                time.sleep(2)
-                st.session_state.item = None
-                st.rerun()
+                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
+                 time.sleep(2)
+                 st.session_state.item = None
+                 st.rerun()
+
         else:
             st.warning(body='상품 구매가 불가합니다 - soldout')
             time.sleep(2)

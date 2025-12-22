@@ -106,6 +106,11 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.rerun()
             else:
                 print(f'결제 승인 실패: {confirmResult.get("message")}')
+                # 결제 승인 실패 시 예약 취소 -> 재고 복구
+                if 'orderNo' in st.query_params:
+                    orderTime = st.query_params.orderNo[:12]
+                    api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
+
                 st.warning(body=f'결제 승인 실패: {confirmResult.get("message")}')
                 time.sleep(2)
                 if 'payToken' in st.session_state:
@@ -117,6 +122,11 @@ if any(value is not None for value in st.session_state.token.values()):
                 st.rerun()
         else:
             print('결제 승인 요청이 실패했습니다. 다시 시도해주세요.')
+            # 결제 승인 요청 실패 시 예약 취소 (status가 approved가 아닌 경우)
+            if 'orderNo' in st.query_params:
+                    orderTime = st.query_params.orderNo[:12]
+                    api.items.cancelReservation(st.session_state.token, st.session_state.item, orderTime)
+
             st.warning(body='결제 승인 요청이 실패했습니다. 다시 시도해주세요.')
             time.sleep(2)
             if 'payToken' in st.session_state:
