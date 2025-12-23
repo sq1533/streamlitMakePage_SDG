@@ -5,7 +5,66 @@ from PIL import Image
 import base64
 import json
 
+import logging
+import threading
+import requests
 from schema.schema import item
+
+# 텔레그램 로그 핸들러
+class TelegramLogHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        try:
+            self.bot_token = st.secrets["telegram"]["bot_token"]
+            self.chat_id = st.secrets["telegram"]["chat_id"]
+        except Exception:
+            self.bot_token = None
+            self.chat_id = None
+
+    def emit(self, record):
+        if not self.bot_token or not self.chat_id:
+            return
+
+        log_entry = self.format(record)
+
+        def send_msg():
+            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            data = {
+                'chat_id':self.chat_id,
+                'text':f'[CRITICAL ERROR]\n\n{log_entry}',
+                'parse_mode':'HTML'
+            }
+            try:
+                requests.post(url, data=data, timeout=5)
+            except Exception:
+                pass 
+
+        threading.Thread(target=send_msg).start()
+
+def get_logger():
+    logger = logging.getLogger('amuredo')
+    
+    # 중복 핸들러 방지
+    if logger.hasHandlers():
+        return logger
+        
+    logger.setLevel(logging.INFO)
+    
+    # 1. 콘솔 핸들러
+    c_handler = logging.StreamHandler()
+    c_handler.setLevel(logging.INFO)
+    c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(c_format)
+    logger.addHandler(c_handler)
+
+    # 2. 텔레그램 핸들러 (CRITICAL 레벨만)
+    t_handler = TelegramLogHandler()
+    t_handler.setLevel(logging.CRITICAL)
+    t_format = logging.Formatter('%(asctime)s - %(message)s')
+    t_handler.setFormatter(t_format)
+    logger.addHandler(t_handler)
+        
+    return logger
 
 # 1. Firebase 앱 초기화 (싱글톤 패턴 강화)
 @st.cache_resource

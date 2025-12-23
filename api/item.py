@@ -46,6 +46,7 @@ class items(utils.database):
             return False
 
         uid = str(uid_res.get('result'))
+        logger = utils.get_logger() # 로거 획득
 
         # 트랜잭션: 재고 차감 및 예약 설정
         def reserve_transaction(current_data):
@@ -77,7 +78,7 @@ class items(utils.database):
                 return False
 
         except Exception as e:
-            print(f"예약 트랜잭션 오류: {e}")
+            logger.error(f"예약 트랜잭션 오류 (User:{uid}, Item:{itemID}): {e}")
             return False
 
     # 예약 취소 (결제 실패/취소 시 재고 복구)
@@ -110,7 +111,7 @@ class items(utils.database):
             ref.transaction(restore_transaction)
             return True
         except Exception as e:
-            print(f"예약 취소 오류: {e}")
+            utils.get_logger().error(f"예약 취소 오류 (User:{uid}, Item:{itemID}): {e}")
             return False
 
     # 아이템 주문 확정 (예약 -> 주문 완료)
@@ -143,7 +144,7 @@ class items(utils.database):
             return True
 
         except Exception as e:
-            print(f"주문 확정 오류: {e}")
+            utils.get_logger().error(f"주문 확정 오류 (User:{uid}, Item:{itemID}): {e}")
             return False
 
     def addFeedback(token : dict, key : str, itemID : str, feedback : int, feedT : str|None) -> bool:
@@ -197,6 +198,7 @@ class items(utils.database):
             return current_data
 
         try:
+            logger = utils.get_logger()
             # 유저 주문 정보 트랜잭션
             order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
             order_result = order_ref.transaction(cancel_txn)
@@ -216,17 +218,25 @@ class items(utils.database):
                 
                 return current_data
 
-            item_ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
-            item_ref.transaction(restore_stock_txn)
+            try:
+                item_ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+                item_ref.transaction(restore_stock_txn)
+            except Exception as e:
+                # [CRITICAL] 주문은 취소됐으나 재고 복구 실패
+                logger.critical(f"CRITICAL: 주문취소(User:{uid}, Order:{key}) 완료 후 재고({itemID}) 복구 실패. 수동 확인 필요. 에러: {e}")
+                # 유저 입장에서는 취소가 성공한 것이므로 True 반환
 
             # 3. 리스트 관리 (실패해도 치명적이지 않음)
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item': itemID})
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
+            try:
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item': itemID})
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
+            except Exception as e:
+                logger.error(f"리스트 관리 실패 (주문취소 후처리): {e}")
             
             return True
 
         except Exception as e:
-            print(f"취소 트랜잭션 오류: {e}")
+            logger.error(f"취소 트랜잭션 오류 (User:{uid}, Order:{key}): {e}")
             return False
 
     # [SECURE] 환불 요청 (중복 처리 방지)
@@ -247,6 +257,7 @@ class items(utils.database):
             return current_data
 
         try:
+            logger = utils.get_logger()
             order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
             order_result = order_ref.transaction(refund_txn)
 
@@ -260,17 +271,23 @@ class items(utils.database):
                 current_data['refund'] = int(current_data.get('refund', 0)) + 1
                 return current_data
 
-            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
-            ref.transaction(refund_count_txn)
-            
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/refund/{key+'_'+uid}").set({'item':itemID})
+            try:
+                ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+                ref.transaction(refund_count_txn)
+            except Exception as e:
+                logger.critical(f"CRITICAL: 환불승인(User:{uid}, Order:{key}) 완료 후 재고({itemID}) 통계 업데이트 실패. 에러: {e}")
+
+            try:
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/refund/{key+'_'+uid}").set({'item':itemID})
+            except Exception as e:
+                logger.error(f"리스트 관리 실패 (환불 후처리): {e}")
             
             return True
 
         except Exception as e:
-            print(f"환불 트랜잭션 오류: {e}")
+            logger.error(f"환불 트랜잭션 오류 (User:{uid}, Order:{key}): {e}")
             return False
 
     # [SECURE] 교환 요청 (중복 처리 방지)
@@ -291,18 +308,22 @@ class items(utils.database):
             return current_data
 
         try:
+            logger = utils.get_logger()
             order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
             order_result = order_ref.transaction(exchange_txn)
 
             if order_result is None:
                 return False
 
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
-            utils.utilsDb().realtimeDB.reference(path=f"orderList/exchange/{key+'_'+uid}").set({'item':itemID})
+            try:
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
+                utils.utilsDb().realtimeDB.reference(path=f"orderList/exchange/{key+'_'+uid}").set({'item':itemID})
+            except Exception as e:
+                logger.error(f"리스트 관리 실패 (교환 요청 후처리): {e}")
 
             return True
 
         except Exception as e:
-            print(f"교환 요청 오류: {e}")
+            logger.error(f"교환 요청 오류 (User:{uid}, Order:{key}): {e}")
             return False

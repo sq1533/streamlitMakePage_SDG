@@ -2,10 +2,12 @@ import streamlit as st
 import requests
 import base64
 import json
+import utils
 
 #페이 서비스 연동
 class pay:
     def __init__(self):
+        # 네이버페이 기본 정보
         self.naverpayKey = st.secrets['naverpay']['testKey']
         self.checkoutPage_url = st.secrets['naverpay']['checkoutPage_url']
         self.naverpayReturnUrl = st.secrets['naverpay']['returnUrl']
@@ -17,6 +19,7 @@ class pay:
         self.tosspayRetUrl = st.secrets['tosspay']['retUrl']
         self.tosspayRetCancelUrl = st.secrets['tosspay']['retCancelUrl']
 
+    # 네이버페이 토큰 발급(paymentId)
     def naverpayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
         url = 'https://dev-pay.paygate.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
 
@@ -52,9 +55,10 @@ class pay:
             else:
                 return {'access': False, 'message': res_json.get('message')}
         except Exception as e:
+            utils.get_logger().error(f"네이버페이 토큰 발급 오류: {e}")
             return {'access': False, 'message': str(e)}
 
-    # 네이버페이 결제 승인 (Approve)
+    # 네이버페이 결제 승인
     def approve_naverpay(self, paymentId: str) -> dict:
         url = 'https://dev-pay.paygate.naver.com/naverpay-partner/naverpay/payments/v2/apply/payment'
         
@@ -77,12 +81,14 @@ class pay:
             else:
                 return {'access': False, 'message': res_json.get('message')}
         except Exception as e:
+            utils.get_logger().error(f"네이버페이 승인 오류: {e}")
             return {'access': False, 'message': str(e)}
     
     # 카카오페이
     def kakaopay():
         pass
     
+    # 토스페이 토큰발급(payToken)
     def tosspayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
         url = 'https://pay.toss.im/api/v2/payments'
         headers = {'Content-Type':'application/json'}
@@ -110,9 +116,10 @@ class pay:
             else:
                 return {'access':False, 'message':res_json.get('msg')}
         except Exception as e:
+            utils.get_logger().error(f"토스페이 토큰 오류: {e}")
             return {'access': False, 'message': str(e)}
 
-    # [2단계] 결제 승인 (필수)
+    # 결제 승인
     def confirm_tosspay(self, payToken: str, orderNo: str) -> dict:
         url = 'https://pay.toss.im/api/v2/execute'
         headers = {'Content-Type':'application/json'}
@@ -131,6 +138,7 @@ class pay:
             else:
                 return {'access':False, 'message':res_json.get('msg')}
         except Exception as e:
+            utils.get_logger().error(f"토스페이 승인 오류: {e}")
             return {'access': False, 'message': str(e)}
     
     # 토스페이 결제 환불
