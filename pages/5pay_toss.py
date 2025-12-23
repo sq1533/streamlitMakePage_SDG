@@ -73,15 +73,12 @@ try_restore_session()
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
-        if 'payToken' not in st.session_state:
-            st.warning("유효하지 않은 접근이거나 이미 처리된 주문입니다.")
-            time.sleep(2)
-            st.switch_page("mainPage.py")
 
-        confirmResult : dict = api.pay().confirm_tosspay(
+        confirmResult : dict = api.pay().approve_tosspay(
             payToken=st.session_state.payToken,
             orderNo=st.query_params.orderNo
             )
+
         if confirmResult.get('access'):
             orderTime : str = st.query_params.orderNo[:12]
             order : bool = api.items.itemOrder(
@@ -90,18 +87,20 @@ if any(value is not None for value in st.session_state.token.values()):
                 orderTime=orderTime,
                 address=st.session_state.user.get('address')['home'],
                 comment=st.session_state.delicomment,
-                payToken=st.session_state.payToken,
+                payId=st.session_state.payToken,
                 pay='toss'
                 )
             if order:
                 st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+
                 if 'payToken' in st.session_state:
                     del st.session_state.payToken
                 if 'item' in st.session_state:
                     del st.session_state.item
                 if 'delicomment' in st.session_state:
                     del st.session_state.delicomment
+
                 time.sleep(2)
                 st.switch_page("pages/3myPage_orderList.py")
             else:

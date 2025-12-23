@@ -12,7 +12,16 @@ class pay:
         self.checkoutPage_url = st.secrets['naverpay']['checkoutPage_url']
         self.naverpayReturnUrl = st.secrets['naverpay']['returnUrl']
 
-        self.kakaopayKey = st.secrets['kakaopay']
+        # 카카오페이 기본 정보
+        self.kakaopayKey = st.secrets['kakaopay']['testKey']
+        self.kakaopayCid = st.secrets['kakaopay']['testCid']
+        self.kakaopayReturnUrl = st.secrets['kakaopay']['returnUrl']
+        self.kakaopayCancelUrl = st.secrets['kakaopay']['cancelUrl']
+        self.kakaopayFailUrl = st.secrets['kakaopay']['failUrl']
+        self.kakao_headers = {
+            'Authorization': f"KakaoAK {self.kakaopayKey}",
+            'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+        }
 
         # 토스페이 기본 정보
         self.tosspayKey = st.secrets['tosspay']['testKey']
@@ -83,11 +92,77 @@ class pay:
         except Exception as e:
             utils.get_logger().error(f"네이버페이 승인 오류: {e}")
             return {'access': False, 'message': str(e)}
-    
-    # 카카오페이
-    def kakaopay():
+
+    # 네이버페이 환불
+    def refund_naverpay():
         pass
-    
+
+
+    # 카카오페이 토큰
+    def kakaopayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
+        url = 'https://open-api.kakaopay.com/v1/payment/ready'
+
+        approval_url = f"{self.kakaopayReturnUrl}?orderNo={orderNo}"
+        cancel_url = f"{self.kakaopayCancelUrl}?orderNo={orderNo}"
+        fail_url = f"{self.kakaopayFailUrl}?orderNo={orderNo}"
+
+        data = {
+            'cid':self.kakaopayCid,
+            'partner_order_id':orderNo,
+            'partner_user_id':orderNo,
+            'item_name':itemName,
+            'quantity':1,
+            'total_amount':amount,
+            'tax_free_amount':0,
+            'approval_url':approval_url,
+            'cancel_url':cancel_url,
+            'fail_url':fail_url,
+        }
+
+        try:
+            response = requests.post(url, headers=self.kakao_headers, data=data)
+            res_json = response.json()
+            
+            if response.status_code == 200:
+                return {
+                    'access': True,
+                    'tid': res_json['tid'],
+                    'checkoutPage': res_json['next_redirect_pc_url']
+                }
+            else:
+                return {'access': False, 'message': res_json.get('msg', 'Unknown Error')}
+        except Exception as e:
+            utils.get_logger().error(f"카카오페이 준비 오류: {e}")
+            return {'access': False, 'message': str(e)}
+
+    # 카카오페이 결제 승인
+    def approve_kakaopay(self, tid: str, pg_token: str, orderNo: str) -> dict:
+        url = 'https://open-api.kakaopay.com/v1/payment/approve'
+        
+        data = {
+            'cid':self.kakaopayCid,
+            'tid':tid,
+            'partner_order_id':orderNo,
+            'partner_user_id':orderNo,
+            'pg_token':pg_token
+        }
+        
+        try:
+            response = requests.post(url, headers=self.kakao_headers, data=data)
+            res_json = response.json()
+            
+            if response.status_code == 200:
+                 return {'access': True, 'data': res_json}
+            else:
+                 return {'access': False, 'message': res_json.get('msg', 'Approval Failed')}
+        except Exception as e:
+            utils.get_logger().error(f"카카오페이 승인 오류: {e}")
+            return {'access': False, 'message': str(e)}
+
+    # 카카오페이 환불
+    def refund_kakaopay():
+        pass
+
     # 토스페이 토큰발급(payToken)
     def tosspayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
         url = 'https://pay.toss.im/api/v2/payments'
@@ -120,7 +195,7 @@ class pay:
             return {'access': False, 'message': str(e)}
 
     # 결제 승인
-    def confirm_tosspay(self, payToken: str, orderNo: str) -> dict:
+    def approve_tosspay(self, payToken: str, orderNo: str) -> dict:
         url = 'https://pay.toss.im/api/v2/execute'
         headers = {'Content-Type':'application/json'}
         payload = {

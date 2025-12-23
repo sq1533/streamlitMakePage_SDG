@@ -5,11 +5,12 @@ import time
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title='AMUREDO - Naver Pay',
+    page_title='AMUREDO',
     page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
 )
+
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
@@ -25,8 +26,8 @@ def cancelReservation():
     if orderTime:
         api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
 
-        if 'payToken' in st.session_state:
-            del st.session_state.payToken
+        if 'reserveId' in st.session_state:
+            del st.session_state.reserveId
         if 'item' in st.session_state:
             del st.session_state.item
         if 'delicomment' in st.session_state:
@@ -56,7 +57,7 @@ def try_restore_session():
         
         if data:
             st.session_state.token = data.get('token', st.session_state.token)
-            st.session_state.payToken = data.get('payToken')
+            st.session_state.reserveId = data.get('reserveId') # reserveId 저장
             st.session_state.item = data.get('item')
             st.session_state.delicomment = data.get('delicomment')
             # 고객정보 재호출
@@ -92,16 +93,16 @@ if any(value is not None for value in st.session_state.token.values()):
                 orderTime=orderTime,
                 address=st.session_state.user.get('address')['home'],
                 comment=st.session_state.delicomment,
-                payToken=paymentId, # 네이버페이 결제 번호
+                payId=paymentId, # 네이버페이 결제 번호
                 pay='naver'
                 )
                 
             if order:
                 st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                
-                if 'payToken' in st.session_state:
-                    del st.session_state.payToken
+
+                if 'reserveId' in st.session_state:
+                    del st.session_state.reserveId
                 if 'item' in st.session_state:
                     del st.session_state.item
                 if 'delicomment' in st.session_state:

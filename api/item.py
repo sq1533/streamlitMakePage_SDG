@@ -115,7 +115,7 @@ class items(utils.database):
             return False
 
     # 아이템 주문 확정 (예약 -> 주문 완료)
-    def itemOrder(token : dict, itemID : str, orderTime : str, address : str, comment : str|None, payToken : str, pay : str) -> bool:
+    def itemOrder(token : dict, itemID : str, orderTime : str, address : str, comment : str|None, payId : str, pay : str) -> bool:
         uid_res = guest.tokenToUid(token=token)
         if not uid_res.get('allow'):
             print('고객정보 호출 실패')
@@ -136,7 +136,7 @@ class items(utils.database):
                 'address' : address,
                 'comment' : comment,
                 'status' : 'ready',
-                'payToken' : payToken,
+                'payId' : payId,
                 'pay' : pay
             }
             utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)

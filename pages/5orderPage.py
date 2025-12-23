@@ -112,17 +112,15 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         type='primary',
         width='stretch'
         )
-
     kakaopayBTN = kakaopay.button(
         label='kakao Pay',
         type='primary',
         width='stretch'
         )
-
     tosspayBTN = tosspay.button(
         label='Toss Pay', 
         type='primary', 
-        use_container_width=True
+        width='stretch'
     )
 
     # 네이버페이 결제 요청
@@ -157,7 +155,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
                         ref.set({
                             'token':st.session_state.token,
-                            'payToken':reserveId, # reserveId 저장
+                            'reserveId':reserveId, # reserveId 저장
                             'item':st.session_state.item,
                             'delicomment':st.session_state.get('delicomment'),
                             'user_address':st.session_state.user.get('address').get('home'),
@@ -179,6 +177,73 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     # 토큰 발급 실패 시 예약 취소
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
                     st.warning(f"결제 생성 실패: {callNaverpay.get('message')}")
+                    time.sleep(2)
+                    if 'item' in st.session_state:
+                        del st.session_state.item
+                    st.rerun()
+            else:
+                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
+                 time.sleep(2)
+                 if 'item' in st.session_state:
+                    del st.session_state.item
+                 st.rerun()
+        else:
+            st.warning(body='상품 구매가 불가합니다 - soldout')
+            time.sleep(2)
+            if 'item' in st.session_state:
+                del st.session_state.item
+            st.rerun()
+
+    if kakaopayBTN:
+        itemStatus : dict = api.items.itemStatus(itemId=item)
+        if itemStatus.get('enable'):
+            now = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now.strftime("%y%m%d%H%M%S")
+
+            raw_order_no = f"{orderTime}{item}{email}"
+            orderNo = raw_order_no.ljust(35, '0')[:35]
+
+            reserved = api.items.reserveItem(
+                token=st.session_state.token,
+                itemID=item,
+                orderTime=orderTime
+            )
+
+            if reserved:
+                callKakaopay : dict = api.pay().kakaopayToken(
+                    orderNo=orderNo,
+                    itemName=itemInfo['name'],
+                    amount=int(itemInfo['price'])
+                    )
+                
+                if callKakaopay.get('access'):
+                    tid : str = callKakaopay.get('tid')
+                    checkoutPage_url = callKakaopay.get('checkoutPage')
+
+                    try:
+                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref.set({
+                            'token':st.session_state.token,
+                            'tid':tid,
+                            'item':st.session_state.item,
+                            'delicomment':st.session_state.get('delicomment'),
+                            'user_address':st.session_state.user.get('address').get('home'),
+                            'pay_method': 'kakao'
+                        })
+                        print(f"임시 저장 완료 (Kakao): {orderNo}")
+                    except Exception as e:
+                        print(f"임시 저장 실패: {e}")
+
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
+
+                    st.info("카카오페이 결제창으로 이동합니다.")
+                    st.link_button("결제창 열기", checkoutPage_url)
+                else:
+                    api.items.cancelReservation(st.session_state.token, item, orderTime)
+                    st.warning(f"결제 생성 실패: {callKakaopay.get('message')}")
                     time.sleep(2)
                     if 'item' in st.session_state:
                         del st.session_state.item
