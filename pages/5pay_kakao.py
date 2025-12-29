@@ -62,6 +62,10 @@ try_restore_session()
 
 # 메인 로직
 if any(value is not None for value in st.session_state.token.values()):
+
+    # 아이템 정보 호출( 환불시 가격 정보 필요 )
+    itemInfo = api.items.showItem()
+
     pg_token = st.query_params['pg_token']
     orderNo = st.query_params['orderNo']
 
@@ -103,8 +107,18 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.switch_page("pages/3myPage_orderList.py")
                 else:
                     st.error("재고 소진 등의 이유로 주문 처리에 실패했습니다. (자동 환불 필요)")
-                    # 환불 로직 추가 필요 (Cancel API) - 현재 구현 범위 밖
+                    refund_result = api.pay().refund_kakaopay(
+                        tid=st.session_state.tid,
+                        amount=int(itemInfo.loc[st.session_state.item]['price'])
+                    )
+                    if refund_result:
+                        st.info("환불이 완료되었습니다.")
+                    else:
+                        st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
+
+                    time.sleep(2)
                     cancelReservation()
+                    st.rerun()
             else:
                 st.error(f"결제 승인 실패: {approve_result.get('message')}")
                 cancelReservation()

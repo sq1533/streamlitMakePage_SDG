@@ -20,7 +20,7 @@ class pay:
         self.kakaopayFailUrl = st.secrets['kakaopay']['failUrl']
         self.kakao_headers = {
             'Authorization': f"KakaoAK {self.kakaopayKey}",
-            'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+            'Content-Type': 'application/json'
         }
 
         # 토스페이 기본 정보
@@ -160,8 +160,28 @@ class pay:
             return {'access': False, 'message': str(e)}
 
     # 카카오페이 환불
-    def refund_kakaopay():
-        pass
+    def refund_kakaopay(self, tid : str, amount : int) -> bool:
+        url = 'https://open-api.kakaopay.com/online/v1/payment/cancel'
+
+        data = {
+            'cid':self.kakaopayCid,
+            'tid':tid,
+            'cancel_amount':amount,
+            'cancel_tax_free_amount':0
+        }
+        
+        try:
+            response = requests.post(url, headers=self.kakao_headers, json=data)
+            res_json = response.json()
+            
+            if response.status_code == 200:
+                return True
+            else:
+                utils.get_logger().error(f"카카오페이 환불 실패: {res_json}")
+                return False
+        except Exception as e:
+            utils.get_logger().error(f"카카오페이 환불 오류: {e}")
+            return False
 
     # 토스페이 토큰발급(payToken)
     def tosspayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
