@@ -91,7 +91,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 # 신규 가입 시도
@@ -111,11 +111,11 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
         except Exception as e:
-            print(e)
+            utils.get_logger().error(e)
             return {'allow':False, 'result':e}
 
     # 카카오 로그인 요청
@@ -159,7 +159,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 # 신규 가입 시도
@@ -179,12 +179,12 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
 
         except Exception as e:
-            print(e)
+            utils.get_logger().error(e)
             return {'allow':False, 'result':e}
 
     # 구글 gmail 요청
@@ -236,7 +236,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 return {'allow': True, 'result': userResult.model_dump()}
             else:
                 # 1. 이름 파싱
@@ -277,12 +277,12 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    print(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow': True, 'result': userResult.model_dump()}
 
         except Exception as e:
-            print(e)
+            utils.get_logger().error(e)
             return {'allow': False, 'result': e}
 
     # 회원 정보호출
@@ -299,18 +299,18 @@ class guest(utils.database):
                 userData = user(**userInfo)
                 return {'result':userData.model_dump()}
             except Exception as e:
-                print(f'파싱 오류 {uid} : {e}')
+                utils.get_logger().error(f'파싱 오류 {uid} : {e}')
                 return {'result':'회원 정보 호출 실패'}
 
         except Exception as e:
-            print(f'회원 정보 호출 오류 : {e}')
+            utils.get_logger().error(f'회원 정보 호출 오류 : {e}')
             return {'result':'회원 정보 호출 실패'}
 
     # 회원 탈퇴
     def guestOUT(token : dict) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            print('고객정보 호출 실패')
+            utils.get_logger().error('고객정보 호출 실패')
             return False
 
         uid = str(uid.get('result'))
@@ -324,7 +324,7 @@ class guest(utils.database):
     def addHomeAddr(token : dict, addr : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            print('고객정보 호출 실패')
+            utils.get_logger().error('고객정보 호출 실패')
             return False
 
         uid = str(uid.get('result'))
@@ -336,7 +336,7 @@ class guest(utils.database):
     def addAddr(token : dict, addAddr : str):
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            print('고객정보 호출 실패')
+            utils.get_logger().error('고객정보 호출 실패')
             return False
 
         uid = str(uid.get('result'))
@@ -348,7 +348,7 @@ class guest(utils.database):
     def delAddr(token : dict, delAddrKey : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            print('고객정보 호출 실패')
+            utils.get_logger().error('고객정보 호출 실패')
             return False
 
         uid = uid.get('result')
@@ -360,7 +360,7 @@ class guest(utils.database):
     def homeAddr(token : dict, homeAddrKey : str, homeAddr : str) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
-            print('고객정보 호출 실패')
+            utils.get_logger().error('고객정보 호출 실패')
             return False
 
         uid = str(uid.get('result'))
@@ -393,29 +393,31 @@ class guest(utils.database):
         # 본문 추가
         emailMain.attach(MIMEText(body, 'plain'))
 
-        # 이메일 전송
-        try:
-            with smtplib.SMTP(
-                host=utils.utilsDb().emailAccess['SENDER_SERVER'],
-                port=utils.utilsDb().emailAccess['SENDER_PORT']
-                ) as smtp_server:
-                smtp_server.ehlo() # 서버에 자신을 소개
-                smtp_server.starttls() # TLS 암호화 시작
-                smtp_server.login(utils.utilsDb().emailAccess['SENDER_EMAIL'], utils.utilsDb().emailAccess['SENDER_APP_PASSWORD'])
-                smtp_server.send_message(emailMain)
-            return True
+        # 이메일 전송 (비동기 처리)
+        def sending_task():
+            try:
+                with smtplib.SMTP(
+                    host=utils.utilsDb().emailAccess['SENDER_SERVER'],
+                    port=utils.utilsDb().emailAccess['SENDER_PORT']
+                    ) as smtp_server:
+                    smtp_server.ehlo() # 서버에 자신을 소개
+                    smtp_server.starttls() # TLS 암호화 시작
+                    smtp_server.login(utils.utilsDb().emailAccess['SENDER_EMAIL'], utils.utilsDb().emailAccess['SENDER_APP_PASSWORD'])
+                    smtp_server.send_message(emailMain)
+                
+            except smtplib.SMTPAuthenticationError:
+                utils.get_logger().error('오류: SMTP 인증 실패.')
 
-        except smtplib.SMTPAuthenticationError:
-            print('오류: SMTP 인증 실패.')
-            return False
+            except smtplib.SMTPServerDisconnected:
+                utils.get_logger().error('오류: SMTP 서버 연결 끊김.')
 
-        except smtplib.SMTPServerDisconnected:
-            print('오류: SMTP 서버 연결 끊김.')
-            return False
+            except Exception as e:
+                utils.get_logger().error(f"이메일 전송 오류: {e}")
 
-        except Exception as e:
-            print(e)
-            return False
+        import threading
+        threading.Thread(target=sending_task).start()
+        
+        return True
 
 # 나이 검증_만 14세 이하 (연도 기준)
 def check_under_14(birthdate_int: int) -> bool:
