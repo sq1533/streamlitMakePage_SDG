@@ -14,6 +14,7 @@ utils.set_page_ui()
 import api
 import time
 from datetime import datetime, timezone, timedelta
+import streamlit.components.v1 as components
 
 utils.init_session()
 
@@ -165,14 +166,14 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     except Exception as e:
                         print(f"임시 저장 실패: {e}")
 
-                    # 네이버페이 결제창 전환
-                    st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
-                        unsafe_allow_html=True
-                        )
+                    js_code = f"""
+                    <script>
+                        window.location.href = "{checkoutPage_url}";
+                    </script>
+                    """
+                    components.html(js_code, height=0)
 
-                    st.info("네이버페이 결제창으로 이동합니다.")
-                    st.link_button("결제창 열기", checkoutPage_url)
+                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
                     # 토큰 발급 실패 시 예약 취소
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
@@ -234,13 +235,14 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     except Exception as e:
                         print(f"임시 저장 실패: {e}")
 
-                    st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
-                        unsafe_allow_html=True
-                        )
+                    js_code = f"""
+                    <script>
+                        window.location.href = "{checkoutPage_url}";
+                    </script>
+                    """
+                    components.html(js_code, height=0)
 
-                    st.info("카카오페이 결제창으로 이동합니다.")
-                    st.link_button("결제창 열기", checkoutPage_url)
+                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
                     st.toast(f"결제 생성 실패: {callKakaopay.get('message')}", icon="❌")
@@ -304,14 +306,14 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     except Exception as e:
                         print(f"임시 저장 실패: {e}")
                     
-                    # 토스페이 결제창 전환
-                    st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
-                        unsafe_allow_html=True
-                        )
+                    js_code = f"""
+                    <script>
+                        window.location.href = "{checkoutPage_url}";
+                    </script>
+                    """
+                    components.html(js_code, height=0)
 
-                    st.info("결제창으로 이동합니다. 이동하지 않으면 아래 링크를 클릭하세요.")
-                    st.link_button("결제창 열기", checkoutPage_url)
+                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
                     # 토큰 발급 실패 시 예약 취소
                     api.items.cancelReservation(st.session_state.token, item, orderTime)

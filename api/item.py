@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+import time
 import utils
 from api import guest
 
@@ -71,7 +72,8 @@ class items(utils.database):
                 utils.utilsDb().realtimeDB.reference(path=f'reservations/{orderTime}_{uid}').set({
                     'item': itemID,
                     'status': 'reserved',
-                    'timestamp': {'.sv': 'timestamp'}
+                    'timestamp': {'.sv': 'timestamp'},
+                    'expires_at': int(time.time()) + 600
                 })
                 return True
             else:

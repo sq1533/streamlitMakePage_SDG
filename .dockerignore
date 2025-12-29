@@ -8,3 +8,4 @@ venv/
 .git/
 .gitignore
 .dockerignore
+pages/cleanup_reservations.py
