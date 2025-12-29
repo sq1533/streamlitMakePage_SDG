@@ -284,6 +284,10 @@ class items(utils.database):
             except Exception as e:
                 logger.error(f"리스트 관리 실패 (환불 후처리): {e}")
             
+            
+            # 텔레그램 알림 전송
+            utils.send_telegram_message(f"환불 요청: {uid}님이 {itemID} 상품(주문번호:{key}) 환불을 요청했습니다.")
+            
             return True
 
         except Exception as e:
@@ -321,6 +325,10 @@ class items(utils.database):
                 utils.utilsDb().realtimeDB.reference(path=f"orderList/exchange/{key+'_'+uid}").set({'item':itemID})
             except Exception as e:
                 logger.error(f"리스트 관리 실패 (교환 요청 후처리): {e}")
+
+            
+            # 텔레그램 알림 전송
+            utils.send_telegram_message(f"교환 요청: {uid}님이 {itemID} 상품(주문번호:{key}) 교환을 요청했습니다.")
 
             return True
 

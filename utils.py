@@ -16,13 +16,15 @@ class TelegramLogHandler(logging.Handler):
         super().__init__()
         try:
             self.bot_token = st.secrets["telegram"]["bot_token"]
-            self.chat_id = st.secrets["telegram"]["chat_id"]
+            self.error_chat_id = st.secrets["telegram"]["error_chat_id"]
+            self.user_request_id = st.secrets["telegram"]["user_request_id"]
         except Exception:
             self.bot_token = None
-            self.chat_id = None
+            self.error_chat_id = None
+            self.user_request_id = None
 
     def emit(self, record):
-        if not self.bot_token or not self.chat_id:
+        if not self.bot_token or not self.error_chat_id:
             return
 
         log_entry = self.format(record)
@@ -30,7 +32,7 @@ class TelegramLogHandler(logging.Handler):
         def send_msg():
             url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
             data = {
-                'chat_id':self.chat_id,
+                'chat_id':self.error_chat_id,
                 'text':f'[CRITICAL ERROR]\n\n{log_entry}',
                 'parse_mode':'HTML'
             }
@@ -40,6 +42,30 @@ class TelegramLogHandler(logging.Handler):
                 pass 
 
         threading.Thread(target=send_msg).start()
+    
+
+
+# 일반 알림 전송 (환불, 교환 등)
+def send_telegram_message(msg: str):
+    try:
+        bot_token = st.secrets["telegram"]["bot_token"]
+        user_request_id = st.secrets["telegram"]["user_request_id"]
+    except Exception:
+        return
+
+    def send_msg():
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        data = {
+            'chat_id': user_request_id,
+            'text': str(msg),
+            'parse_mode': 'HTML'
+        }
+        try:
+            requests.post(url, data=data, timeout=5)
+        except Exception:
+            pass
+
+    threading.Thread(target=send_msg).start()
 
 def get_logger():
     logger = logging.getLogger('amuredo')
