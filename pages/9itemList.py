@@ -95,8 +95,8 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.info(body='기본 배송지 설정 필요')
-            time.sleep(2)
+            st.toast("기본 배송지 설정 필요", icon="⚠️")
+            time.sleep(0.7)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")

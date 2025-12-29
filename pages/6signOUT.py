@@ -45,17 +45,17 @@ if any(value is not None for value in st.session_state.token.values()):
         type='primary',
         width='stretch'
     )
+
     if DontOut:
-        with st.spinner(text="함께 해주셔서 감사합니다. :smile:"):
-            st.info(body="home으로 이동중...")
-            time.sleep(2)
-            st.switch_page(page="mainPage.py")
+        st.toast("함께 해주셔서 감사합니다.", icon=":smile:")
+        time.sleep(0.7)
+        st.switch_page(page="mainPage.py")
+
     if out:
-        with st.spinner(text="그동한 함께 해주셔서 감사합니다."):
-            api.guest.guestOUT(token=st.session_state.token)
-            st.info(body="회원 탈퇴 완료")
-            time.sleep(2)
-            st.session_state.clear()
-            st.switch_page(page="mainPage.py")
+        api.guest.guestOUT(token=st.session_state.token)
+        st.toast('그동한 함께 해주셔서 감사합니다.')
+        time.sleep(0.7)
+        st.session_state.clear()
+        st.switch_page(page="mainPage.py")
 else:
     st.switch_page(page="mainPage.py")

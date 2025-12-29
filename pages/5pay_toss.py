@@ -112,17 +112,18 @@ if any(value is not None for value in st.session_state.token.values()):
                     reason="재고 소진으로 인한 자동 취소"
                 )
                 if refund_result:
-                    st.info("환불이 완료되었습니다.")
+                    st.toast("환불이 완료되었습니다.")
                 else:
-                    st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
+                    st.toast("환불 처리에 실패했습니다. 고객센터에 문의해주세요.", icon="❌")
 
-                time.sleep(2)
                 cancelReservation()
+                time.sleep(0.7)
                 st.rerun()
         else:
             print(f'결제 승인 실패: {confirmResult.get("message")}')
-            st.error(f'결제 승인 실패: {confirmResult.get("message")}')
+            st.toast(f'결제 승인 실패: {confirmResult.get("message")}', icon="❌")
             cancelReservation()
+            time.sleep(0.7)
             st.rerun()
 
 else:

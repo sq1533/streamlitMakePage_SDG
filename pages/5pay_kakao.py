@@ -112,15 +112,16 @@ if any(value is not None for value in st.session_state.token.values()):
                         amount=int(itemInfo.loc[st.session_state.item]['price'])
                     )
                     if refund_result:
-                        st.info("환불이 완료되었습니다.")
+                        st.toast("환불이 완료되었습니다.")
                     else:
-                        st.error("환불 처리에 실패했습니다. 고객센터에 문의해주세요.")
+                        st.toast(f'결제 승인 실패: {approve_result.get("message")}', icon="❌")
 
-                    time.sleep(2)
+                    time.sleep(0.7)
                     cancelReservation()
                     st.rerun()
             else:
-                st.error(f"결제 승인 실패: {approve_result.get('message')}")
+                st.toast(f"결제 생성 실패: {approve_result.get('message')}", icon="❌")
+                time.sleep(0.7)
                 cancelReservation()
 else:
     st.switch_page('mainPage.py')

@@ -100,8 +100,8 @@ if any(value is not None for value in st.session_state.token.values()):
                     if fbing:
                         feadbackDone = api.items.addFeedback(token=st.session_state.token, key=orderTime, itemID=itemID, feedback=fbing, feedT=fdt)
                         if feadbackDone:
-                            st.info(body='소중한 의견 감사합니다.')
-                            time.sleep(2)
+                            st.toast('소중한 의견 감사합니다.', icon="✅")
+                            time.sleep(0.7)
                             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                             st.rerun()
                         else:

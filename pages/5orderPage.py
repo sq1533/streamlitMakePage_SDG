@@ -176,8 +176,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                 else:
                     # 토큰 발급 실패 시 예약 취소
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
-                    st.warning(f"결제 생성 실패: {callNaverpay.get('message')}")
-                    time.sleep(2)
+                    st.toast(f"결제 생성 실패: {callNaverpay.get('message')}", icon="❌")
+                    time.sleep(1)
                     if 'item' in st.session_state:
                         del st.session_state.item
                     st.rerun()
@@ -188,8 +188,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     del st.session_state.item
                  st.rerun()
         else:
-            st.warning(body='상품 구매가 불가합니다 - soldout')
-            time.sleep(2)
+            st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
+            time.sleep(1)
             if 'item' in st.session_state:
                 del st.session_state.item
             st.rerun()
@@ -243,8 +243,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     st.link_button("결제창 열기", checkoutPage_url)
                 else:
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
-                    st.warning(f"결제 생성 실패: {callKakaopay.get('message')}")
-                    time.sleep(2)
+                    st.toast(f"결제 생성 실패: {callKakaopay.get('message')}", icon="❌")
+                    time.sleep(1)
                     if 'item' in st.session_state:
                         del st.session_state.item
                     st.rerun()
@@ -255,8 +255,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     del st.session_state.item
                  st.rerun()
         else:
-            st.warning(body='상품 구매가 불가합니다 - soldout')
-            time.sleep(2)
+            st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
+            time.sleep(1)
             if 'item' in st.session_state:
                 del st.session_state.item
             st.rerun()
@@ -315,21 +315,21 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                 else:
                     # 토큰 발급 실패 시 예약 취소
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
-                    st.warning(f"결제 생성 실패: {callTosspayToken.get('message')}")
-                    time.sleep(2)
+                    st.toast(f"결제 생성 실패: {callTosspayToken.get('message')}", icon="❌")
+                    time.sleep(1)
                     if 'item' in st.session_state:
                         del st.session_state.item
                     st.rerun()
             else:
-                st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
-                time.sleep(2)
+                st.toast("재고가 부족하여 주문할 수 없습니다. (Sold Out)", icon="⚠️")
+                time.sleep(1)
                 if 'item' in st.session_state:
                     del st.session_state.item
                 st.rerun()
 
         else:
-            st.warning(body='상품 구매가 불가합니다 - soldout')
-            time.sleep(2)
+            st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
+            time.sleep(1)
             if 'item' in st.session_state:
                 del st.session_state.item
             st.rerun()

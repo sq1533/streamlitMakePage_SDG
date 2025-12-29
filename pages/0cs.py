@@ -54,14 +54,14 @@ if any(value is not None for value in st.session_state.token.values()):
                 with st.spinner(text='문의를 전송하고 있습니다...'):
                     result : bool = api.guest.sendEmail(userInfo=st.session_state.user, title=title, content=content)
                     if result:
-                        st.success(body='문의가 성공적으로 접수되었습니다! 빠른 시일 내에 답변 드리겠습니다.')
-                        time.sleep(2)
+                        st.toast('문의가 성공적으로 접수되었습니다! 빠른 시일 내에 답변 드리겠습니다.', icon="✅")
+                        time.sleep(0.7)
                         st.switch_page(page='mainPage.py')
                     else:
-                        st.error(body='문의 접수에 실패했습니다. 잠시 후 다시 시도해주세요.')
-                        time.sleep(2)
+                        st.toast('문의 접수에 실패했습니다. 잠시 후 다시 시도해주세요.', icon="❌")
+                        time.sleep(0.7)
                         st.switch_page(page='mainPage.py')
 else:
-    st.warning(body='고객확인이 되지 않았습니다. 로그인 이후 문의 부탁드립니다.')
-    time.sleep(3)
+    st.toast('고객확인이 되지 않았습니다. 로그인 이후 문의 부탁드립니다.', icon="⚠️")
+    time.sleep(0.7)
     st.switch_page(page='mainPage.py')
