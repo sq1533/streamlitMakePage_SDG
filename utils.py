@@ -83,9 +83,9 @@ def get_logger():
     c_handler.setFormatter(c_format)
     logger.addHandler(c_handler)
 
-    # 2. 텔레그램 핸들러 (CRITICAL 레벨만)
+    # 2. 텔레그램 핸들러 (ERROR 레벨만)
     t_handler = TelegramLogHandler()
-    t_handler.setLevel(logging.CRITICAL)
+    t_handler.setLevel(logging.ERROR)
     t_format = logging.Formatter('%(asctime)s - %(message)s')
     t_handler.setFormatter(t_format)
     logger.addHandler(t_handler)

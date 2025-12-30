@@ -19,7 +19,7 @@ utils.init_session()
 
 # 주문 취소 dialog
 @st.dialog(title='주문 취소', width='medium')
-def cancelOrder(key : str, itemID : str, orderInfo : dict):
+def cancelOrder(key : str, orderInfo : dict, itemInfo):
     st.markdown(body='주문 취소하시겠습니까?')
 
     st.selectbox(
@@ -42,18 +42,18 @@ def cancelOrder(key : str, itemID : str, orderInfo : dict):
         if payWay == 'naver':
             pass
         elif payWay == 'kakao':
-            pass
+            refundResult = api.pay().refund_kakaopay(tid=orderInfo.get('payId'), amount=int(itemInfo['price']), reason=st.session_state.reason)
         elif payWay == 'toss':
             email = str(st.session_state.user.get('email')).split('@', 1)[0]
             raw_order_no = f"{key}{orderInfo.get('item')}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
-            refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payToken'), refundNo=orderNo, reason=st.session_state.reason)
+            refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payId'), refundNo=orderNo, reason=st.session_state.reason)
         else:
             refundResult = False
 
         # 결제 취소 진행(firebase)
         if refundResult:
-            func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=itemID)
+            func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=orderInfo.get('item'))
             if func:
                 st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
@@ -87,12 +87,11 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     key = st.session_state.orderItem[0]
     orderInfo = st.session_state.orderItem[1]
 
-    itemID = orderInfo.get('item')
     address = orderInfo.get('address')
     status = utils.utilsDb().showStatus[orderInfo.get('status')]
 
     # 아이템 정보
-    itemIF = api.items.showItem().loc[itemID]
+    itemIF = api.items.showItem().loc[orderInfo.get('item')]
     with st.container(height='content', border=True):
         image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
 
@@ -119,6 +118,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         width='stretch'
     )
     if cancelItemB:
-        cancelOrder(key=key, itemID=itemID, orderInfo=orderInfo)
+        cancelOrder(key=key, orderInfo=orderInfo, itemInfo=itemIF)
 else:
     st.switch_page(page='pages/3myPage_orderList.py')

@@ -164,14 +164,12 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         })
                         print(f"임시 저장 완료 (Naver): {orderNo}")
                     except Exception as e:
-                        print(f"임시 저장 실패: {e}")
+                        print(f"임시 저장 실패 (Naver): {e}")
 
-                    js_code = f"""
-                    <script>
-                        window.location.href = "{checkoutPage_url}";
-                    </script>
-                    """
-                    components.html(js_code, height=0)
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
 
                     st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
@@ -233,14 +231,12 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         })
                         print(f"임시 저장 완료 (Kakao): {orderNo}")
                     except Exception as e:
-                        print(f"임시 저장 실패: {e}")
+                        print(f"임시 저장 실패 (Kakao): {e}")
 
-                    js_code = f"""
-                    <script>
-                        window.location.href = "{checkoutPage_url}";
-                    </script>
-                    """
-                    components.html(js_code, height=0)
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
 
                     st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
@@ -302,16 +298,14 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                             'delicomment':st.session_state.get('delicomment'),
                             'user_address':st.session_state.user.get('address').get('home')
                         })
-                        print(f"임시 저장 완료: {orderNo}")
+                        print(f"임시 저장 완료 (toss): {orderNo}")
                     except Exception as e:
-                        print(f"임시 저장 실패: {e}")
+                        print(f"임시 저장 실패 (toss): {e}")
                     
-                    js_code = f"""
-                    <script>
-                        window.location.href = "{checkoutPage_url}";
-                    </script>
-                    """
-                    components.html(js_code, height=0)
+                    st.markdown(
+                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        unsafe_allow_html=True
+                        )
 
                     st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
                 else:
