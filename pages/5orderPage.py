@@ -37,7 +37,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     if goHome:
         st.switch_page(page="mainPage.py")
 
-    st.info(body='결제 시스템 준비중입니다. 네이버페이(미구현) 카카오페이(미구현) 토스페이(테스트 결제)')
+    st.info(body='결제 시스템 준비중입니다. 네이버페이(미구현) 카카오페이(테스트 결제) 토스페이(테스트 결제)')
 
     col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 
