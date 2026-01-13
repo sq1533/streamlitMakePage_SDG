@@ -40,7 +40,7 @@ if st.session_state.selected_notice:
         st.session_state.selected_notice = None
         st.rerun()
 
-    st.subheader(f'[{notice.get('date')}] {notice.get('title')}')
+    st.subheader(f"[{notice.get('date')}] {notice.get('title')}")
     st.divider()
     st.write(notice.get('content'))
 
@@ -48,7 +48,7 @@ else:
     st.subheader('공지사항')
     for notice in utils.utilsDb().notice:
         selectBTN = st.button(
-            label=f'{notice.get('date')} | {notice.get('title')}',
+            label=f"{notice.get('date')} | {notice.get('title')}",
             type='tertiary',
             width='content'
             )

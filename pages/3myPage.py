@@ -118,7 +118,7 @@ if any(value is not None for value in st.session_state.token.values()):
             empty, homeAddrB, deleteB = st.columns(spec=[3,2,1], gap="small", vertical_alignment="center")
             deleteBTN = deleteB.button(
                 label='삭제',
-                key=f'delete_{key}',
+                key=f"delete_{key}",
                 type='secondary',
                 width='content'
                 )
@@ -129,7 +129,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
             homeAddrBTN = homeAddrB.button(
                 label='주 배송지로 변경',
-                key=f'home_{key}',
+                key=f"home_{key}",
                 type='secondary',
                 width='content'
                 )

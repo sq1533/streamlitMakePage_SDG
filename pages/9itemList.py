@@ -185,7 +185,7 @@ for index, item in sortedItems.iterrows():
 
         viewBTN = st.button(
             label='상세보기',
-            key=f'loop_item_{index}',
+            key=f"loop_item_{index}",
             type='primary',
             width='stretch'
         )

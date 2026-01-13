@@ -52,7 +52,7 @@ def try_restore_session():
     orderNo : str = st.query_params['orderNo']
 
     try:
-        ref = utils.utilsDb().realtimeDB.reference(f'payment_temp/{orderNo}')
+        ref = utils.utilsDb().realtimeDB.reference(f"payment_temp/{orderNo}")
         data = ref.get()
         
         if data:
@@ -117,8 +117,8 @@ if any(value is not None for value in st.session_state.token.values()):
                 st.rerun()
 
         else:
-            print(f'결제 승인 실패: {confirmResult.get("message")}')
-            st.toast(f'결제 승인 실패: {confirmResult.get("message")}', icon="❌")
+            print(f"결제 승인 실패: {confirmResult.get('message')}")
+            st.toast(f"결제 승인 실패: {confirmResult.get('message')}", icon="❌")
             cancelReservation()
             time.sleep(0.7)
             st.rerun()

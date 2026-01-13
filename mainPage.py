@@ -201,7 +201,7 @@ for index, item in bestGlasses.iterrows():
 
         viewBTN = st.button(
             label='상세보기',
-            key=f'loop_item_{index}',
+            key=f"loop_item_{index}",
             type='primary',
             width='stretch'
         )
@@ -233,7 +233,7 @@ for index, item in bestSunglasses.iterrows():
 
         viewBTN = st.button(
             label='상세보기',
-            key=f'loop_item_{index}',
+            key=f"loop_item_{index}",
             type='primary',
             width='stretch'
         )

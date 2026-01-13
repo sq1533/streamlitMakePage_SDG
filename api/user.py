@@ -60,7 +60,7 @@ class guest(utils.database):
             'redirect_uri':st.secrets['naver_api']['redirect_uri']
         }
         encoded_params = urllib.parse.urlencode(naverSignInParams)
-        return f'https://nid.naver.com/oauth2.0/authorize?{encoded_params}'
+        return f"https://nid.naver.com/oauth2.0/authorize?{encoded_params}"
 
     # 네이버 고객 토큰 발급
     def naverToken(code : str, state : str) -> dict:
@@ -91,7 +91,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 # 신규 가입 시도
@@ -111,7 +111,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
         except Exception as e:
@@ -127,7 +127,7 @@ class guest(utils.database):
             'state':secrets.randbits(k=16)
         }
         encoded_params = urllib.parse.urlencode(kakaoSignInParams)
-        return f'https://kauth.kakao.com/oauth/authorize?{encoded_params}'
+        return f"https://kauth.kakao.com/oauth/authorize?{encoded_params}"
 
     # 카카오 토큰 발행
     def kakaoToken(code : str) -> dict:
@@ -159,7 +159,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 return {'allow':True, 'result':userResult.model_dump()}
             else:
                 # 신규 가입 시도
@@ -179,7 +179,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow':True, 'result':userResult.model_dump()}
 
@@ -205,7 +205,7 @@ class guest(utils.database):
             'state': secrets.randbits(k=16)
         }
         encoded_params = urllib.parse.urlencode(googleSignInParams)
-        return f'https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}'
+        return f"https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}"
 
     # gmail 토큰 발행
     def gmailToken(code : str) -> dict:
@@ -236,7 +236,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userInfo)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 return {'allow': True, 'result': userResult.model_dump()}
             else:
                 # 1. 이름 파싱
@@ -277,7 +277,7 @@ class guest(utils.database):
                 try:
                     userResult = user(**userData)
                 except Exception as e:
-                    utils.get_logger().error(f'파싱 오류 {userId} : {e}')
+                    utils.get_logger().error(f"파싱 오류 {userId} : {e}")
                 realtimeUser.child(userId).set(value=userResult.model_dump())
                 return {'allow': True, 'result': userResult.model_dump()}
 
@@ -294,16 +294,16 @@ class guest(utils.database):
         uid = str(uid.get('result'))
 
         try:
-            userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').get()
+            userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}").get()
             try:
                 userData = user(**userInfo)
                 return {'result':userData.model_dump()}
             except Exception as e:
-                utils.get_logger().error(f'파싱 오류 {uid} : {e}')
+                utils.get_logger().error(f"파싱 오류 {uid} : {e}")
                 return {'result':'회원 정보 호출 실패'}
 
         except Exception as e:
-            utils.get_logger().error(f'회원 정보 호출 오류 : {e}')
+            utils.get_logger().error(f"회원 정보 호출 오류 : {e}")
             return {'result':'회원 정보 호출 실패'}
 
     # 회원 탈퇴
@@ -315,9 +315,9 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').get()
-        utils.utilsDb().realtimeDB.reference(path=f'user/out_{secrets.randbits(k=16)}_{uid}').set(userInfo)
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}').delete()
+        userInfo : dict = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}").get()
+        utils.utilsDb().realtimeDB.reference(path=f"user/out_{secrets.randbits(k=16)}_{uid}").set(userInfo)
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}").delete()
         return True
 
     # 소셜 사용자 기본 배송지 추가
@@ -329,7 +329,7 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').set({'home':addr})
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address").set({'home':addr})
         return True
 
     # 사용자 주소 추가
@@ -341,7 +341,7 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').push(addAddr)
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address").push(addAddr)
         return True
 
     # 사용자 주소 삭제
@@ -353,7 +353,7 @@ class guest(utils.database):
 
         uid = uid.get('result')
 
-        utils.utilsDb().realtimeDB.reference().child(f'user/{uid}/address/{delAddrKey}').delete()
+        utils.utilsDb().realtimeDB.reference().child(f"user/{uid}/address/{delAddrKey}").delete()
         return True
 
     # 주 배송지 수정
@@ -365,10 +365,10 @@ class guest(utils.database):
 
         uid = str(uid.get('result'))
 
-        oldAddr : str = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address/home').get()
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').push(oldAddr)
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address').update({'home':homeAddr})
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/address/{homeAddrKey}').delete()
+        oldAddr : str = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address/home").get()
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address").push(oldAddr)
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address").update({'home':homeAddr})
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address/{homeAddrKey}").delete()
         return True
 
     # 고객 문의, 이메일전송(amuredo_shop@naver.com)
@@ -380,7 +380,7 @@ class guest(utils.database):
 
         # 이메일 셋팅
         emailMain = MIMEMultipart()
-        emailMain['Subject'] = f'amuredo 문의 : {title}'
+        emailMain['Subject'] = f"amuredo 문의 : {title}"
         emailMain['From'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
         emailMain['To'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
         body = f"""

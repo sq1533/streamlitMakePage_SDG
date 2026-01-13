@@ -119,10 +119,10 @@ else:
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
     price.markdown(
-        body=f'''
+        body=f"""
         ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
         ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
-        '''
+        """
         )
 
     buyBTN = buy.button(

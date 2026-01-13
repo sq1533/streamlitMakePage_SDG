@@ -44,10 +44,10 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     with col1:
         st.title(body=itemInfo['name'])
         st.markdown(
-            body=f'''
+            body=f"""
             ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
             ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
-            '''
+            """
             )
         st.markdown(body='##### 배송비 :blue[무료배송]')
 
@@ -56,7 +56,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         width='stretch'
         )
 
-    st.markdown(body=f'##### {st.session_state.user.get('address')['home']}')
+    st.markdown(body=f"##### {st.session_state.user.get('address')['home']}")
     st.text_input(
         label='배송 요청사항',
         value=None,
@@ -111,7 +111,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     naverpayBTN = naverpay.button(
         label='Naver Pay',
         type='primary',
-        width='stretch'
+        width='stretch',
+        disabled=True
         )
     kakaopayBTN = kakaopay.button(
         label='kakao Pay',
@@ -153,7 +154,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
                     # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
                     try:
-                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.set({
                             'token':st.session_state.token,
                             'reserveId':reserveId, # reserveId 저장
@@ -167,7 +168,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         print(f"임시 저장 실패 (Naver): {e}")
 
                     st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
                         unsafe_allow_html=True
                         )
 
@@ -220,7 +221,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     checkoutPage_url = callKakaopay.get('checkoutPage')
 
                     try:
-                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.set({
                             'token':st.session_state.token,
                             'tid':tid,
@@ -234,7 +235,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         print(f"임시 저장 실패 (Kakao): {e}")
 
                     st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
                         unsafe_allow_html=True
                         )
 
@@ -290,7 +291,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
                     # 페이지 전환시, 정보 초기화 방지를 위한 고객 세션 및 결제정보 임시저장
                     try:
-                        ref = utils.utilsDb().realtimeDB.reference(path=f'payment_temp/{orderNo}')
+                        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.set({
                             'token':st.session_state.token,
                             'payToken':payToken,
@@ -303,7 +304,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                         print(f"임시 저장 실패 (toss): {e}")
                     
                     st.markdown(
-                        body=f'<meta http-equiv="refresh" content="0;url={checkoutPage_url}">',
+                        body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
                         unsafe_allow_html=True
                         )
 

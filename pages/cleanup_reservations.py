@@ -45,7 +45,7 @@ def cleanup_logic():
             st.write(f"🛑 만료된 예약 발견: {res_id} (Item: {item_id})")
 
             try:
-                item_ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{item_id}')
+                item_ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{item_id}")
                 
                 def restore_transaction(current_data):
                     if current_data is None:

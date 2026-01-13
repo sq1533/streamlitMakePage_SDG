@@ -28,7 +28,7 @@ else:
             if kakaoToken.get('allow'):
                 userInfo = requests.post(
                     url='https://kapi.kakao.com/v2/user/me',
-                    headers={'Authorization' : f'Bearer {kakaoToken['result']['access_token']}'}
+                    headers={'Authorization' : f"Bearer {kakaoToken['result']['access_token']}"}
                 )
                 if userInfo.status_code == 200:
                     signIN : dict = api.guest.kakaoUser(response=userInfo.json())

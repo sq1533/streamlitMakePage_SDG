@@ -39,7 +39,7 @@ class pay:
         }
         
         # 리다이렉트 될 URL
-        returnUrl = f'{self.naverpayReturnUrl}?orderNo={orderNo}'
+        returnUrl = f"{self.naverpayReturnUrl}?orderNo={orderNo}"
         
         payload = {
             'merchantPayKey':orderNo,
@@ -59,7 +59,7 @@ class pay:
                 return {
                     'access': True,
                     'reserveId': res_json['body']['reserveId'], # 결제 예약 ID
-                    'checkoutPage_url': f'{self.checkoutPage_url}{reserveId}'
+                    'checkoutPage_url': f"{self.checkoutPage_url}{reserveId}"
                 }
             else:
                 return {'access': False, 'message': res_json.get('message')}

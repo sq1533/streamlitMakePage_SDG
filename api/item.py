@@ -35,7 +35,7 @@ class items(utils.database):
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:
         try:
-            itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemId}').get()
+            itemStatus : dict = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemId}").get()
             return itemStatus
         except Exception as e:
             return {'failed' : str(e)}
@@ -65,11 +65,11 @@ class items(utils.database):
             return current_data
 
         try:
-            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+            ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
             result = ref.transaction(reserve_transaction)
 
             if result:
-                utils.utilsDb().realtimeDB.reference(path=f'reservations/{orderTime}_{uid}').set({
+                utils.utilsDb().realtimeDB.reference(path=f"reservations/{orderTime}_{uid}").set({
                     'item': itemID,
                     'status': 'reserved',
                     'timestamp': {'.sv': 'timestamp'},
@@ -103,13 +103,13 @@ class items(utils.database):
             return current_data
 
         try:
-            res_ref = utils.utilsDb().realtimeDB.reference(path=f'reservations/{orderTime}_{uid}')
+            res_ref = utils.utilsDb().realtimeDB.reference(path=f"reservations/{orderTime}_{uid}")
             if res_ref.get() is None:
                 return False 
 
             res_ref.delete()
 
-            ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+            ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
             ref.transaction(restore_transaction)
             return True
         except Exception as e:
@@ -126,7 +126,7 @@ class items(utils.database):
         uid = str(uid_res.get('result'))
 
         try:
-            res_ref = utils.utilsDb().realtimeDB.reference(path=f'reservations/{orderTime}_{uid}')
+            res_ref = utils.utilsDb().realtimeDB.reference(path=f"reservations/{orderTime}_{uid}")
             if res_ref.get() is None:
                 print("예약 정보를 찾을 수 없음")
                 return False
@@ -141,7 +141,7 @@ class items(utils.database):
                 'payId' : payId,
                 'pay' : pay
             }
-            utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{orderTime}').set(orderData)
+            utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{orderTime}").set(orderData)
             utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{orderTime+'_'+uid}").set({'item':itemID})
             return True
 
@@ -157,8 +157,8 @@ class items(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'feedback':feedback})
-        fb : dict = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}/feedback').get()
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}").update({'feedback':feedback})
+        fb : dict = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}/feedback").get()
         textReview : list = fb.get('text')
         textReview.append(key+'_'+feedT)
         result = {
@@ -166,7 +166,7 @@ class items(utils.database):
             'count' : fb.get('count') + 1,
             'text' : textReview
         }
-        utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}/feedback').update(result)
+        utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}/feedback").update(result)
         return True
 
     # 주문상품 배송지 변경
@@ -178,7 +178,7 @@ class items(utils.database):
 
         uid = str(uid.get('result'))
 
-        utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}').update({'address':addr, 'comment':comment})
+        utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}").update({'address':addr, 'comment':comment})
         return True
 
     # [SECURE] 주문 취소 및 환불 (중복 취소 방지 적용)
@@ -202,7 +202,7 @@ class items(utils.database):
         try:
             logger = utils.get_logger()
             # 유저 주문 정보 트랜잭션
-            order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
+            order_ref = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}")
             order_result = order_ref.transaction(cancel_txn)
 
             if order_result is None:
@@ -221,7 +221,7 @@ class items(utils.database):
                 return current_data
 
             try:
-                item_ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+                item_ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
                 item_ref.transaction(restore_stock_txn)
             except Exception as e:
                 # [CRITICAL] 주문은 취소됐으나 재고 복구 실패
@@ -260,7 +260,7 @@ class items(utils.database):
 
         try:
             logger = utils.get_logger()
-            order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
+            order_ref = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}")
             order_result = order_ref.transaction(refund_txn)
 
             if order_result is None:
@@ -274,7 +274,7 @@ class items(utils.database):
                 return current_data
 
             try:
-                ref = utils.utilsDb().realtimeDB.reference(path=f'itemStatus/{itemID}')
+                ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
                 ref.transaction(refund_count_txn)
             except Exception as e:
                 logger.critical(f"CRITICAL: 환불승인(User:{uid}, Order:{key}) 완료 후 재고({itemID}) 통계 업데이트 실패. 에러: {e}")
@@ -315,7 +315,7 @@ class items(utils.database):
 
         try:
             logger = utils.get_logger()
-            order_ref = utils.utilsDb().realtimeDB.reference(path=f'user/{uid}/orderList/{key}')
+            order_ref = utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}")
             order_result = order_ref.transaction(exchange_txn)
 
             if order_result is None:

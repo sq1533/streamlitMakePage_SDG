@@ -29,7 +29,7 @@ else:
                 userInfo = requests.get(
                     url='https://people.googleapis.com/v1/people/me',
                     params={'personFields': 'names,emailAddresses,birthdays,phoneNumbers'},
-                    headers={'Authorization': f'Bearer {gmailToken["result"]["access_token"]}'}
+                    headers={'Authorization': f"Bearer {gmailToken['result']['access_token']}"}
                 )
                 if userInfo.status_code == 200:
                     signIN : dict = api.guest.gmailUser(response=userInfo.json())

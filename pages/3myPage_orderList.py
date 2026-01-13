@@ -52,7 +52,7 @@ if any(value is not None for value in st.session_state.token.values()):
             # 상품
             itemIF = itemInfo.loc[itemID]
 
-            with st.expander(label=f'주문 날짜 : {datetime.strptime(orderTime, "%y%m%d%H%M%S")} // {itemIF["name"]} {status}'):
+            with st.expander(label=f"주문 날짜 : {datetime.strptime(orderTime, '%y%m%d%H%M%S')} // {itemIF['name']} {status}"):
                 # 상품 이미지, 정보 호출
                 image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
                 with image.container():
@@ -61,10 +61,10 @@ if any(value is not None for value in st.session_state.token.values()):
                         output_format='JPEG'
                     )
                 with info.container():
-                    st.markdown(body=f'##### {itemIF['name']}')
-                    st.markdown(body=f'##### {address}')
+                    st.markdown(body=f"##### {itemIF['name']}")
+                    st.markdown(body=f"##### {address}")
                     if comment:
-                        st.markdown(body=f'##### {comment}')
+                        st.markdown(body=f"##### {comment}")
                     else:
                         pass
 
@@ -79,19 +79,19 @@ if any(value is not None for value in st.session_state.token.values()):
                     label='후기 남기기',
                     value=None,
                     max_chars=20,
-                    key=f'feedText_{key}',
+                    key=f"feedText_{key}",
                     placeholder='상품은 어떠셨나요?',
                     disabled=fbDisable,
                     label_visibility='collapsed'
                 )
                 fbing = feed.feedback(
                     options='thumbs',
-                    key=f'itemFB_{key}',
+                    key=f"itemFB_{key}",
                     disabled=fbDisable
                     )
                 fbB = feedB.button(
                     label='평가',
-                    key=f'feedbackAdd_{key}',
+                    key=f"feedbackAdd_{key}",
                     type='secondary',
                     disabled=fbDisable,
                     width='stretch'
@@ -165,7 +165,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 # 주문 상품 배송지 변경
                 changeAddrB = changeAddr.button(
                     label='배송지 변경',
-                    key=f'address_{key}',
+                    key=f"address_{key}",
                     type='primary',
                     disabled=btnStatus.get('addressChange'),
                     width='stretch'
@@ -177,7 +177,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 # 주문 상품 상세정보
                 aboutItemB = aboutItem.button(
                     label='상품 상세',
-                    key=f'item_{key}',
+                    key=f"item_{key}",
                     type='primary',
                     width='stretch'
                 )
@@ -188,7 +188,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 # 주문 상태 변경
                 chagneStatusB = changeStatus.button(
                     label=btnStatus.get('statusChange'),
-                    key=f'order_{key}',
+                    key=f"order_{key}",
                     type='primary',
                     disabled=btnStatus.get('cancelB'),
                     width='stretch'

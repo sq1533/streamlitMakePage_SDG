@@ -28,7 +28,7 @@ else:
             if naverToken.get('allow'):
                 userInfo = requests.post(
                     url='https://openapi.naver.com/v1/nid/me',
-                    headers={'Authorization':f'Bearer {naverToken['result']['access_token']}'}
+                    headers={'Authorization':f"Bearer {naverToken['result']['access_token']}"}
                     )
                 if userInfo.status_code == 200 and userInfo.json()['resultcode'] == '00':
                     signIN : dict = api.guest.naverUser(response=userInfo.json()['response'])
