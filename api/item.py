@@ -321,6 +321,19 @@ class items(utils.database):
             if order_result is None:
                 return False
 
+            def exchange_count_txn(current_data):
+                if current_data is None:
+                    return None
+
+                current_data['exchange'] = int(current_data.get('exchange', 0)) + 1
+                return current_data
+
+            try:
+                ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
+                ref.transaction(exchange_count_txn)
+            except Exception as e:
+                logger.critical(f"CRITICAL: 교환요청(User:{uid}, Order:{key}) 완료 후 재고({itemID}) 통계 업데이트 실패. 에러: {e}")
+
             try:
                 utils.utilsDb().realtimeDB.reference(path=f"orderList/delivery/{key+'_'+uid}").delete()
                 utils.utilsDb().realtimeDB.reference(path=f"orderList/complete/{key+'_'+uid}").delete()
@@ -328,7 +341,6 @@ class items(utils.database):
             except Exception as e:
                 logger.error(f"리스트 관리 실패 (교환 요청 후처리): {e}")
 
-            
             # 텔레그램 알림 전송
             utils.send_telegram_message(f"교환 요청: {uid}님이 {itemID} 상품(주문번호:{key}) 교환을 요청했습니다.")
 
