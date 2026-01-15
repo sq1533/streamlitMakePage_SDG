@@ -8,7 +8,7 @@ import utils
 class pay:
     def __init__(self):
         # 네이버페이 기본 정보
-        self.naverpayKey = st.secrets['naverpay']['testKey']
+        self.naverpayKey = st.secrets['naverpay']['key']
         self.checkoutPage_url = st.secrets['naverpay']['checkoutPage_url']
         self.naverpayReturnUrl = st.secrets['naverpay']['returnUrl']
 
@@ -24,7 +24,7 @@ class pay:
         }
 
         # 토스페이 기본 정보
-        self.tosspayKey = st.secrets['tosspay']['testKey']
+        self.tosspayKey = st.secrets['tosspay']['key']
         self.tosspayRetUrl = st.secrets['tosspay']['retUrl']
         self.tosspayRetCancelUrl = st.secrets['tosspay']['retCancelUrl']
 
