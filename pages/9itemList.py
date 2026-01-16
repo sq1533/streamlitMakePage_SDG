@@ -18,20 +18,18 @@ import pandas as pd
 utils.init_session()
 
 if st.session_state.page == 'sporty':
-    page = {'vanner':'vannerSporty', 'category':'sporty'}
+    page = {'category':'sporty'}
 elif st.session_state.page == 'daily':
-    page = {'vanner':'vannerDaily', 'category':'daily'}
+    page = {'category':'daily'}
 elif st.session_state.page == 'glasses':
-    page = {'vanner':'vannerDaily', 'sort':'glasses'}
+    page = {'sort':'glasses'}
 elif st.session_state.page == 'sunglasses':
-    page = {'vanner':'vannerDaily', 'sort':'sunglasses'}
+    page = {'sort':'sunglasses'}
 else:
     st.switch_page(page='mainPage.py')
 
-index = list(page.keys())[1]
+index : str = list(page.keys())[0]
 
-# 페이지 배너 가져오기
-vanner : dict = utils.utilsDb().firestore_vanner.get(page.get('vanner'))
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
 itemData = itemData[itemData[index] == page.get(index)]
@@ -52,31 +50,6 @@ goHome = st.button(
 )
 if goHome:
     st.switch_page(page="mainPage.py")
-
-# 상단 vanner
-st.html(
-    body=f"""
-    <style>
-        .banner-video {{
-            width: 100%;
-            height: auto;
-            aspect-ratio: 21 / 9;
-            object-fit: cover;
-        }}
-    </style>
-    <video
-        class="banner-video"
-        autoplay
-        muted
-        loop
-        playsinline 
-        poster="{vanner.get('path')}">
-
-        <source src="{vanner.get('video_webm')}" type="video/webm">
-        <source src="{vanner.get('video_mp4')}" type="video/mp4">
-    </video>
-    """
-)
 
 # siderbar 정의
 with st.sidebar:
@@ -146,7 +119,8 @@ with st.sidebar:
 
     sortedFilter = st.radio(
         label='정렬',
-        options=['New', '인기순', '낮은 가격순', '높은 가격순'],
+        options=['인기순', 'New', '낮은 가격순', '높은 가격순'],
+        index=0,
         label_visibility='collapsed'
     )
 
@@ -160,14 +134,12 @@ for l in range(line):
 # 상품 정렬을 위한 키 리스트 정리
 if sortedFilter == 'New':
     sortedItems = itemData.sort_values(by='created_at', ascending=False)
-elif sortedFilter == '인기순':
-    sortedItems = itemData.sort_values(by='sales', ascending=False)
 elif sortedFilter == '낮은 가격순':
     sortedItems = itemData.sort_values(by='price', ascending=True)
 elif sortedFilter == '높은 가격순':
     sortedItems = itemData.sort_values(by='price', ascending=False)
 else:
-    sortedItems = itemData
+    sortedItems = itemData.sort_values(by='sales', ascending=False)
 
 # 아이템 3열 배치
 for index, item in sortedItems.iterrows():

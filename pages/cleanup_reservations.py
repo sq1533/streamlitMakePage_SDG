@@ -53,7 +53,7 @@ def cleanup_logic():
 
                     current_data['count'] = int(current_data.get('count', 0)) + 1
                     current_data['sales'] = int(current_data.get('sales', 0)) - 1
-                    if current_data['count'] > 10:
+                    if current_data['count'] > 5:
                         current_data['enable'] = True
                     return current_data
 

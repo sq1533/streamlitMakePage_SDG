@@ -10,6 +10,9 @@ class items(utils.database):
     # 아이템 ID 정보 조회
     @st.cache_data(ttl=36000)
     def showItem() -> pd.DataFrame:
+        if utils.utilsDb().fs_client:
+            utils.utilsDb().refresh_items()
+            
         itemInfo : dict = utils.utilsDb().firestore_item
         keys = list(itemInfo.keys())
         items = []
@@ -54,13 +57,13 @@ class items(utils.database):
             if current_data is None: return None
 
             current_count = int(current_data.get('count', 0))
-            if current_count <= 10:
+            if current_count <= 5:
                 return None
 
             current_data['count'] = current_count - 1
             current_data['sales'] = int(current_data.get('sales', 0)) + 1
 
-            if current_data['count'] <= 10:
+            if current_data['count'] <= 5:
                 current_data['enable'] = False
             return current_data
 
@@ -73,7 +76,7 @@ class items(utils.database):
                     'item': itemID,
                     'status': 'reserved',
                     'timestamp': {'.sv': 'timestamp'},
-                    'expires_at': int(time.time()) + 600
+                    'expires_at': int(time.time()) + 300
                 })
                 return True
             else:
@@ -98,7 +101,7 @@ class items(utils.database):
             current_data['count'] = int(current_data.get('count', 0)) + 1
             current_data['sales'] = int(current_data.get('sales', 0)) - 1
 
-            if current_data['count'] > 10:
+            if current_data['count'] > 5:
                 current_data['enable'] = True
             return current_data
 
@@ -215,7 +218,7 @@ class items(utils.database):
                 current_data['count'] = int(current_data.get('count', 0)) + 1
                 current_data['sales'] = int(current_data.get('sales', 0)) - 1
                 
-                if current_data['count'] > 10:
+                if current_data['count'] > 5:
                     current_data['enable'] = True
                 
                 return current_data

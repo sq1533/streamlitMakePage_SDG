@@ -194,18 +194,29 @@ class database:
             print(f"배너 로딩 실패: {e}")
 
         # 2. 아이템 로딩
+        self._load_items()
+
+    def _load_items(self):
         try:
             itemSnapshot = self.fs_client.collection('item').stream()
+            new_items = {}
             for doc in itemSnapshot:
                 data = doc.to_dict()
                 if data:
                     try:
                         itemData = item(**data) # 스키마 적용
-                        self.firestore_item[doc.id] = itemData
+                        new_items[doc.id] = itemData
                     except Exception as e:
                         print(f"아이템 파싱 오류 {doc.id}: {e}")
+            self.firestore_item = new_items
         except Exception as e:
             print(f"아이템 목록 로딩 실패: {e}")
+
+    def refresh_items(self):
+        """아이템 정보를 강제로 새로고침합니다."""
+        print("아이템 정보 새로고침 시작...")
+        self._load_items()
+        print("아이템 정보 새로고침 완료")
 
     def _load_configs(self):
         # 페이지 icon
