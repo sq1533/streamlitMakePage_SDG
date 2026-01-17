@@ -3,12 +3,6 @@ import time
 import logging
 
 def cleanup_zombie_reservations(log_func=print):
-    """
-    만료된 '좀비' 예약을 정리하고 재고를 복구합니다.
-    
-    Args:
-        log_func (callable): 로그를 출력할 함수 (예: print, st.write, logger.info). 기본값은 print.
-    """
     reservations_ref = utils.utilsDb().realtimeDB.reference(path='reservations')
     reservations = reservations_ref.get()
     
