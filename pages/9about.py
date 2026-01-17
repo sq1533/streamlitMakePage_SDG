@@ -11,6 +11,10 @@ st.set_page_config(
 
 # 페이지 UI 변경 사항
 utils.set_page_ui()
+
+# 세션 관리
+utils.init_session()
+
 # 페이지 UI 변경 사항
 st.html(
         """
@@ -47,15 +51,55 @@ st.html(
         """
     )
 
-# 홈으로 이동
-goHome = st.button(
-    label='HOME',
-    type='primary',
-    width='content',
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
+with st.sidebar:
+    st.title(body='amuredo')
+
+    # 회원 로그인 정보 검증
+    if any(value is not None for value in st.session_state.token.values()):
+        logoutB = st.button(
+            label='sign_out',
+            type='secondary',
+            width='stretch'
+        )
+        if logoutB:
+            st.session_state.clear()
+            st.rerun()
+
+        if st.session_state.user.get('address'):
+            pass
+        else:
+            st.toast("기본 배송지 설정 필요", icon="⚠️")
+            time.sleep(0.7)
+            st.switch_page(page='pages/1signIN_address.py')
+
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
+
+        myinfo = myinfo.button(
+            label='마이페이지',
+            type='tertiary',
+            width='stretch'
+        )
+        orderL = orderList.button(
+            label='주문내역',
+            type='tertiary',
+            width='stretch'
+        )
+        # 마이페이지
+        if myinfo:
+            st.switch_page(page="pages/3myPage.py")
+        # 주문 내역 페이지
+        if orderL:
+            st.switch_page(page="pages/3myPage_orderList.py")
+    else:
+        signIn = st.button(
+            label='로그인 / 회원가입',
+            type='primary',
+            width='stretch'
+        )
+        if signIn:
+            st.switch_page(page="pages/1signIN.py")
+
+    utils.set_sidebar()
 
 st.title(body='AMUREDO')
 st.caption(body='Beyond the basics, comfort in every moment.')
@@ -106,7 +150,7 @@ with col3:
     st.html(
         """
         <div class="feature-card">
-            <div class="feature-icon">🪶</div>
+            <div class="feature-icon">🍃</div>
             <div class="feature-title">Light Weight</div>
             <div class="feature-desc">
                 하루 종일 써도 피로하지 않은 가벼운 소재를 사용하여 활동성을 극대화했습니다.

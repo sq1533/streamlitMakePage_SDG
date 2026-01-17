@@ -75,18 +75,16 @@ def exchangeCall(key : str, item : str):
 
 # 회원 로그인 검증 및 주문 상품 정보 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
+
     with st.sidebar:
+        # 홈으로 이동 (네이티브 링크 사용)
+        st.page_link(
+            page='mainPage.py',
+            label='amuredo'
+        )
         st.title(body="교환 및 환불 요청")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+        utils.set_sidebar()
 
     key = st.session_state.orderItem[0]
     orderInfo = st.session_state.orderItem[1]
@@ -113,6 +111,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             {address}
             """
             )
+
         empty, exchangeItem, refundItem = st.columns(spec=[1,1,1], gap='small', vertical_alignment='center')
 
         # 교환 요청 버튼

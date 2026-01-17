@@ -25,8 +25,14 @@ if "item_id" in st.query_params:
 if not st.session_state.item:
     st.switch_page(page='mainPage.py')
 else:
+
     with st.sidebar:
-        st.title(body='amuredo')
+        # 홈으로 이동 (네이티브 링크 사용)
+        st.page_link(
+            page='mainPage.py',
+            label='amuredo'
+        )
+
         # 회원 로그인 정보 검증
         if any(value is not None for value in st.session_state.token.values()):
             logoutB = st.button(
@@ -72,15 +78,7 @@ else:
             if signIn:
                 st.switch_page(page="pages/1signIN.py")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+        utils.set_sidebar()
 
     itemKey : str = st.session_state.item
     itemInfo = api.items.showItem().loc[itemKey]
@@ -90,26 +88,15 @@ else:
     feedT = feedback.get('text')
 
     row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
-    with row1.container():
-        st.image(
-            image=str(itemInfo['paths'][0]),
-            output_format='JPEG'
-        )
-    with row2.container():
-        st.image(
-            image=str(itemInfo['paths'][2]),
-            output_format='JPEG'
-        )
-    with row1.container():
-        st.image(
-            image=str(itemInfo['paths'][1]),
-            output_format='JPEG'
-        )
-    with row2.container():
-        st.image(
-            image=str(itemInfo['paths'][3]),
-            output_format='JPEG'
-        )
+
+    row1.image(
+        image=str(itemInfo['paths'][0]),
+        output_format='JPEG'
+    )
+    row2.image(
+        image=str(itemInfo['paths'][1]),
+        output_format='JPEG'
+    )
     
     # 상품 카테고리
     st.markdown(body=f"#### :gray[amuredo > {itemInfo['category']}]")
@@ -118,12 +105,8 @@ else:
 
     # 상품 가격 및 구매 버튼
     price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
-    price.markdown(
-        body=f"""
-        ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
-        ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
-        """
-        )
+
+    price.markdown(body=f"### {itemInfo['price']:,}원")
 
     buyBTN = buy.button(
         label='구매하기',
@@ -139,7 +122,9 @@ else:
 
     # 상품 상세 정보
     with st.expander(label="상품 세부정보"):
+
         info, feed = st.tabs(tabs=['info', '후기'])
+
         with info:
             st.image(
                 image=str(itemInfo['detail']),

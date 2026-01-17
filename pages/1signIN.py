@@ -23,16 +23,6 @@ else:
     with st.sidebar:
         st.title(body='로그인/회원가입')
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page='mainPage.py')
-
     # 네이버 로그인 버튼
     st.html(
         body=f"""

@@ -22,7 +22,19 @@ class items(utils.database):
         itemData = pd.DataFrame(
             data=items,
             index=keys,
-            columns=['series', 'color', 'event', 'category', 'sort', 'name', 'price', 'discount', 'paths', 'detail', 'package', 'created_at']
+            columns=[
+                'created_at',
+                'series',
+                'sort',
+                'category',
+                'name',
+                'color',
+                'event',
+                'price',
+                'paths',
+                'detail',
+                'package'
+                ]
             )
         return itemData
 
@@ -152,6 +164,7 @@ class items(utils.database):
             utils.get_logger().error(f"주문 확정 오류 (User:{uid}, Item:{itemID}): {e}")
             return False
 
+    # 아이템 피드백 추가
     def addFeedback(token : dict, key : str, itemID : str, feedback : int, feedT : str|None) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
@@ -184,7 +197,7 @@ class items(utils.database):
         utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/orderList/{key}").update({'address':addr, 'comment':comment})
         return True
 
-    # [SECURE] 주문 취소 및 환불 (중복 취소 방지 적용)
+    # 주문 취소 및 환불 (중복 취소 방지 적용)
     def orderCancel(token : dict, key : str, itemID : str) -> bool:
         uid_res = guest.tokenToUid(token=token)
         if not uid_res.get('allow'):
@@ -227,11 +240,11 @@ class items(utils.database):
                 item_ref = utils.utilsDb().realtimeDB.reference(path=f"itemStatus/{itemID}")
                 item_ref.transaction(restore_stock_txn)
             except Exception as e:
-                # [CRITICAL] 주문은 취소됐으나 재고 복구 실패
+                # 주문은 취소됐으나 재고 복구 실패
                 logger.critical(f"CRITICAL: 주문취소(User:{uid}, Order:{key}) 완료 후 재고({itemID}) 복구 실패. 수동 확인 필요. 에러: {e}")
                 # 유저 입장에서는 취소가 성공한 것이므로 True 반환
 
-            # 3. 리스트 관리 (실패해도 치명적이지 않음)
+            # 리스트 관리 (실패해도 치명적이지 않음)
             try:
                 utils.utilsDb().realtimeDB.reference(path=f"orderList/cancel/{key+'_'+uid}").set({'item': itemID})
                 utils.utilsDb().realtimeDB.reference(path=f"orderList/newOrder/{key+'_'+uid}").delete()
@@ -244,7 +257,7 @@ class items(utils.database):
             logger.error(f"취소 트랜잭션 오류 (User:{uid}, Order:{key}): {e}")
             return False
 
-    # [SECURE] 환불 요청 (중복 처리 방지)
+    # 환불 요청 (중복 처리 방지)
     def orderRefund(token : dict, key : str, itemID : str) -> bool:
         uid_res = guest.tokenToUid(token=token)
         if not uid_res.get('allow'):
@@ -299,7 +312,7 @@ class items(utils.database):
             logger.error(f"환불 트랜잭션 오류 (User:{uid}, Order:{key}): {e}")
             return False
 
-    # [SECURE] 교환 요청 (중복 처리 방지)
+    # 교환 요청 (중복 처리 방지)
     def orderExchange(token : dict, key : str, itemID : str) -> bool:
         uid_res = guest.tokenToUid(token=token)
         if not uid_res.get('allow'):

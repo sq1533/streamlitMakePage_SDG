@@ -19,19 +19,12 @@ utils.init_session()
 
 # 회원 로그인 확인
 if any(value is not None for value in st.session_state.token.values()):
+
     with st.sidebar:
         st.title(body="주문내역")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
-    
+        utils.set_sidebar()
+
     st.markdown(body="주문내역")
 
     userOrder : dict = st.session_state.user.get('orderList')
@@ -73,6 +66,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     fbDisable = True
                 else:
                     fbDisable = False
+
                 # 후기 입력
                 feedT, feed, feedB = st.columns(spec=[2,1,1], gap='small', vertical_alignment='center')
                 fdt = feedT.text_input(

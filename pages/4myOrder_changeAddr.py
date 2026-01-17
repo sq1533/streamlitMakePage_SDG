@@ -53,24 +53,22 @@ def changeAddr(key : str):
 
 # 고객 로그인 검증 및 주문상품 정보 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
+
     with st.sidebar:
+        # 홈으로 이동 (네이티브 링크 사용)
+        st.page_link(
+            page='mainPage.py',
+            label='amuredo'
+        )
         st.title(body="배송지 변경")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+        utils.set_sidebar()
 
     st.title(body="배송지 변경 요청")
 
     key = st.session_state.orderItem[0]
     orderInfo = st.session_state.orderItem[1]
-        
+
     orderTime = key
     itemID = orderInfo.get('item')
     address = orderInfo.get('address')

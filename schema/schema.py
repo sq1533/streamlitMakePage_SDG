@@ -34,7 +34,6 @@ class item(BaseModel):
     package : HttpUrl = Field(title='itemPackage')
 
     price : int = Field(title='itemPrice')
-    discount : int = Field(title='itemDiscount')
     event : Optional[str] = Field(default=None, title='itemEvent')
 
     sales : Optional[int] = 0

@@ -18,18 +18,14 @@ utils.init_session()
 
 # 회원 로그인 상태 점검
 if any(value is not None for value in st.session_state.token.values()):
-    with st.sidebar:
-        st.title(body="회원 탈퇴")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+    with st.sidebar:
+        # 홈으로 이동 (네이티브 링크 사용)
+        st.page_link(
+            page='mainPage.py',
+            label='amuredo'
+        )
+        st.title(body="회원 탈퇴")
 
     st.title(body="회원을 탈퇴 하시겠습니까?")
     st.info(body='간편 로그인 회원의 경우, amuredo가 관리하는 정보만 삭제됩니다.\n원천사 측 연결을 해제하시면 완전히 탈퇴하실 수 있습니다.')

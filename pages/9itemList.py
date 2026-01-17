@@ -17,14 +17,14 @@ import pandas as pd
 
 utils.init_session()
 
-if st.session_state.page == 'sporty':
-    page = {'category':'sporty'}
-elif st.session_state.page == 'daily':
-    page = {'category':'daily'}
-elif st.session_state.page == 'glasses':
+if st.session_state.page == 'glasses':
     page = {'sort':'glasses'}
 elif st.session_state.page == 'sunglasses':
     page = {'sort':'sunglasses'}
+elif st.session_state.page == 'sporty':
+    page = {'category':'sporty'}
+elif st.session_state.page == 'new':
+    page = {'event':'new'}
 else:
     st.switch_page(page='mainPage.py')
 
@@ -41,19 +41,16 @@ itemData['sales'] = itemData.index.map(
     lambda x: all_status.get(x, {}).get('sales', 0)
 )
 
-# 홈으로 이동
-goHome = st.button(
-    label='HOME',
-    type='primary',
-    width='content',
-    disabled=False
-)
-if goHome:
-    st.switch_page(page="mainPage.py")
+sortedItems = itemData.sort_index()
 
 # siderbar 정의
 with st.sidebar:
-    st.title(body='amuredo')
+    # 홈으로 이동 (네이티브 링크 사용)
+    st.page_link(
+        page='mainPage.py',
+        label='amuredo'
+    )
+
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
@@ -100,29 +97,7 @@ with st.sidebar:
         if signIn:
             st.switch_page(page="pages/1signIN.py")
 
-    st.markdown(
-        """
-        <style>
-        /* 라디오 버튼의 옵션 텍스트(label) 스타일링 */
-        [data-testid="stRadio"] div[role="radiogroup"] label {
-            font-size:1.2rem;
-            border:1px solid #8D6E63;  /* 테두리 추가 */
-            border-radius:8px;         /* 모서리 둥글게 */
-            padding:10px;              /* 텍스트와 테두리 사이 여백 */
-            margin-bottom:5px;         /* 항목 간 간격 */
-            width:100%;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    sortedFilter = st.radio(
-        label='정렬',
-        options=['인기순', 'New', '낮은 가격순', '높은 가격순'],
-        index=0,
-        label_visibility='collapsed'
-    )
+    utils.set_sidebar()
 
 count_in_card = 0
 line = itemID.__len__()//3 + 1
@@ -130,16 +105,6 @@ line = itemID.__len__()//3 + 1
 # 아이템에 따른 행 갯수 수정
 for l in range(line):
     cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-
-# 상품 정렬을 위한 키 리스트 정리
-if sortedFilter == 'New':
-    sortedItems = itemData.sort_values(by='created_at', ascending=False)
-elif sortedFilter == '낮은 가격순':
-    sortedItems = itemData.sort_values(by='price', ascending=True)
-elif sortedFilter == '높은 가격순':
-    sortedItems = itemData.sort_values(by='price', ascending=False)
-else:
-    sortedItems = itemData.sort_values(by='sales', ascending=False)
 
 # 아이템 3열 배치
 for index, item in sortedItems.iterrows():
@@ -153,7 +118,7 @@ for index, item in sortedItems.iterrows():
         )
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
-        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+        st.markdown(f"###### {item['price']:,}원")
 
         viewBTN = st.button(
             label='상세보기',

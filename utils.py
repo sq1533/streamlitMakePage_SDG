@@ -190,11 +190,13 @@ class database:
                 data = doc.to_dict()
                 if data:
                     self.firestore_vanner[doc.id] = data
+
         except Exception as e:
             print(f"배너 로딩 실패: {e}")
 
         # 2. 아이템 로딩
         self._load_items()
+
 
     def _load_items(self):
         try:
@@ -206,9 +208,12 @@ class database:
                     try:
                         itemData = item(**data) # 스키마 적용
                         new_items[doc.id] = itemData
+
                     except Exception as e:
                         print(f"아이템 파싱 오류 {doc.id}: {e}")
+
             self.firestore_item = new_items
+
         except Exception as e:
             print(f"아이템 목록 로딩 실패: {e}")
 
@@ -309,6 +314,74 @@ def set_page_ui():
     """
 
     st.html(common_css)
+
+def set_sidebar():
+
+    st.divider()
+
+    st.markdown(body='### products')
+
+    newBTN = st.button(
+        label='new',
+        type='tertiary',
+        icon=':material/auto_awesome:',
+        width='content'
+    )
+    glassesBTN = st.button(
+        label='glasses',
+        type='tertiary',
+        icon=':material/eyeglasses_2:',
+        width='content'
+    )
+    sunglassesBTN = st.button(
+        label='sunglasses',
+        type='tertiary',
+        icon=':material/sunny:',
+        width='content'
+    )
+    sportyBTN = st.button(
+        label='sporty',
+        type='tertiary',
+        icon=':material/bolt:',
+        width='content'
+    )
+
+    if newBTN:
+        st.session_state.page = 'new'
+        st.switch_page(page='pages/9itemList.py')
+    if glassesBTN:
+        st.session_state.page = 'glasses'
+        st.switch_page(page='pages/9itemList.py')
+    if sunglassesBTN:
+        st.session_state.page = 'sunglasses'
+        st.switch_page(page='pages/9itemList.py')
+    if sportyBTN:
+        st.session_state.page = 'sporty'
+        st.switch_page(page='pages/9itemList.py')
+
+    st.divider()
+
+    st.page_link(
+        page='pages/0notice.py',
+        label='이벤트 및 공지사항',
+        icon='📢'
+    )
+
+    st.page_link(
+        page='pages/0cs.py',
+        label='문의하기',
+        icon='🎧'
+    )
+
+    st.divider()
+
+    aboutBTN = st.button(
+        label='about us',
+        type='tertiary',
+        width='content'
+    )
+    if aboutBTN:
+        st.switch_page(page='pages/9about.py')
 
 # utils.py 전역에 싱글톤 인스턴스 관리
 _db_instance = None

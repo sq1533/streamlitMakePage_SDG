@@ -57,8 +57,10 @@ def addrDialog():
 
 # 회원 로그인 검증
 if any(value is not None for value in st.session_state.token.values()):
+
     with st.sidebar:
         st.title(body='마이페이지')
+
         signOut = st.button(
             label='회원탈퇴',
             type='primary',
@@ -67,15 +69,7 @@ if any(value is not None for value in st.session_state.token.values()):
         if signOut:
             st.switch_page(page="pages/6signOUT.py")
 
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
+        utils.set_sidebar()
 
     st.text_input(
         label='email',
@@ -146,11 +140,10 @@ if any(value is not None for value in st.session_state.token.values()):
 
         addr.text_input(
             label='신규 배송지',
-            key='selectAddr',
+            key='firstAddr',
             type='default',
             disabled=True
         )
-
         searchAddrB = searchAddr.button(
             label='검색',
             type='primary',
@@ -166,7 +159,6 @@ if any(value is not None for value in st.session_state.token.values()):
             key='detailAddr',
             type='default'
         )
-
         addAddressBTN = st.button(
             label='배송지 추가',
             type='primary',

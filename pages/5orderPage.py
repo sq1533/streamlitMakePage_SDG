@@ -20,22 +20,20 @@ utils.init_session()
 
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
+
     with st.sidebar:
+        # 홈으로 이동 (네이티브 링크 사용)
+        st.page_link(
+            page='mainPage.py',
+            label='amuredo'
+        )
         st.title(body="상품 주문")
+
+        utils.set_sidebar()
 
     email : str = str(st.session_state.user.get('email')).split('@', 1)[0]
     item : str = st.session_state.item
     itemInfo = api.items.showItem().loc[item]
-
-    # 홈으로 이동
-    goHome = st.button(
-        label='HOME',
-        type='primary',
-        width='content',
-        disabled=False
-    )
-    if goHome:
-        st.switch_page(page="mainPage.py")
 
     st.info(body='네이버페이 준비중입니다.')
 
@@ -45,8 +43,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         st.title(body=itemInfo['name'])
         st.markdown(
             body=f"""
-            ##### ~~{int((itemInfo['price']*100/(100-itemInfo['discount'])//100)*100):,}~~
-            ### :red[{itemInfo['discount']}%] {itemInfo['price']:,}원 
+            ### {itemInfo['price']:,}원 
             """
             )
         st.markdown(body='##### 배송비 :blue[무료배송]')
@@ -56,7 +53,11 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         width='stretch'
         )
 
-    st.markdown(body=f"##### {st.session_state.user.get('address')['home']}")
+    deliveryAddress = st.selectbox(
+        label='배송지',
+        options=st.session_state.user.get('address').values(),
+        index=len(st.session_state.user.get('address').values()) - 1
+    )
     st.text_input(
         label='배송 요청사항',
         value=None,
@@ -160,7 +161,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                             'reserveId':reserveId, # reserveId 저장
                             'item':st.session_state.item,
                             'delicomment':st.session_state.get('delicomment'),
-                            'user_address':st.session_state.user.get('address').get('home'),
+                            'user_address':deliveryAddress,
                             'pay_method': 'naver' # 결제 수단 구분
                         })
                         print(f"임시 저장 완료 (Naver): {orderNo}")
@@ -227,7 +228,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                             'tid':tid,
                             'item':st.session_state.item,
                             'delicomment':st.session_state.get('delicomment'),
-                            'user_address':st.session_state.user.get('address').get('home'),
+                            'user_address':deliveryAddress,
                             'pay_method': 'kakao'
                         })
                         print(f"임시 저장 완료 (Kakao): {orderNo}")
@@ -297,7 +298,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                             'payToken':payToken,
                             'item':st.session_state.item,
                             'delicomment':st.session_state.get('delicomment'),
-                            'user_address':st.session_state.user.get('address').get('home')
+                            'user_address':deliveryAddress
                         })
                         print(f"임시 저장 완료 (toss): {orderNo}")
                     except Exception as e:

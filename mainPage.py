@@ -58,7 +58,7 @@ sunglassesData['sales'] = sunglassesData.index.map(
 
 # siderbar 정의
 with st.sidebar:
-    st.title(body='amuredo')
+    st.markdown(body='amuredo')
 
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
@@ -108,83 +108,16 @@ with st.sidebar:
         )
         if signIn:
             st.switch_page(page="pages/1signIN.py")
-
-    st.divider()
-
-    st.markdown(body='### 무엇을 찾으시나요?')
-
-    glassesBTN = st.button(
-        label='glasses',
-        type='tertiary',
-        icon=':material/eyeglasses_2:',
-        width='content'
-    )
-    sunglassesBTN = st.button(
-        label='sunglasses',
-        type='tertiary',
-        icon=':material/sunny:',
-        width='content'
-    )
-
-    if glassesBTN:
-        st.session_state.page = 'glasses'
-        st.switch_page(page='pages/9itemList.py')
-    if sunglassesBTN:
-        st.session_state.page = 'sunglasses'
-        st.switch_page(page='pages/9itemList.py')
-
-    st.divider()
-
-    st.markdown(body='### Information')
-
-    st.page_link(
-        page='pages/0notice.py',
-        label='이벤트 및 공지사항',
-        icon='📢',
-        help='놓치면 후회할 특별한 혜택!'
-    )
-
-    st.page_link(
-        page='pages/0cs.py',
-        label='문의하기',
-        icon='🎧'
-    )
-
-# 네비게이션
-daily, sporty, about = st.columns(spec=3, gap='small', vertical_alignment='center')
-
-dailyP = daily.button(
-    label='daily',
-    type='secondary',
-    width='stretch'
-)
-sportyP = sporty.button(
-    label='sporty',
-    type='secondary',
-    width='stretch'
-)
-aboutP = about.button(
-    label='about us',
-    type='secondary',
-    width='stretch'
-)
-
-if dailyP:
-    st.session_state.page = 'daily'
-    st.switch_page(page='pages/9itemList.py')
-if sportyP:
-    st.session_state.page = 'sporty'
-    st.switch_page(page='pages/9itemList.py')
-if aboutP:
-    st.switch_page(page='pages/9about.py')
+    
+    utils.set_sidebar()
 
 st.divider()
 
 # glassesData의 sort행 상위 3개
-st.markdown(body='### :orange[Best] Glasses')
+st.markdown(body='### <span style="color:#8d6e63">Best</span> Glasses', unsafe_allow_html=True)
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-bestGlasses = glassesData.sort_values(by='sales', ascending=False).head(3)
+bestGlasses = glassesData.sort_values(by='sales', ascending=False).head(6)
 
 for index, item in bestGlasses.iterrows():
     with cards[count_in_card].container():
@@ -197,7 +130,7 @@ for index, item in bestGlasses.iterrows():
         )
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
-        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+        st.markdown(f"###### {item['price']:,}원")
 
         viewBTN = st.button(
             label='상세보기',
@@ -210,9 +143,13 @@ for index, item in bestGlasses.iterrows():
             st.switch_page(page="pages/7item.py")
 
     count_in_card += 1
+    if count_in_card == 3:
+        count_in_card = 0
+    else:
+        pass
 
 # sunglassesData의 sort행 상위 3개
-st.markdown(body='### :orange[Best] Sunglasses')
+st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsafe_allow_html=True)
 
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
@@ -229,7 +166,7 @@ for index, item in bestSunglasses.iterrows():
         )
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
-        st.markdown(f"###### :red[{item['discount']}%] {item['price']:,}원")
+        st.markdown(f"###### {item['price']:,}원")
 
         viewBTN = st.button(
             label='상세보기',
@@ -252,13 +189,11 @@ policyB = policy.button(
     type='tertiary',
     width='content'
 )
-
 cookiesB = cookies.button(
     label='쿠키 정책',
     type='tertiary',
     width='content'
 )
-
 termsB = terms.button(
     label='이용약관',
     type='tertiary',
