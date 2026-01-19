@@ -59,7 +59,10 @@ def addrDialog():
 if any(value is not None for value in st.session_state.token.values()):
 
     with st.sidebar:
-        st.title(body='마이페이지')
+        st.page_link(
+            page='mainPage.py',
+            label='AMUREDO'
+        )
 
         signOut = st.button(
             label='회원탈퇴',

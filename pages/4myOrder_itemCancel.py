@@ -71,10 +71,9 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
 
     with st.sidebar:
-        # 홈으로 이동 (네이티브 링크 사용)
         st.page_link(
             page='mainPage.py',
-            label='amuredo'
+            label='AMUREDO'
         )
         st.title(body="주문 취소")
 

@@ -31,7 +31,6 @@ class item(BaseModel):
 
     paths : list[HttpUrl] = Field(title='itemImagePaths')
     detail : HttpUrl = Field(title='itemDetail')
-    package : HttpUrl = Field(title='itemPackage')
 
     price : int = Field(title='itemPrice')
     event : Optional[str] = Field(default=None, title='itemEvent')

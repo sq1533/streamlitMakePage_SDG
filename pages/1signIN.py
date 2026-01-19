@@ -21,7 +21,10 @@ if any(value is not None for value in st.session_state.token.values()):
 
 else:
     with st.sidebar:
-        st.title(body='로그인/회원가입')
+        st.page_link(
+            page='mainPage.py',
+            label='AMUREDO'
+        )
 
     # 네이버 로그인 버튼
     st.html(

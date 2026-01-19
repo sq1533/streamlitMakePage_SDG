@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.utilsDb().pageIcon,
-    layout='centered',
+    layout='wide',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -54,7 +54,10 @@ all_status = api.items.getAllItemStatus()
 
 # siderbar 정의
 with st.sidebar:
-    st.markdown(body='amuredo')
+    st.page_link(
+        page='mainPage.py',
+        label='AMUREDO'
+    )
 
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
@@ -113,7 +116,7 @@ st.divider()
 st.markdown(body='### <span style="color:#8d6e63">Best</span> Glasses', unsafe_allow_html=True)
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-bestGlasses = glassesData.itemData.sort_index()
+bestGlasses = glassesData.sort_index()
 
 
 for i, (index, item) in enumerate(bestGlasses.iterrows()):
@@ -145,7 +148,7 @@ st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsaf
 
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-bestSunglasses = sunglassesData.itemData.sort_index()
+bestSunglasses = sunglassesData.sort_index()
 
 
 for i, (index, item) in enumerate(bestSunglasses.iterrows()):

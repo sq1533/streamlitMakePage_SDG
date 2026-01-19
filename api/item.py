@@ -32,8 +32,7 @@ class items(utils.database):
                 'event',
                 'price',
                 'paths',
-                'detail',
-                'package'
+                'detail'
                 ]
             )
         return itemData

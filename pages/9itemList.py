@@ -5,7 +5,7 @@ import utils
 st.set_page_config(
     page_title='AMUREDO',
     page_icon=utils.utilsDb().pageIcon,
-    layout='centered',
+    layout='wide',
     initial_sidebar_state='auto'
 )
 # 페이지 UI 변경 사항
@@ -42,10 +42,9 @@ sortedItems = itemData.sort_index()
 
 # siderbar 정의
 with st.sidebar:
-    # 홈으로 이동 (네이티브 링크 사용)
     st.page_link(
         page='mainPage.py',
-        label='amuredo'
+        label='AMUREDO'
     )
 
     # 회원 로그인 상태 확인
