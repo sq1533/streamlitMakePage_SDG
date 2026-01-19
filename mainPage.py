@@ -119,10 +119,13 @@ count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
 bestGlasses = glassesData.sort_values(by='sales', ascending=False).head(6)
 
-for index, item in bestGlasses.iterrows():
-    with cards[count_in_card].container():
-        itemStatus : dict = api.items.itemStatus(itemId=index)
-        feedback : dict = itemStatus.get('feedback')
+
+for i, (index, item) in enumerate(bestGlasses.iterrows()):
+    col = cards[i % 3]
+    with col.container():
+        # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
+        itemStatus = all_status.get(index, {})
+        feedback = itemStatus.get('feedback', {})
 
         st.image(
             image=str(item['paths'][0]),
@@ -132,21 +135,14 @@ for index, item in bestGlasses.iterrows():
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
         st.markdown(f"###### {item['price']:,}원")
 
-        viewBTN = st.button(
+        if st.button(
             label='상세보기',
             key=f"loop_item_{index}",
             type='primary',
             width='stretch'
-        )
-        if viewBTN:
+        ):
             st.session_state.item = index
             st.switch_page(page="pages/7item.py")
-
-    count_in_card += 1
-    if count_in_card == 3:
-        count_in_card = 0
-    else:
-        pass
 
 # sunglassesData의 sort행 상위 3개
 st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsafe_allow_html=True)
@@ -155,10 +151,13 @@ count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
 bestSunglasses = sunglassesData.sort_values(by='sales', ascending=False).head(3)
 
-for index, item in bestSunglasses.iterrows():
-    with cards[count_in_card].container():
-        itemStatus : dict = api.items.itemStatus(itemId=index)
-        feedback : dict = itemStatus.get('feedback')
+
+for i, (index, item) in enumerate(bestSunglasses.iterrows()):
+    col = cards[i % 3]
+    with col.container():
+        # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
+        itemStatus = all_status.get(index, {})
+        feedback = itemStatus.get('feedback', {})
 
         st.image(
             image=str(item['paths'][0]),
@@ -168,13 +167,12 @@ for index, item in bestSunglasses.iterrows():
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
         st.markdown(f"###### {item['price']:,}원")
 
-        viewBTN = st.button(
+        if st.button(
             label='상세보기',
             key=f"loop_item_{index}",
             type='primary',
             width='stretch'
-        )
-        if viewBTN:
+        ):
             st.session_state.item = index
             st.switch_page(page="pages/7item.py")
 

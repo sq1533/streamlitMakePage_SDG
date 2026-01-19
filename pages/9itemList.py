@@ -99,42 +99,35 @@ with st.sidebar:
 
     utils.set_sidebar()
 
-count_in_card = 0
-line = itemID.__len__()//3 + 1
-
-# 아이템에 따른 행 갯수 수정
-for l in range(line):
-    cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-
 # 아이템 3열 배치
-for index, item in sortedItems.iterrows():
-    with cards[count_in_card].container():
-        itemStatus : dict = api.items.itemStatus(itemId=index)
-        feedback : dict = itemStatus.get('feedback')
+cards = st.columns(3)
+for i, (index, item) in enumerate(sortedItems.iterrows()):
+    col = cards[i % 3]
+    with col.container():
+        # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
+        itemStatus = all_status.get(index, {})
+        feedback = itemStatus.get('feedback', {})
+        
+        # 이미지 표시
+        if item['paths']:
+            st.image(
+                image=str(item['paths'][0]),
+                output_format='JPEG'
+            )
 
-        st.image(
-            image=str(item['paths'][0]),
-            output_format='JPEG'
-        )
-
+        # 정보 표시
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
         st.markdown(f"###### {item['price']:,}원")
 
-        viewBTN = st.button(
+        # 상세보기 버튼
+        if st.button(
             label='상세보기',
             key=f"loop_item_{index}",
             type='primary',
             width='stretch'
-        )
-        if viewBTN:
+        ):
             st.session_state.item = index
             st.switch_page(page="pages/7item.py")
-
-    count_in_card += 1
-    if count_in_card == 3:
-        count_in_card = 0
-    else:
-        pass
 
 st.divider()
 
