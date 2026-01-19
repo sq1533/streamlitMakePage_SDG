@@ -45,16 +45,12 @@ st.html(
 
 # item 정보 불러오기 pandas
 itemData = api.items.showItem()
+itemData = itemData[itemData['event'] == 'best']
+
 glassesData = itemData[itemData['sort'] == 'glasses'].copy()
 sunglassesData = itemData[itemData['sort'] == 'sunglasses'].copy()
 
 all_status = api.items.getAllItemStatus()
-glassesData['sales'] = glassesData.index.map(
-    lambda x: all_status.get(x, {}).get('sales', 0)
-)
-sunglassesData['sales'] = sunglassesData.index.map(
-    lambda x: all_status.get(x, {}).get('sales', 0)
-)
 
 # siderbar 정의
 with st.sidebar:
@@ -117,7 +113,7 @@ st.divider()
 st.markdown(body='### <span style="color:#8d6e63">Best</span> Glasses', unsafe_allow_html=True)
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-bestGlasses = glassesData.sort_values(by='sales', ascending=False).head(6)
+bestGlasses = glassesData.itemData.sort_index()
 
 
 for i, (index, item) in enumerate(bestGlasses.iterrows()):
@@ -149,7 +145,7 @@ st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsaf
 
 count_in_card = 0
 cards = st.columns(spec=3, gap="small", vertical_alignment="top")
-bestSunglasses = sunglassesData.sort_values(by='sales', ascending=False).head(3)
+bestSunglasses = sunglassesData.itemData.sort_index()
 
 
 for i, (index, item) in enumerate(bestSunglasses.iterrows()):

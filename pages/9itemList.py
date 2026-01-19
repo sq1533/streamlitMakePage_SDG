@@ -37,9 +37,6 @@ itemData = itemData[itemData[index] == page.get(index)]
 itemID = itemData.index.tolist()
 
 all_status = api.items.getAllItemStatus()
-itemData['sales'] = itemData.index.map(
-    lambda x: all_status.get(x, {}).get('sales', 0)
-)
 
 sortedItems = itemData.sort_index()
 
