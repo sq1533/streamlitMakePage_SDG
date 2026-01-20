@@ -15,7 +15,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx
 @st.cache_data(ttl=36000)
 def load_and_optimize_from_url(url, quality=85):
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
         img = Image.open(io.BytesIO(response.content))
         
@@ -24,7 +24,7 @@ def load_and_optimize_from_url(url, quality=85):
             
         buffer = io.BytesIO()
         img.save(buffer, format="WEBP", quality=quality)
-        return buffer
+        return buffer.getvalue()
     except Exception as e:
         print(f"이미지 로드 중 오류 발생: {e}") 
         return None
