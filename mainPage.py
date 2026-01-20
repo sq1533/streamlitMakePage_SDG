@@ -126,10 +126,11 @@ for i, (index, item) in enumerate(bestGlasses.iterrows()):
         itemStatus = all_status.get(index, {})
         feedback = itemStatus.get('feedback', {})
 
-        st.image(
-            image=str(item['paths'][0]),
-            output_format='JPEG'
-        )
+        thumb_img = utils.load_and_optimize_from_url(str(item['paths'][0]), quality=80)
+        if thumb_img:
+            st.image(thumb_img, output_format='WEBP')
+        else:
+            st.image(str(item['paths'][0]), output_format='JPEG')
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
         st.markdown(f"###### {item['price']:,}원")
@@ -158,10 +159,11 @@ for i, (index, item) in enumerate(bestSunglasses.iterrows()):
         itemStatus = all_status.get(index, {})
         feedback = itemStatus.get('feedback', {})
 
-        st.image(
-            image=str(item['paths'][0]),
-            output_format='JPEG'
-        )
+        thumb_img = utils.load_and_optimize_from_url(str(item['paths'][0]), quality=80)
+        if thumb_img:
+            st.image(thumb_img, output_format='WEBP')
+        else:
+            st.image(str(item['paths'][0]), output_format='JPEG')
 
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
         st.markdown(f"###### {item['price']:,}원")

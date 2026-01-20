@@ -106,10 +106,11 @@ for i, (index, item) in enumerate(sortedItems.iterrows()):
         
         # 이미지 표시
         if item['paths']:
-            st.image(
-                image=str(item['paths'][0]),
-                output_format='JPEG'
-            )
+            thumb_img = utils.load_and_optimize_from_url(str(item['paths'][0]), quality=80)
+            if thumb_img:
+                st.image(thumb_img, output_format='WEBP')
+            else:
+                st.image(image=str(item['paths'][0]), output_format='JPEG')
 
         # 정보 표시
         st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")

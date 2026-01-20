@@ -90,14 +90,17 @@ else:
     with main.container():
         row1, row2 = st.columns(spec=2, gap='small', vertical_alignment='center')
 
-        row1.image(
-            image=str(itemInfo['paths'][0]),
-            output_format='JPEG'
-        )
-        row2.image(
-            image=str(itemInfo['paths'][1]),
-            output_format='JPEG'
-        )
+        img_path0 = utils.load_and_optimize_from_url(str(itemInfo['paths'][0]))
+        if img_path0:
+            row1.image(img_path0, output_format='WEBP')
+        else:
+            row1.image(image=str(itemInfo['paths'][0]), output_format='JPEG')
+            
+        img_path1 = utils.load_and_optimize_from_url(str(itemInfo['paths'][1]))
+        if img_path1:
+            row2.image(img_path1, output_format='WEBP')
+        else:
+            row2.image(image=str(itemInfo['paths'][1]), output_format='JPEG')
         
         # 상품 카테고리
         st.markdown(body=f"#### :gray[amuredo > {itemInfo['category']}]")
@@ -127,14 +130,17 @@ else:
             info, feed = st.tabs(tabs=['info', '후기'])
 
             with info:
-                st.image(
-                    image=str(itemInfo['detail']),
-                    output_format='JPEG'
-                )
-                st.image(
-                    image=str(deliveryInfo.get('path')),
-                    output_format='JPEG'
-                )
+                img_detail = utils.load_and_optimize_from_url(str(itemInfo['detail']))
+                if img_detail:
+                    st.image(img_detail, output_format='WEBP')
+                else:
+                    st.image(image=str(itemInfo['detail']), output_format='JPEG')
+                
+                img_delivery = utils.load_and_optimize_from_url(str(deliveryInfo.get('path')))
+                if img_delivery:
+                    st.image(img_delivery, output_format='WEBP')
+                else:
+                    st.image(image=str(deliveryInfo.get('path')), output_format='JPEG')
             with feed:
                 if feedT.__len__() == 1:
                     st.info(body='아직 후기가 없어요...', icon='😪')

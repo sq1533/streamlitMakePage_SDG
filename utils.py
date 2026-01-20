@@ -9,6 +9,25 @@ import logging
 import threading
 import requests
 from schema.schema import item
+import io
+from streamlit.runtime.scriptrunner import add_script_run_ctx
+
+@st.cache_data(ttl=36000)
+def load_and_optimize_from_url(url, quality=85):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        img = Image.open(io.BytesIO(response.content))
+        
+        if img.mode == "P":
+            img = img.convert("RGBA")
+            
+        buffer = io.BytesIO()
+        img.save(buffer, format="WEBP", quality=quality)
+        return buffer
+    except Exception as e:
+        print(f"이미지 로드 중 오류 발생: {e}") 
+        return None
 
 # 텔레그램 로그 핸들러
 class TelegramLogHandler(logging.Handler):
@@ -41,7 +60,9 @@ class TelegramLogHandler(logging.Handler):
             except Exception:
                 pass 
 
-        threading.Thread(target=send_msg).start()
+        thread = threading.Thread(target=send_msg)
+        add_script_run_ctx(thread)
+        thread.start()
     
 
 
@@ -65,7 +86,9 @@ def send_telegram_message(msg: str):
         except Exception:
             pass
 
-    threading.Thread(target=send_msg).start()
+    thread = threading.Thread(target=send_msg)
+    add_script_run_ctx(thread)
+    thread.start()
 
 def get_logger():
     logger = logging.getLogger('amuredo')
@@ -213,9 +236,36 @@ class database:
                         print(f"아이템 파싱 오류 {doc.id}: {e}")
 
             self.firestore_item = new_items
+            
+            # 별도 스레드에서 프리캐싱 시작 (서버 시작 시 1회 수행됨)
+            precache_thread = threading.Thread(target=self._precache_images, args=(new_items,), daemon=True)
+            add_script_run_ctx(precache_thread)
+            precache_thread.start()
 
         except Exception as e:
             print(f"아이템 목록 로딩 실패: {e}")
+
+    def _precache_images(self, item_dict):
+        print("이미지 프리캐싱 시작...")
+        count = 0
+        for key, item_data in item_dict.items():
+            try:
+                # 상품 이미지 (paths)
+                if item_data.paths:
+                    for path in item_data.paths:
+                        load_and_optimize_from_url(str(path))
+                        # 리스트용 썸네일도 캐싱 (quality=80)
+                        load_and_optimize_from_url(str(path), quality=80)
+                
+                # 상세 이미지 (detail)
+                if item_data.detail:
+                    load_and_optimize_from_url(str(item_data.detail))
+                    
+                count += 1
+            except Exception:
+                continue
+                
+        print(f"이미지 프리캐싱 완료 ({count}개 아이템 처리됨)")
 
     def refresh_items(self):
         """아이템 정보를 강제로 새로고침합니다."""
