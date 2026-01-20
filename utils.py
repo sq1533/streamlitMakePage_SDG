@@ -24,7 +24,10 @@ def load_and_optimize_from_url(url, quality=85):
             
         buffer = io.BytesIO()
         img.save(buffer, format="WEBP", quality=quality)
-        return buffer.getvalue()
+        
+        b64_data = base64.b64encode(buffer.getvalue()).decode()
+        return f"data:image/webp;base64,{b64_data}"
+
     except Exception as e:
         print(f"이미지 로드 중 오류 발생: {e}") 
         return None
