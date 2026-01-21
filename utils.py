@@ -41,8 +41,12 @@ def load_raw_image_from_url(url):
         # MIME 타입 추론 (헤더 기반)
         content_type = response.headers.get('Content-Type')
         if not content_type or 'image' not in content_type:
+            # URL 파싱하여 확장자 확인 (Query Param 제외)
+            from urllib.parse import urlparse
+            path = urlparse(url).path
+            
             # 기본값 또는 확장자로 추론 (WebP/PNG)
-            if url.lower().endswith('.png'):
+            if path.lower().endswith('.png'):
                 content_type = 'image/png'
             else:
                 content_type = 'image/webp'

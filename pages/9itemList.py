@@ -107,7 +107,8 @@ for i, (index, item) in enumerate(sortedItems.iterrows()):
         
         # 이미지 표시
         if item['paths']:
-            thumb_img = utils.load_and_optimize_from_url(str(item['paths'][0]), quality=80)
+            # 최적화된 WebP 이미지를 사용한다면 raw 로더 사용
+            thumb_img = utils.load_raw_image_from_url(str(item['paths'][0]))
             if thumb_img:
                 st.image(thumb_img, output_format='WEBP')
             else:
