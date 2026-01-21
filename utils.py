@@ -32,6 +32,28 @@ def load_and_optimize_from_url(url, quality=85):
         print(f"이미지 로드 중 오류 발생: {e}") 
         return None
 
+@st.cache_data(ttl=36000)
+def load_raw_image_from_url(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        # MIME 타입 추론 (헤더 기반)
+        content_type = response.headers.get('Content-Type')
+        if not content_type or 'image' not in content_type:
+            # 기본값 또는 확장자로 추론 (WebP/PNG)
+            if url.lower().endswith('.png'):
+                content_type = 'image/png'
+            else:
+                content_type = 'image/webp'
+        
+        b64_data = base64.b64encode(response.content).decode()
+        return f"data:{content_type};base64,{b64_data}"
+
+    except Exception as e:
+        print(f"이미지 로드 실패: {e}")
+        return None
+
 # 텔레그램 로그 핸들러
 class TelegramLogHandler(logging.Handler):
     def __init__(self):
@@ -262,7 +284,7 @@ class database:
                 
                 # 상세 이미지 (detail)
                 if item_data.detail:
-                    load_and_optimize_from_url(str(item_data.detail))
+                    load_raw_image_from_url(str(item_data.detail))
                     
                 count += 1
             except Exception:
