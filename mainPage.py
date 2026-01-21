@@ -115,12 +115,13 @@ st.divider()
 # glassesData의 sort행 상위 3개
 st.markdown(body='### <span style="color:#8d6e63">Best</span> Glasses', unsafe_allow_html=True)
 count_in_card = 0
-cards = st.columns(spec=3, gap="small", vertical_alignment="top")
 bestGlasses = glassesData.sort_index()
 
 
 for i, (index, item) in enumerate(bestGlasses.iterrows()):
-    col = cards[i % 3]
+    if i % 3 == 0:
+        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
+    col = cols[i % 3]
     with col.container():
         # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
         itemStatus = all_status.get(index, {})
@@ -148,12 +149,13 @@ for i, (index, item) in enumerate(bestGlasses.iterrows()):
 st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsafe_allow_html=True)
 
 count_in_card = 0
-cards = st.columns(spec=3, gap="small", vertical_alignment="top")
 bestSunglasses = sunglassesData.sort_index()
 
 
 for i, (index, item) in enumerate(bestSunglasses.iterrows()):
-    col = cards[i % 3]
+    if i % 3 == 0:
+        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
+    col = cols[i % 3]
     with col.container():
         # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
         itemStatus = all_status.get(index, {})

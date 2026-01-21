@@ -96,9 +96,10 @@ with st.sidebar:
     utils.set_sidebar()
 
 # 아이템 3열 배치
-cards = st.columns(3)
 for i, (index, item) in enumerate(sortedItems.iterrows()):
-    col = cards[i % 3]
+    if i % 3 == 0:
+        cols = st.columns(3)
+    col = cols[i % 3]
     with col.container():
         # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
         itemStatus = all_status.get(index, {})
