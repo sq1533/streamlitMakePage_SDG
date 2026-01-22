@@ -36,8 +36,6 @@ itemData = itemData[itemData[index] == page.get(index)]
 
 itemID = itemData.index.tolist()
 
-all_status = api.items.getAllItemStatus()
-
 sortedItems = itemData.sort_index()
 
 # siderbar 정의
@@ -101,9 +99,6 @@ for i, (index, item) in enumerate(sortedItems.iterrows()):
         cols = st.columns(3)
     col = cols[i % 3]
     with col.container():
-        # 개별 API 호출 제거 -> 일괄 조회된 데이터(all_status) 사용
-        itemStatus = all_status.get(index, {})
-        feedback = itemStatus.get('feedback', {})
         
         # 이미지 표시
         if item['paths']:
@@ -115,7 +110,7 @@ for i, (index, item) in enumerate(sortedItems.iterrows()):
                 st.image(image=str(item['paths'][0]), output_format='JPEG')
 
         # 정보 표시
-        st.markdown(body=f"###### {item['name']} :heart: {feedback.get('point', 0)}")
+        st.markdown(body=f"###### {item['name']}")
         st.markdown(f"###### {item['price']:,}원")
 
         # 상세보기 버튼

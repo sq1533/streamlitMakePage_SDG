@@ -389,6 +389,46 @@ def set_page_ui():
     [data-testid="stIcon"], .material-icons, .material-symbols-rounded {{
         font-family: 'Material Symbols Rounded', 'Material Icons' !important;
     }}
+
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stExpandSidebarButton"] {{
+        background-color: #8D6E63 !important;
+        color: #FFFEFA !important;
+        border: none !important;
+        border-radius: 4px !important;
+        z-index: 1000000 !important;
+    }}
+
+    [data-testid="stSidebarCollapsedControl"] *,
+    [data-testid="stExpandSidebarButton"] * {{
+        color: #FFFEFA !important;
+        fill: #FFFEFA !important;
+        stroke: #FFFEFA !important;
+    }}
+
+    section[data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"],
+    [data-testid="stCollapseSidebarButton"],
+    [data-testid="stSidebarCollapseButton"] {{
+        background-color: #8D6E63 !important;
+        color: #F5F0EB !important;
+        border: none !important;
+        border-radius: 4px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+    }}
+
+    section[data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] *,
+    [data-testid="stCollapseSidebarButton"] *,
+    [data-testid="stSidebarCollapseButton"] * {{
+        color: #F5F0EB !important;
+        fill: #F5F0EB !important;
+    }}
+
+    section[data-testid="stSidebar"] > div > div:first-child {{
+        opacity: 1 !important; 
+        visibility: visible !important;
+    }}
     </style>
     """
 

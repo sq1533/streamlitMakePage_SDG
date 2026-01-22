@@ -37,15 +37,6 @@ class items(utils.database):
             )
         return itemData
 
-    # 상품 상태 일괄 조회
-    def getAllItemStatus() -> dict:
-        try:
-            allStatus = utils.utilsDb().realtimeDB.reference(path='itemStatus').get()
-            return allStatus if allStatus else {}
-        except Exception as e:
-            print(f"전체 상태 조회 실패: {e}")
-            return {}
-
     # 특정 아이템 수량 및 상태
     def itemStatus(itemId : str) -> dict:
         try:

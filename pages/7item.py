@@ -84,7 +84,10 @@ else:
     itemStatus : dict = api.items.itemStatus(itemId=itemKey)
     buyAble : bool = not itemStatus.get('enable')
     feedback : dict = itemStatus.get('feedback')
-    feedT = feedback.get('text')
+    feedCount : int = feedback.get('count', 0)
+    feedPoint : int = feedback.get('point', 0)
+    feedAvg : int = int((feedPoint / feedCount) * 100) if feedCount > 0 else 0
+    feedText : list = feedback.get('text')
 
     empty, main, empty = st.columns(spec=[1,5,1], gap='small', vertical_alignment='center')
     with main.container():
@@ -142,10 +145,11 @@ else:
                 else:
                     st.image(image=str(deliveryInfo.get('path')), output_format='JPEG')
             with feed:
-                if feedT.__len__() == 1:
+                st.markdown(body=f"####  :heart: {feedAvg}%")
+                if feedText.__len__() == 1:
                     st.info(body='아직 후기가 없어요...', icon='😪')
                 else:
-                    for i in reversed(feedT[1:]):
+                    for i in reversed(feedText[1:]):
                         parts = i.split('_', 1)
                         if len(parts) < 2:
                             continue
