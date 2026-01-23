@@ -27,6 +27,7 @@ class item(BaseModel):
     category : str = Field(title='itemCategory')
     color : str = Field(title='itemColor')
     series : str = Field(title='itemSerises')
+    code : str = Field(title='itemCode')
     sort : str = Field(title='glasses / sunglasses')
 
     paths : list[HttpUrl] = Field(title='itemImagePaths')

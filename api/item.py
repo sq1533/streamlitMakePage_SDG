@@ -26,6 +26,7 @@ class items(utils.database):
                 'created_at',
                 'series',
                 'sort',
+                'code',
                 'category',
                 'name',
                 'color',

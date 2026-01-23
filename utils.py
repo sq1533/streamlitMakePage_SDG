@@ -227,6 +227,7 @@ class database:
         # 데이터 수집 초기화
         self.firestore_vanner = {}
         self.firestore_item = {}
+        self.firestore_code = {}
         
         # 데이터 로딩 실행
         self._load_data()
@@ -246,7 +247,17 @@ class database:
         except Exception as e:
             print(f"배너 로딩 실패: {e}")
 
-        # 2. 아이템 로딩
+        # 2. 코드(그룹) 이미지 로딩
+        try:
+            codeSnapshot = self.fs_client.collection('code').stream()
+            for doc in codeSnapshot:
+                data = doc.to_dict()
+                if data:
+                    self.firestore_code[doc.id] = data
+        except Exception as e:
+            print(f"코드 정보 로딩 실패: {e}")
+
+        # 3. 아이템 로딩
         self._load_items()
 
 
@@ -276,6 +287,16 @@ class database:
 
     def _precache_images(self, item_dict):
         print("이미지 프리캐싱 시작...")
+        
+        # Code 이미지 프리캐싱
+        if self.firestore_code:
+            for key, val in self.firestore_code.items():
+                try:
+                    if val.get('path'):
+                        load_and_optimize_from_url(str(val['path']))
+                except Exception:
+                    continue
+
         count = 0
         for key, item_data in item_dict.items():
             try:

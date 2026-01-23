@@ -34,9 +34,10 @@ index : str = list(page.keys())[0]
 itemData = api.items.showItem()
 itemData = itemData[itemData[index] == page.get(index)]
 
-itemID = itemData.index.tolist()
-
 sortedItems = itemData.sort_index()
+
+# Code 정보 가져오기
+code_db : dict = utils.utilsDb().firestore_code
 
 # siderbar 정의
 with st.sidebar:
@@ -93,36 +94,46 @@ with st.sidebar:
 
     utils.set_sidebar()
 
-# 아이템 3열 배치
-for i, (index, item) in enumerate(sortedItems.iterrows()):
-    if i % 3 == 0:
-        cols = st.columns(3)
-    col = cols[i % 3]
-    with col.container():
+grouped_items = sortedItems.groupby('code')
+
+for code, group in grouped_items:
+    
+    code_info = code_db.get(str(code))
+    optimized_code_img = utils.load_and_optimize_from_url(str(code_info['path']))
+    if optimized_code_img:
+        st.image(optimized_code_img, width='stretch', output_format='WEBP')
+    else:
+        st.image(str(code_info['path']), width='stretch')
+
+    # 2. 아이템 3열 배치
+    for i, (idx, item) in enumerate(group.iterrows()):
+        if i % 3 == 0:
+            cols = st.columns(3)
         
-        # 이미지 표시
-        if item['paths']:
-            # 최적화된 WebP 이미지를 사용한다면 raw 로더 사용
-            thumb_img = utils.load_raw_image_from_url(str(item['paths'][0]))
-            if thumb_img:
-                st.image(thumb_img, output_format='WEBP')
-            else:
-                st.image(image=str(item['paths'][0]), output_format='JPEG')
+        col = cols[i % 3]
+        with col.container():
+            
+            # 이미지 표시
+            if item['paths']:
+                thumb_img = utils.load_raw_image_from_url(str(item['paths'][0]))
+                if thumb_img:
+                    st.image(thumb_img, output_format='WEBP')
+                else:
+                    st.image(image=str(item['paths'][0]), output_format='JPEG')
 
-        # 정보 표시
-        st.markdown(body=f"###### {item['name']}")
-        st.markdown(f"###### {item['price']:,}원")
+            # 정보 표시
+            st.markdown(body=f"###### {item['name']}")
+            st.markdown(f"###### {item['price']:,}원")
 
-        # 상세보기 버튼
-        if st.button(
-            label='상세보기',
-            key=f"loop_item_{index}",
-            type='primary',
-            width='stretch'
-        ):
-            st.session_state.item = index
-            st.switch_page(page="pages/7item.py")
+            # 상세보기 버튼
+            if st.button(
+                label='상세보기',
+                key=f"loop_item_{idx}",
+                type='primary',
+                width='stretch'
+            ):
+                st.session_state.item = idx
+                st.switch_page(page="pages/7item.py")
 
 st.divider()
-
 st.html(body=utils.utilsDb().infoAdmin)

@@ -108,13 +108,17 @@ with st.sidebar:
     
     utils.set_sidebar()
 
-st.divider()
+line01, subtitle, line02 = st.columns(spec=3, gap='small', vertical_alignment='center')
+line01.divider()
+subtitle.markdown(
+    body="<h3 style='text-align: center;'>recommend for you</h3>",
+    unsafe_allow_html=True
+    )
+line02.divider()
 
 # glassesData의 sort행 상위 3개
-st.markdown(body='### <span style="color:#8d6e63">Best</span> Glasses', unsafe_allow_html=True)
 count_in_card = 0
 bestGlasses = glassesData.sort_index()
-
 
 for i, (index, item) in enumerate(bestGlasses.iterrows()):
     if i % 3 == 0:
@@ -140,8 +144,6 @@ for i, (index, item) in enumerate(bestGlasses.iterrows()):
             st.switch_page(page="pages/7item.py")
 
 # sunglassesData의 sort행 상위 3개
-st.markdown(body='### <span style="color:#8d6e63">Best</span> Sunglasses', unsafe_allow_html=True)
-
 count_in_card = 0
 bestSunglasses = sunglassesData.sort_index()
 
