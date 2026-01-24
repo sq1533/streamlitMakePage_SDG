@@ -17,11 +17,13 @@ def load_and_optimize_from_url(url, quality=85):
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        img = Image.open(io.BytesIO(response.content))
         
+        input_bytes = io.BytesIO(response.content)
+        img = Image.open(input_bytes)
+
         if img.mode == "P":
             img = img.convert("RGBA")
-            
+
         buffer = io.BytesIO()
         img.save(buffer, format="WEBP", quality=quality)
         
