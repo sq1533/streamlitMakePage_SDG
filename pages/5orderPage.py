@@ -12,8 +12,6 @@ st.set_page_config(
 utils.set_page_ui()
 
 import api
-from api.tosspay_widget import render_payment_widget
-from api.tosspay_handler import handle_payment_callback
 import time
 from datetime import datetime, timezone, timedelta
 import streamlit.components.v1 as components
@@ -66,25 +64,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         key='delicomment',
         placeholder='배송 요청사항을 입력해주세요.'
     )
-
-    if 'orderNo' not in st.session_state:
-        now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
-        orderTime = now_kst.strftime("%y%m%d%H%M%S")
-
-        raw_order_no = f"{orderTime}{item}{email}"
-        orderNo = raw_order_no.ljust(35, '0')[:35]
-
-    try:
-        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
-        ref.update({
-            'token': st.session_state.token,
-            'item': st.session_state.item,
-            'delicomment': st.session_state.get('delicomment'),
-            'user_address': deliveryAddress,
-            'created_at': str(datetime.now(timezone.utc))
-        })
-    except Exception as e:
-        print(f"공통 임시 저장 실패: {e}")
 
     # 버튼 스타일 변경 분기점
     st.markdown('<div id="pay-section-marker"></div>', unsafe_allow_html=True)
@@ -150,6 +129,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     if naverpayBTN:
         itemStatus : dict = api.items.itemStatus(itemId=item)
         if itemStatus.get('enable'):
+            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now_kst.strftime("%y%m%d%H%M%S")
 
             reserved = api.items.reserveItem(
                 token=st.session_state.token,
@@ -158,6 +139,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             )
 
             if reserved:
+                raw_order_no = f"{orderTime}{item}{email}"
+                orderNo = raw_order_no.ljust(35, '0')[:35]
                 callNaverpay : dict = api.pay().naverpayToken(
                     orderNo=orderNo,
                     itemName=itemInfo['name'],
@@ -172,6 +155,10 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     try:
                         ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.update({
+                            'token': st.session_state.token,
+                            'item': item,
+                            'delicomment': st.session_state.get('delicomment'),
+                            'user_address': deliveryAddress,
                             'reserveId': reserveId,
                             'pay_method': 'naver'
                         })
@@ -207,9 +194,12 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             st.rerun()
 
     if kakaopayBTN:
-
         itemStatus : dict = api.items.itemStatus(itemId=item)
+
         if itemStatus.get('enable'):
+            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now_kst.strftime("%y%m%d%H%M%S")
+
             reserved = api.items.reserveItem(
                 token=st.session_state.token,
                 itemID=item,
@@ -217,6 +207,9 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             )
 
             if reserved:
+                raw_order_no = f"{orderTime}{item}{email}"
+                orderNo = raw_order_no.ljust(35, '0')[:35]
+
                 callKakaopay : dict = api.pay().kakaopayToken(
                     orderNo=orderNo,
                     itemName=itemInfo['name'],
@@ -230,6 +223,10 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     try:
                         ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.update({
+                            'token': st.session_state.token,
+                            'item': item,
+                            'delicomment': st.session_state.get('delicomment'),
+                            'user_address': deliveryAddress,
                             'tid': tid,
                             'pay_method': 'kakao'
                         })
@@ -266,7 +263,10 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     # 토스페이(간편) 결제 요청
     if tosspayBTN:
         itemStatus : dict = api.items.itemStatus(itemId=item)
+
         if itemStatus.get('enable'):
+            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now_kst.strftime("%y%m%d%H%M%S")
 
             # 재고 예약
             reserved = api.items.reserveItem(
@@ -276,6 +276,9 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             )
 
             if reserved:
+                raw_order_no = f"{orderTime}{item}{email}"
+                orderNo = raw_order_no.ljust(35, '0')[:35]
+
                 # 토스 페이 토큰 발급
                 callTosspayToken : dict = api.pay().tosspayToken(
                     orderNo=orderNo,
@@ -290,13 +293,19 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     try:
                         ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                         ref.update({
+                            'token': st.session_state.token,
+                            'item': item,
+                            'delicomment': st.session_state.get('delicomment'),
+                            'user_address': deliveryAddress,
                             'payToken': payToken,
                             'pay_method': 'toss_simple'
                         })
                         print(f"임시 저장 업데이트 (toss): {orderNo}")
                     except Exception as e:
                         print(f"임시 저장 업데이트 실패 (toss): {e}")
-                    
+                        if 'item' in st.session_state:
+                            del st.session_state.item
+                        st.rerun()
                     st.markdown(
                         body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
                         unsafe_allow_html=True
@@ -325,39 +334,46 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                 del st.session_state.item
             st.rerun()
 
-    # ----------------------------------------------------------------------
-    # [토스페이먼츠 위젯] (일반결제) - 신용카드 등
-    # ----------------------------------------------------------------------
-    st.divider()
-    st.subheader("일반 결제 (신용카드/가상계좌 등)")
-
-    try:
-        toss_client_key = st.secrets["tosspayments"]["client_key"]
-    except Exception:
-        toss_client_key = "TEST_CLIENT_KEY"
-
-    # 위젯은 별도 버튼 클릭 없이 JS단에서 처리되므로, 
-    # 공통 저장 로직(`st.session_state.orderNo`)을 그대로 사용.
-    # 단, pay_method는 위젯 로딩 시 'toss_widget'으로 마킹해두거나 성공 후 페이지에서 처리 가능.
-    # 여기서는 명시적으로 update 한번 더 해줌 (선택 사항)
-    try:
-        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{st.session_state.orderNo}")
-        ref.update({'pay_method': 'toss_widget'})
-    except:
-        pass
-
-    render_payment_widget(
-        client_key=toss_client_key,
-        customer_key=email, 
-        amount=int(itemInfo['price']),
-        order_id=st.session_state.orderNo, # 공통 주문 번호 사용
-        order_name=itemInfo['name'],
-        customer_email=email,
-        customer_name=st.session_state.user.get('name', '고객'),
-        success_url="https://amuredo.shop/5pay_tosspayments", 
-        fail_url="https://amuredo.shop/5pay_tosspayments",
-        height=600
+    cardBTN = st.button(
+        label='신용카드',
+        type='secondary',
+        icon='💳',
+        width='stretch'
     )
+
+    if cardBTN:
+        itemStatus : dict = api.items.itemStatus(itemId=item)
+
+        if itemStatus.get('enable'):
+            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
+            orderTime = now_kst.strftime("%y%m%d%H%M%S")
+
+            # 재고 예약
+            reserved = api.items.reserveItem(
+                token=st.session_state.token,
+                itemID=item,
+                orderTime=orderTime
+            )
+
+            if reserved:
+                raw_order_no = f"{orderTime}{item}{email}"
+                orderNo = raw_order_no.ljust(35, '0')[:35]
+                try:
+                    ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
+                    ref.update({
+                        'token': st.session_state.token,
+                        'item': item,
+                        'delicomment': st.session_state.get('delicomment'),
+                        'user_address': deliveryAddress,
+                        'pay_method': 'toss_widget'
+                    })
+                    st.session_state.orderNo = orderNo
+                    st.switch_page(page="pages/5pay_tosspayments.py")
+                except Exception as e:
+                    print(f"임시 저장 업데이트 실패 (tosspayments): {e}")
+                    if 'item' in st.session_state:
+                        del st.session_state.item
+                    st.rerun()
 else:
     st.switch_page(page="mainPage.py")
 

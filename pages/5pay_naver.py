@@ -26,28 +26,21 @@ def cancelReservation():
     if orderTime:
         api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
 
-        if 'reserveId' in st.session_state:
-            del st.session_state.reserveId
-        if 'item' in st.session_state:
-            del st.session_state.item
-        if 'delicomment' in st.session_state:
-            del st.session_state.delicomment
-
 # 세션 복구
 def try_restore_session():
     # 파라미터 검증
     if 'resultCode' not in st.query_params:
         cancelReservation()
-        return False
+        return None
     if 'paymentId' not in st.query_params:
         cancelReservation()
-        return False
+        return None
     if st.query_params.resultCode != 'Success':
         cancelReservation()
-        return False
+        return None
     if 'orderNo' not in st.query_params:
         cancelReservation()
-        return False
+        return None
 
     orderNo : str = st.query_params['orderNo']
 
@@ -57,24 +50,22 @@ def try_restore_session():
         
         if data:
             st.session_state.token = data.get('token', st.session_state.token)
-            st.session_state.reserveId = data.get('reserveId') # reserveId 저장
-            st.session_state.item = data.get('item')
-            st.session_state.delicomment = data.get('delicomment')
             # 고객정보 재호출
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             
             ref.delete()
-            return True
+            return data
         else:
             print("복구할 데이터가 없습니다.")
+            return None
     except Exception as e:
         print(f"DB 오류: {e}")
-    return False
+    return None
 
-try_restore_session()
+sessionData : dict|None = try_restore_session()
 
 # 회원 로그인 상태 확인
-if any(value is not None for value in st.session_state.token.values()):
+if any(value is not None for value in st.session_state.token.values()) and sessionData:
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
         # 네이버페이 리다이렉트 파라미터 확인
         paymentId : str = st.query_params['paymentId']
@@ -89,10 +80,10 @@ if any(value is not None for value in st.session_state.token.values()):
             # 주문 확정
             order : bool = api.items.itemOrder(
                 token=st.session_state.token,
-                itemID=st.session_state.item,
+                itemID=sessionData.get('item'),
                 orderTime=orderTime,
-                address=st.session_state.user.get('address')['home'],
-                comment=st.session_state.delicomment,
+                address=sessionData.get('user_address'),
+                comment=sessionData.get('delicomment'),
                 payId=paymentId, # 네이버페이 결제 번호
                 pay='naver'
                 )
@@ -100,13 +91,6 @@ if any(value is not None for value in st.session_state.token.values()):
             if order:
                 st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-
-                if 'reserveId' in st.session_state:
-                    del st.session_state.reserveId
-                if 'item' in st.session_state:
-                    del st.session_state.item
-                if 'delicomment' in st.session_state:
-                    del st.session_state.delicomment
 
                 time.sleep(2)
                 st.switch_page("pages/3myPage_orderList.py")

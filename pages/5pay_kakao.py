@@ -22,46 +22,37 @@ def cancelReservation():
     if orderTime:
         api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
 
-        if 'tid' in st.session_state:
-            del st.session_state.tid
-        if 'item' in st.session_state:
-            del st.session_state.item
-        if 'delicomment' in st.session_state:
-            del st.session_state.delicomment
-
 # 세션 복구
 def try_restore_session():
     # URL 파라미터 확인
     if 'pg_token' not in st.query_params or 'orderNo' not in st.query_params:
         cancelReservation()
-        return False
+        return None
 
     orderNo : str = st.query_params['orderNo']
 
     try:
         ref = utils.utilsDb().realtimeDB.reference(f"payment_temp/{orderNo}")
-        data = ref.get()
+        data : dict|None = ref.get()
         
         if data:
             st.session_state.token = data.get('token', st.session_state.token)
-            st.session_state.tid = data.get('tid')
-            st.session_state.item = data.get('item')
-            st.session_state.delicomment = data.get('delicomment')
             # 고객정보 재호출
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             
             ref.delete()
-            return True
+            return data
         else:
             print("복구할 데이터가 없습니다.")
+            return None
     except Exception as e:
         print(f"DB 오류: {e}")
-    return False
+    return None
 
-try_restore_session()
+sessionData = try_restore_session()
 
 # 메인 로직
-if any(value is not None for value in st.session_state.token.values()):
+if any(value is not None for value in st.session_state.token.values()) and sessionData:
 
     # 아이템 정보 호출( 환불시 가격 정보 필요 )
     itemInfo = api.items.showItem()
@@ -74,7 +65,7 @@ if any(value is not None for value in st.session_state.token.values()):
     else:
         with st.spinner("결제 승인 중..."):
             approve_result = api.pay().approve_kakaopay(
-                tid=st.session_state.tid,
+                tid=sessionData.get('tid'),
                 pg_token=pg_token,
                 orderNo=orderNo
             )
@@ -84,11 +75,11 @@ if any(value is not None for value in st.session_state.token.values()):
 
                 order_success = api.items.itemOrder(
                     token=st.session_state.token,
-                    itemID=st.session_state.item,
+                    itemID=sessionData.get('item'),
                     orderTime=orderTime,
-                    address=st.session_state.user.get('address')['home'],
-                    comment=st.session_state.delicomment,
-                    payId=st.session_state.tid,
+                    address=sessionData.get('user_address'),
+                    comment=sessionData.get('delicomment'),
+                    payId=sessionData.get('tid'),
                     pay='kakao'
                 )
 
@@ -96,20 +87,13 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.success("주문이 완료되었습니다.")
                     st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
 
-                    if 'tid' in st.session_state:
-                        del st.session_state.tid
-                    if 'item' in st.session_state:
-                        del st.session_state.item
-                    if 'delicomment' in st.session_state:
-                        del st.session_state.delicomment
-
                     time.sleep(2)
                     st.switch_page("pages/3myPage_orderList.py")
                 else:
                     st.error("재고 소진 등의 이유로 주문 처리에 실패했습니다. (자동 환불 필요)")
                     refund_result = api.pay().refund_kakaopay(
-                        tid=st.session_state.tid,
-                        amount=int(itemInfo.loc[st.session_state.item]['price'])
+                        tid=sessionData.get('tid'),
+                        amount=int(itemInfo.loc[sessionData.get('item')]['price'])
                     )
                     if refund_result:
                         st.toast("환불이 완료되었습니다.")

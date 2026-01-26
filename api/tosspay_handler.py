@@ -13,8 +13,6 @@ def handle_payment_callback(secret_key: str):
         dict: 결제 승인 결과 또는 실패 정보
     """
     
-    # 쿼리 파라미터 확인 (Streamlit 버전에 따라 st.query_params 또는 st.experimental_get_query_params 사용)
-    # 여기서는 최신 버전 기준 st.query_params 사용 (dict-like)
     params = st.query_params
     
     payment_key = params.get("paymentKey")
