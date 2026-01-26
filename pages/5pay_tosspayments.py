@@ -31,13 +31,6 @@ except Exception:
 
 # 세션 복구 function
 def try_restore_session():
-    if 'paymentKey' not in st.query_params:
-        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
-        return None
-    if 'orderId' not in st.query_params:
-        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
-        return None
-    
     orderNo : str = st.query_params['orderId']
 
     try:
@@ -69,7 +62,10 @@ elif 'paymentKey' in st.query_params and 'orderId' in st.query_params:
     sessionData : dict|None = try_restore_session()
 
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
-        payment_result = handle_payment_callback(toss_secret_key)
+        # 금액 검증을 위한 실제 아이템 가격 조회
+        itemInfo = api.items.showItem().loc[sessionData.get('item')]
+
+        payment_result = handle_payment_callback(toss_secret_key, expected_amount=int(itemInfo['price']))
             
         if payment_result and payment_result["status"] == "success":
             paymentData = payment_result["data"]
@@ -83,13 +79,17 @@ elif 'paymentKey' in st.query_params and 'orderId' in st.query_params:
                 orderTime=orderTime,
                 address=sessionData.get('user_address'),
                 comment=sessionData.get('delicomment'),
-                payId=data.get("paymentKey"),
+                payId=st.query_params.paymentKey,
                 pay='toss_widget'
                 )
                     
             if order:
                 st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
+                try:
+                    utils.utilsDb().realtimeDB.reference(f"payment_temp/{st.query_params['orderId']}").delete()
+                except:
+                    pass
 
                 time.sleep(2)
                 st.switch_page("pages/3myPage_orderList.py")

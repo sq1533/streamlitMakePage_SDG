@@ -2,12 +2,13 @@ import streamlit as st
 import requests
 import base64
 
-def handle_payment_callback(secret_key: str):
+def handle_payment_callback(secret_key: str, expected_amount: int = None):
     """
     결제 성공/실패 리다이렉트 후 쿼리 파라미터를 처리합니다.
     
     Args:
         secret_key (str): 토스페이먼츠 시크릿 키
+        expected_amount (int, optional): 검증할 예상 결제 금액.
         
     Returns:
         dict: 결제 승인 결과 또는 실패 정보
@@ -32,6 +33,17 @@ def handle_payment_callback(secret_key: str):
         }
         
     if payment_key and order_id and amount:
+        
+        # 금액 검증
+        if expected_amount is not None:
+             if int(amount) != int(expected_amount):
+                 return {
+                     "status": "fail",
+                     "code": "AMOUNT_MISMATCH",
+                     "message": f"결제 금액 불일치 (요청: {amount}, 예상: {expected_amount})",
+                     "orderId": order_id
+                 }
+
         # 결제 승인 API 호출
         url = "https://api.tosspayments.com/v1/payments/confirm"
         
@@ -50,7 +62,7 @@ def handle_payment_callback(secret_key: str):
             "amount": int(amount),
             "orderId": order_id
         }
-        
+
         try:
             response = requests.post(url, headers=headers, json=data, timeout=30)
             res_json = response.json()
