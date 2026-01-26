@@ -34,7 +34,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     item : str = st.session_state.item
     itemInfo = api.items.showItem().loc[item]
 
-    st.info(body='네이버페이 준비중입니다.')
+    st.info(body='네이버페이, 신용카드 결제 준비중입니다.')
 
     col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 

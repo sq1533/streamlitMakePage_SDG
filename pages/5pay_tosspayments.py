@@ -32,10 +32,10 @@ except Exception:
 # 세션 복구 function
 def try_restore_session():
     if 'paymentKey' not in st.query_params:
-        api.items.cancelReservation(token=st.session_state.token, itemID=item, orderTime=orderTime)
+        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
         return None
     if 'orderId' not in st.query_params:
-        api.items.cancelReservation(token=st.session_state.token, itemID=item, orderTime=orderTime)
+        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
         return None
     
     orderNo : str = st.query_params['orderId']
@@ -60,14 +60,14 @@ def try_restore_session():
         print(f"DB 오류 (세션 복구): {e}")
     return None
 
-sessionData : dict|None = try_restore_session()
-
 if 'code' in st.query_params and 'message' in st.query_params:
     st.error(f"결제 실패: {st.query_params['message']}")
     time.sleep(1)
     st.switch_page("mainPage.py")
 
-elif 'paymentKey' in st.query_params and 'orderId' in st.query_params and sessionData:
+elif 'paymentKey' in st.query_params and 'orderId' in st.query_params:
+    sessionData : dict|None = try_restore_session()
+
     with st.spinner(text="결제 승인 요청 중...", show_time=False):
         payment_result = handle_payment_callback(toss_secret_key)
             
@@ -128,6 +128,7 @@ elif any(value is not None for value in st.session_state.token.values()) and st.
         height=600
     )
     if st.button("⬅️ 뒤로 가기 (주문 취소)"):
+        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
         st.switch_page("pages/5orderPage.py")
 
 else:
