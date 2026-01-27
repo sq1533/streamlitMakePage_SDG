@@ -139,27 +139,26 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     # 3. 따라서 '빈 Iframe' 생성 후 Sandbox 권한을 부여하고, 스크립트로 내용을 주입하는 방식이 가장 안전함.
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
-    # [최종 완전체 수정] 
-    # 1. Mechanism: Script Injection (srcdoc) -> Origin 유지 (Javascript URI의 Opaque Origin 문제 해결)
-    # 2. Timing: setInterval -> DOM 렌더링 타이밍 이슈 해결 (White Screen 문제 해결)
-    # 3. Permissions: User Activation + Escape Sandbox -> Navigation 차단 문제 해결
+    # [최종 완전체 수정 2] Blob URL 방식 (No Sandbox)
+    # 1. Mechanism: Blob URL -> 브라우저가 Same-Origin으로 인식함 (https://amuredo.shop)
+    # 2. Permissions: Sandbox 제거 -> 기본적으로 모든 권한(Navigation 포함) 허용됨
+    # 3. Timing: setInterval -> DOM 렌더링 타이밍 이슈 해결
     
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
     frame_id = f"toss_widget_{order_id}"
     
-    # 1. 빈 Iframe 생성 (권한 풀세트 장착)
+    # 1. 빈 Iframe 생성 (Sandbox 제거 - Same Origin 신뢰)
     iframe_tag = f"""
     <iframe 
         id="{frame_id}"
         width="100%" 
         height="1000" 
-        frameborder="0" 
-        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox"
+        frameborder="0"
     ></iframe>
     """
     
-    # 2. JS로 내용 주입 (setInterval로 타이밍 확보)
+    # 2. JS로 Blob URL 생성 및 주입
     script_tag = f"""
     <script>
         (function() {{
@@ -167,15 +166,21 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
             var b64Content = "{b64_html}";
             
             var retryCount = 0;
-            var maxRetries = 200; // 10초간 시도 (넉넉하게)
+            var maxRetries = 200; 
             
             var interval = setInterval(function() {{
                 var iframe = document.getElementById(frameId);
                 if (iframe) {{
                     try {{
-                        iframe.srcdoc = atob(b64Content);
+                        // Blob 객체 생성 (HTML 타입)
+                        var blob = new Blob([atob(b64Content)], {{type: 'text/html'}});
+                        // Blob URL 생성 (blob:https://...)
+                        var url = URL.createObjectURL(blob);
+                        
+                        iframe.src = url;
+                        
                         clearInterval(interval);
-                        console.log("Toss Widget injected successfully");
+                        console.log("Toss Widget injected via Blob URL");
                     }} catch(e) {{
                         console.error("Toss Widget injection error: ", e);
                         clearInterval(interval);
