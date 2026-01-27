@@ -152,19 +152,37 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     ></iframe>
     """
     
-    # 2. JS로 내용 주입 (Base64 Decode -> srcdoc 속성 할당)
-    # 이 방식은 HTML 파싱 오류를 방지하고 Sandbox 권한을 온전히 사용함
+    # 2. JS로 내용 주입 (DOM 렌더링 시점 차이 해결을 위한 Polling 방식)
+    # Streamlit의 렌더링 순서 때문에 script가 실행될 때 iframe이 아직 없을 수 있음.
+    # setInterval로 iframe이 생길 때까지 기다렸다가 주입함.
     script_tag = f"""
     <script>
         (function() {{
-            var iframe = document.getElementById("{frame_id}");
-            if (iframe) {{
-                try {{
-                    iframe.srcdoc = atob("{b64_html}");
-                }} catch(e) {{
-                    console.error("Toss Widget injection error: ", e);
+            var frameId = "{frame_id}";
+            var b64Content = "{b64_html}";
+            
+            var retryCount = 0;
+            var maxRetries = 100; // 5초간 시도
+            
+            var interval = setInterval(function() {{
+                var iframe = document.getElementById(frameId);
+                if (iframe) {{
+                    try {{
+                        iframe.srcdoc = atob(b64Content);
+                        clearInterval(interval);
+                        console.log("Toss Widget injected successfully");
+                    }} catch(e) {{
+                        console.error("Toss Widget injection error: ", e);
+                        clearInterval(interval);
+                    }}
                 }}
-            }}
+                
+                retryCount++;
+                if (retryCount >= maxRetries) {{
+                    clearInterval(interval);
+                    console.error("Toss Widget iframe not found");
+                }}
+            }}, 50);
         }})();
     </script>
     """
