@@ -26,9 +26,6 @@ item_name = itemInfo['name']
 user_email = st.session_state.user.get('email', 'anonymous')
 user_name = st.session_state.user.get('name', '고객')
 
-st.title("결제 준비")
-st.info("준비가 완료되었습니다. 아래 버튼을 눌러 결제를 진행해주세요.")
-
 # 결제 성공/실패 시 이동할 URL (상대 경로) - Bridge 페이지로 연결하여 Iframe 탈출 유도
 success_url = "/payment_bridge?target=success" 
 fail_url = "/payment_bridge?target=fail"

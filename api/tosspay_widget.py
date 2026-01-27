@@ -5,6 +5,18 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     Toss Payments Widget 렌더링 함수
     Success/Fail 시 window.top.location.href를 사용하여 최상위 창을 이동시킵니다.
     """
+    # Python 변수를 JSON 문자열로 안전하게 변환
+    import json
+    js_client_key = json.dumps(client_key)
+    js_customer_key = json.dumps(customer_key)
+    js_amount = json.dumps(amount)
+    js_order_id = json.dumps(order_id)
+    js_order_name = json.dumps(order_name)
+    js_customer_name = json.dumps(customer_name)
+    js_customer_email = json.dumps(customer_email)
+    js_success_url = json.dumps(success_url)
+    js_fail_url = json.dumps(fail_url)
+
     html_code = f"""
     <!DOCTYPE html>
     <html lang="ko">
@@ -51,16 +63,18 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
         </div>
 
         <script>
-            const clientKey = "{client_key}";
-            const customerKey = "{customer_key}";
-            const amount = {amount};
-            const orderId = "{order_id}";
-            const orderName = "{order_name}";
-            const customerName = "{customer_name}";
-            const customerEmail = "{customer_email}";
-            let successUrl = "{success_url}";
-            let failUrl = "{fail_url}";
+            // JSON.parse로 안전하게 데이터 로드 (Python에서 json.dumps로 넘김)
+            const clientKey = {js_client_key};
+            const customerKey = {js_customer_key};
+            const amount = {js_amount};
+            const orderId = {js_order_id};
+            const orderName = {js_order_name};
+            const customerName = {js_customer_name};
+            const customerEmail = {js_customer_email};
+            let successUrl = {js_success_url};
+            let failUrl = {js_fail_url};
 
+            // URL 처리
             if (!successUrl.startsWith('http')) {{
                 successUrl = window.location.origin + successUrl;
             }}
@@ -73,16 +87,15 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
             try {{
                 const paymentWidget = PaymentWidget(clientKey, customerKey);
 
-                // 결제 수단 렌더링
                 paymentWidget.renderPaymentMethods('#payment-method', {{ value: amount }});
-                
-                // 이용 약관 렌더링
                 paymentWidget.renderAgreement('#agreement');
 
-                // 버튼 클릭 이벤트
                 paymentButton.addEventListener('click', function() {{
                     paymentButton.disabled = true;
                     paymentButton.innerText = "처리 중...";
+
+                    // 디버깅: 결제 시도 알림 (필요시 주석 처리)
+                    // alert("결제 요청 시작: " + successUrl);
 
                     paymentWidget.requestPayment({{
                         orderId: orderId,
@@ -91,28 +104,24 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                         failUrl: failUrl,
                         customerEmail: customerEmail,
                         customerName: customerName
-                    }}).then(function (data) {{
-                        // SDK 자체적으로 리다이렉트를 처리하지만, 
-                        // 만약 then으로 넘어오는 경우(거의 없음) 명시적으로 처리
-                        console.log(data);
                     }}).catch(function (error) {{
                         paymentButton.disabled = false;
                         paymentButton.innerText = "결제하기";
 
                         if (error.code === 'USER_CANCEL') {{
-                            // 사용자 취소
+                            // 사용자 취소 - 조용히 넘어감
                         }} else {{
-                            alert("결제 실패: " + error.message);
+                            alert("결제 오류: " + error.message + " (" + error.code + ")");
                         }}
                     }});
                 }});
             }} catch (e) {{
                 console.error(e);
-                alert("위젯 로드 중 오류가 발생했습니다.");
+                alert("초기화 오류: " + e.message);
             }}
         </script>
     </body>
     </html>
     """
     # 높이를 충분히 주어 스크롤이 생기지 않도록 함
-    return components.html(html_code, height=600, scrolling=True)
+    return components.html(html_code, height=800, scrolling=True)
