@@ -140,8 +140,8 @@ elif any(value is not None for value in st.session_state.token.values()) and st.
         order_name=itemInfo['name'],
         customer_email=st.session_state.user.get('email'),
         customer_name=st.session_state.user.get('name', '고객'),
-        success_url="https://amuredo.shop/5pay_tosspayments", 
-        fail_url="https://amuredo.shop/5pay_tosspayments",
+        success_url="https://amuredo.shop/pay_tosspayments",
+        fail_url="https://amuredo.shop/pay_tosspayments",
         height=1000
     )
     if st.button("⬅️ 뒤로 가기 (주문 취소)"):
