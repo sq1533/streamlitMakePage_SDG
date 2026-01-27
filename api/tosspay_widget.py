@@ -134,14 +134,14 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     </html>
     """
     
-    # [중요] Iframe Sandbox 권한 부여를 위해 st.markdown 사용
+    # [중요] Iframe Sandbox 권한 부여를 위해 st.markdown 사용 (Base64 인코딩)
     # allow-top-navigation: 이 권한이 있어야 Iframe 내부(Toss)에서 최상위 창(Streamlit)을 리다이렉트할 수 있음
-    import html
-    escaped_html = html.escape(html_code)
+    import base64
+    b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
     
     iframe_code = f"""
     <iframe 
-        srcdoc="{escaped_html}" 
+        src="data:text/html;charset=utf-8;base64,{b64_html}" 
         width="100%" 
         height="800" 
         frameborder="0" 
