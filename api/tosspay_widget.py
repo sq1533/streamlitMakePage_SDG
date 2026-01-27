@@ -139,52 +139,24 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     # 3. 따라서 '빈 Iframe' 생성 후 Sandbox 권한을 부여하고, 스크립트로 내용을 주입하는 방식이 가장 안전함.
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
-    frame_id = f"toss_widget_{order_id}"
+    # [최종 방어선 2] Javascript URI + Extended Sandbox (Self-Contained)
+    # 1. 별도 스크립트 실행(Injection) 방식은 DOM 타이밍 이슈로 '화면 안 나옴' 발생 가능.
+    # 2. Javascript URI 방식은 즉시 렌더링되므로 화면은 무조건 나옴.
+    # 3. 기존의 'Navigation Disallowed' 오류는 allow-top-navigation-by-user-activation 권한 부재 가능성 높음.
+    import base64
+    b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
     
-    # 1. 빈 Iframe 생성 (Sandbox 필수 포함)
-    iframe_tag = f"""
+    # javascript: 스킴을 사용하여 즉시 실행
+    js_src = f"javascript:var d=document;d.open();d.write(atob('{b64_html}'));d.close();"
+
+    iframe_code = f"""
     <iframe 
-        id="{frame_id}"
+        src="{js_src}"
         width="100%" 
         height="1000" 
         frameborder="0" 
-        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation"
+        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation allow-top-navigation-by-user-activation"
     ></iframe>
     """
     
-    # 2. JS로 내용 주입 (DOM 렌더링 시점 차이 해결을 위한 Polling 방식)
-    # Streamlit의 렌더링 순서 때문에 script가 실행될 때 iframe이 아직 없을 수 있음.
-    # setInterval로 iframe이 생길 때까지 기다렸다가 주입함.
-    script_tag = f"""
-    <script>
-        (function() {{
-            var frameId = "{frame_id}";
-            var b64Content = "{b64_html}";
-            
-            var retryCount = 0;
-            var maxRetries = 100; // 5초간 시도
-            
-            var interval = setInterval(function() {{
-                var iframe = document.getElementById(frameId);
-                if (iframe) {{
-                    try {{
-                        iframe.srcdoc = atob(b64Content);
-                        clearInterval(interval);
-                        console.log("Toss Widget injected successfully");
-                    }} catch(e) {{
-                        console.error("Toss Widget injection error: ", e);
-                        clearInterval(interval);
-                    }}
-                }}
-                
-                retryCount++;
-                if (retryCount >= maxRetries) {{
-                    clearInterval(interval);
-                    console.error("Toss Widget iframe not found");
-                }}
-            }}, 50);
-        }})();
-    </script>
-    """
-    
-    return st.markdown(iframe_tag + script_tag, unsafe_allow_html=True)
+    return st.markdown(iframe_code, unsafe_allow_html=True)
