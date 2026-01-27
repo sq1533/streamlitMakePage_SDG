@@ -17,33 +17,37 @@ utils.init_session()
 
 # 세션 복구 function
 def try_restore_session():
-    orderNo : str = st.query_params.get('orderId')
+    # Toss Widget에서 넘어온 suffixed orderId (예: order123_1789...)
+    widget_orderId : str = st.query_params.get('orderId')
     
-    if not orderNo:
-        return None
+    if not widget_orderId:
+        return None, None
+
+    # 실제 DB 조회용 orderNo (Suffix 제거)
+    real_orderNo = widget_orderId.split('_')[0] if '_' in widget_orderId else widget_orderId
 
     try:
-        # Realtime DB에서 임시 저장된 데이터 조회
-        ref = utils.utilsDb().realtimeDB.reference(f"payment_temp/{orderNo}")
+        # Realtime DB에서 임시 저장된 데이터 조회 (real_orderNo 사용)
+        ref = utils.utilsDb().realtimeDB.reference(f"payment_temp/{real_orderNo}")
         data = ref.get()
         
         if data:
             st.session_state.token = data.get('token', st.session_state.token)
-            st.session_state.orderNo = orderNo
+            st.session_state.orderNo = real_orderNo
             # 고객 정보 호출 (토큰이 유효하다면)
             if 'token' in st.session_state and st.session_state.token.get('accessToken'):
                  st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             
-            # 여기서 삭제하지 않고, 주문 성공 후 삭제 (재시도 가능성 고려)
-            return data
+            # 여기서 삭제하지 않고, 주문 성공 후 삭제
+            return data, real_orderNo
         else:
-            return None
+            return None, real_orderNo
     except Exception as e:
         print(f"DB 오류 (세션 복구): {e}")
-    return None
+    return None, real_orderNo
 
 if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
-    sessionData : dict|None = try_restore_session()
+    sessionData, real_orderNo = try_restore_session()
 
     if sessionData:
         with st.spinner(text="결제 승인 요청 중...", show_time=False):
@@ -52,18 +56,19 @@ if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
             amount = int(itemInfo['price'])
             
             paymentKey = st.query_params.get("paymentKey")
-            orderId = st.query_params.get("orderId")
+            widget_orderId = st.query_params.get("orderId")
 
             # api.pay 클래스 사용
+            # 중요: Toss 서버에는 요청했던 widget_orderId(suffix 포함)를 그대로 보내야 함
             payment = api.pay()
-            payment_result = payment.confirm_tosspayments(paymentKey, orderId, amount)
+            payment_result = payment.confirm_tosspayments(paymentKey, widget_orderId, amount)
                 
             if payment_result and payment_result["status"] == "success":
                 paymentData = payment_result["data"]
-                # 주문 시간은 orderNo Prefix (12자리)
-                orderTime = orderId[:12]
+                # 주문 시간은 실제 orderNo 기준 (prefix 12자리)
+                orderTime = real_orderNo[:12]
 
-                # 주문 확정 (DB 저장)
+                # 주문 확정 (DB 저장) - 여기서는 real_orderNo 관련 정보 사용
                 order : bool = api.items.itemOrder(
                     token=st.session_state.token,
                     itemID=sessionData.get('item'),
@@ -76,9 +81,9 @@ if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
                         
                 if order:
                     st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
-                    # 임시 데이터 삭제
+                    # 임시 데이터 삭제 (real_orderNo 사용)
                     try:
-                        utils.utilsDb().realtimeDB.reference(f"payment_temp/{orderId}").delete()
+                        utils.utilsDb().realtimeDB.reference(f"payment_temp/{real_orderNo}").delete()
                     except:
                         pass
 
@@ -92,12 +97,12 @@ if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
                     payment.refund_tosspayments(paymentKey=paymentKey, cancelReason="재고 소진으로 인한 자동 취소")
                     st.toast("환불이 완료되었습니다.")
                     
-                    api.items.cancelReservation(token=st.session_state.token, itemID=sessionData.get('item'), orderTime=orderTime)
+                    api.items.cancelReservation(token=st.session_state.token, itemID=sessionData.get('item'), orderTime=real_orderNo[:12])
                     time.sleep(2)
                     st.switch_page("mainPage.py")
             else:
                 st.error(f"결제 승인 실패: {payment_result.get('message', '알 수 없는 오류')}")
-                api.items.cancelReservation(token=st.session_state.token, itemID=sessionData.get('item'), orderTime=orderId[:12])
+                api.items.cancelReservation(token=st.session_state.token, itemID=sessionData.get('item'), orderTime=real_orderNo[:12])
                 time.sleep(2)
                 st.switch_page("mainPage.py")
     else:

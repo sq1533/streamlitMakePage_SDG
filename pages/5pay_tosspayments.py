@@ -34,12 +34,19 @@ fail_url = "/payment_bridge?target=fail"
 success_url = "https://amuredo.shop/payment_bridge?target=success" 
 fail_url = "https://amuredo.shop/payment_bridge?target=fail"
 
+import time
+
+# [중요] 결제 시도마다 유니크한 Order ID 생성
+# 주석: Toss Payments Sandbox는 동일한 주문번호 재사용 시 무한 로딩(Processing)에 걸립니다.
+# "아까 잘 되던" 상태로 되돌리기 위해 타임스탬프를 다시 적용합니다.
+widget_order_id = f"{orderNo}_{int(time.time())}"
+
 # 토스 페이먼츠 위젯 렌더링
 api.tosspay_widget.render_payment_widget(
     client_key=toss_client_key,
     customer_key=user_email,
     amount=price,
-    order_id=orderNo,
+    order_id=widget_order_id,
     order_name=item_name,
     customer_name=user_name,
     customer_email=user_email,
