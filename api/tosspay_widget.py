@@ -133,22 +133,40 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     </body>
     </html>
     """
-    # [최종 수정] javascript: URI 방식
-    # Iframe의 src 속성 내에서 바로 Base64를 디코딩하여 문서를 씁니다.
-    # 별도의 <script> 태그 실행 여부에 의존하지 않으므로 Streamlit 버전/환경에 상관없이 가장 확실하게 동작합니다.
+    # [최종 방어선] Sandbox 활성화 + JS Injection (Iframe Property)
+    # 1. Sandbox가 없으면 Cross-Origin 정책에 의해 Top Navigation이 차단됨 (Step 977 오류)
+    # 2. Javascript URI 방식은 Sandbox 권한 상속에 문제가 있을 수 있음 (Step 948 오류)
+    # 3. 따라서 '빈 Iframe' 생성 후 Sandbox 권한을 부여하고, 스크립트로 내용을 주입하는 방식이 가장 안전함.
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
+    frame_id = f"toss_widget_{order_id}"
     
-    # javascript: 스킴을 사용하여 즉시 실행 (Origin 상속됨)
-    js_src = f"javascript:var d=document;d.open();d.write(atob('{b64_html}'));d.close();"
-
-    iframe_code = f"""
+    # 1. 빈 Iframe 생성 (Sandbox 필수 포함)
+    iframe_tag = f"""
     <iframe 
-        src="{js_src}"
+        id="{frame_id}"
         width="100%" 
-        height="800" 
+        height="1000" 
         frameborder="0" 
+        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation"
     ></iframe>
     """
     
-    return st.markdown(iframe_code, unsafe_allow_html=True)
+    # 2. JS로 내용 주입 (Base64 Decode -> srcdoc 속성 할당)
+    # 이 방식은 HTML 파싱 오류를 방지하고 Sandbox 권한을 온전히 사용함
+    script_tag = f"""
+    <script>
+        (function() {{
+            var iframe = document.getElementById("{frame_id}");
+            if (iframe) {{
+                try {{
+                    iframe.srcdoc = atob("{b64_html}");
+                }} catch(e) {{
+                    console.error("Toss Widget injection error: ", e);
+                }}
+            }}
+        }})();
+    </script>
+    """
+    
+    return st.markdown(iframe_tag + script_tag, unsafe_allow_html=True)
