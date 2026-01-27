@@ -74,12 +74,17 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
             let successUrl = {js_success_url};
             let failUrl = {js_fail_url};
 
-            // URL 처리
+            // Origin 처리 (Sandbox 환경 대응)
+            const origin = (window.location.origin && window.location.origin !== 'null') 
+                           ? window.location.origin 
+                           : 'https://amuredo.shop';
+
+            // URL이 상대 경로면 Origin 부착
             if (!successUrl.startsWith('http')) {{
-                successUrl = window.location.origin + successUrl;
+                successUrl = origin + successUrl;
             }}
             if (!failUrl.startsWith('http')) {{
-                failUrl = window.location.origin + failUrl;
+                failUrl = origin + failUrl;
             }}
 
             const paymentButton = document.getElementById('payment-button');
@@ -91,15 +96,18 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                 paymentWidget.renderAgreement('#agreement');
 
                 paymentButton.addEventListener('click', function() {{
+                    // 버튼 중복 클릭 방지
                     paymentButton.disabled = true;
                     paymentButton.innerText = "처리 중...";
-
-                    // 디버깅: 결제 시도 알림
-                    // 필수 파라미터가 올바른지 확인하기 위해 alert를 띄웁니다.
-                    alert("DEBUG INFO:\n" + 
-                          "SuccessUrl: " + successUrl + "\n" +
-                          "Amount: " + amount + "\n" +
-                          "OrderId: " + orderId);
+                    
+                    // 타임아웃 설정 (15초 후 버튼 복구) - 무한 로딩 방지용
+                    const timeoutId = setTimeout(function() {{
+                        if (paymentButton.disabled) {{
+                            paymentButton.disabled = false;
+                            paymentButton.innerText = "결제하기 (시간 초과 - 다시 시도)";
+                            console.warn("Payment request timed out locally.");
+                        }}
+                    }}, 15000);
 
                     paymentWidget.requestPayment({{
                         orderId: orderId,
@@ -108,13 +116,19 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                         failUrl: failUrl,
                         customerEmail: customerEmail,
                         customerName: customerName
+                    }}).then(function (data) {{
+                        console.log(data);
+                        // 성공 시 리다이렉트되므로 타이머나 버튼 상태 복구 불필요할 수 있으나 안전을 위해 유지
+                        clearTimeout(timeoutId);
                     }}).catch(function (error) {{
+                        clearTimeout(timeoutId);
                         paymentButton.disabled = false;
                         paymentButton.innerText = "결제하기";
 
                         if (error.code === 'USER_CANCEL') {{
-                            // 사용자 취소 - 조용히 넘어감
+                            // 사용자 취소
                         }} else {{
+                            // 에러 발생 시 알림
                             alert("결제 오류: " + error.message + " (" + error.code + ")");
                         }}
                     }});
