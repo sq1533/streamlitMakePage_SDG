@@ -34,8 +34,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     item : str = st.session_state.item
     itemInfo = api.items.showItem().loc[item]
 
-    st.info(body='네이버페이, 신용카드 결제 준비중입니다.')
-
     col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 
     with col1:
@@ -71,34 +69,23 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
     st.markdown(
         """
         <style>
-        /* 1번 네이버페이 (초록) */
         div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(1) button {
-            background-color: #03C75A !important;
-            color: white !important;
-            border: none !important;
-            font-weight: bold !important;
-        }
-        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(1) button:hover {
-            background-color: #02B350 !important;
-        }
-
-        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button {
             background-color: #FEE500 !important;
             color: #191919 !important;
             border: none !important;
             font-weight: bold !important;
         }
-        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button:hover {
+        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(1) button:hover {
             background-color: #E6CE00 !important;
         }
 
-        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(3) button {
+        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button {
             background-color: #0064FF !important;
             color: white !important;
             border: none !important;
             font-weight: bold !important;
         }
-        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(3) button:hover {
+        div:has(#pay-section-marker) ~ div div[data-testid="stColumn"]:nth-of-type(2) button:hover {
             background-color: #0050CC !important;
         }
         </style>
@@ -106,14 +93,8 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         unsafe_allow_html=True
     )
 
-    naverpay, kakaopay, tosspay = st.columns(spec=3, gap='small', vertical_alignment='center')
+    kakaopay, tosspay = st.columns(spec=2, gap='small', vertical_alignment='center')
 
-    naverpayBTN = naverpay.button(
-        label='Naver Pay',
-        type='primary',
-        width='stretch',
-        disabled=True
-        )
     kakaopayBTN = kakaopay.button(
         label='kakao Pay',
         type='primary',
@@ -124,74 +105,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         type='primary', 
         width='stretch'
     )
-
-    # 네이버페이 결제 요청
-    if naverpayBTN:
-        itemStatus : dict = api.items.itemStatus(itemId=item)
-        if itemStatus.get('enable'):
-            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
-            orderTime = now_kst.strftime("%y%m%d%H%M%S")
-
-            reserved = api.items.reserveItem(
-                token=st.session_state.token,
-                itemID=item,
-                orderTime=orderTime
-            )
-
-            if reserved:
-                raw_order_no = f"{orderTime}{item}{email}"
-                orderNo = raw_order_no.ljust(35, '0')[:35]
-                callNaverpay : dict = api.pay().naverpayToken(
-                    orderNo=orderNo,
-                    itemName=itemInfo['name'],
-                    amount=int(itemInfo['price'])
-                    )
-                
-                if callNaverpay.get('access'):
-                    reserveId : str = callNaverpay.get('reserveId')
-                    checkoutPage_url = callNaverpay.get('checkoutPage_url')
-
-                    # 결제 방법 및 고유값 업데이트
-                    try:
-                        ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
-                        ref.update({
-                            'token': st.session_state.token,
-                            'item': item,
-                            'delicomment': st.session_state.get('delicomment'),
-                            'user_address': deliveryAddress,
-                            'reserveId': reserveId,
-                            'pay_method': 'naver'
-                        })
-                        print(f"임시 저장 업데이트 (Naver): {orderNo}")
-                    except Exception as e:
-                        print(f"임시 저장 업데이트 실패 (Naver): {e}")
-
-                    st.markdown(
-                        body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
-                        unsafe_allow_html=True
-                        )
-
-                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
-                else:
-                    # 토큰 발급 실패 시 예약 취소
-                    api.items.cancelReservation(st.session_state.token, item, orderTime)
-                    st.toast(f"결제 생성 실패: {callNaverpay.get('message')}", icon="❌")
-                    time.sleep(1)
-                    if 'item' in st.session_state:
-                        del st.session_state.item
-                    st.rerun()
-            else:
-                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
-                 time.sleep(2)
-                 if 'item' in st.session_state:
-                    del st.session_state.item
-                 st.rerun()
-        else:
-            st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
-            time.sleep(1)
-            if 'item' in st.session_state:
-                del st.session_state.item
-            st.rerun()
 
     if kakaopayBTN:
         itemStatus : dict = api.items.itemStatus(itemId=item)
@@ -333,47 +246,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
             if 'item' in st.session_state:
                 del st.session_state.item
             st.rerun()
-
-    cardBTN = st.button(
-        label='신용카드',
-        type='secondary',
-        icon='💳',
-        width='stretch'
-    )
-
-    if cardBTN:
-        itemStatus : dict = api.items.itemStatus(itemId=item)
-
-        if itemStatus.get('enable'):
-            now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
-            orderTime = now_kst.strftime("%y%m%d%H%M%S")
-
-            # 재고 예약
-            reserved = api.items.reserveItem(
-                token=st.session_state.token,
-                itemID=item,
-                orderTime=orderTime
-            )
-
-            if reserved:
-                raw_order_no = f"{orderTime}{item}{email}"
-                orderNo = raw_order_no.ljust(35, '0')[:35]
-                try:
-                    ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
-                    ref.update({
-                        'token': st.session_state.token,
-                        'item': item,
-                        'delicomment': st.session_state.get('delicomment'),
-                        'user_address': deliveryAddress,
-                        'pay_method': 'toss_widget'
-                    })
-                    st.session_state.orderNo = orderNo
-                    st.switch_page(page="pages/5pay_tosspayments.py")
-                except Exception as e:
-                    print(f"임시 저장 업데이트 실패 (tosspayments): {e}")
-                    if 'item' in st.session_state:
-                        del st.session_state.item
-                    st.rerun()
 else:
     st.switch_page(page="mainPage.py")
 
