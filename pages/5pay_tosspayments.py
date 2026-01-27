@@ -54,8 +54,6 @@ api.tosspay_widget.render_payment_widget(
     fail_url=fail_url
 )
 
-st.divider()
-
 if st.button("취소 및 뒤로가기"):
     api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderNo[:12])
     st.switch_page("pages/5orderPage.py")

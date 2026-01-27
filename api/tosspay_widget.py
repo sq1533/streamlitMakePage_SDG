@@ -17,6 +17,7 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     js_success_url = json.dumps(success_url)
     js_fail_url = json.dumps(fail_url)
 
+    # HTML 코드 생성 (이전과 동일)
     html_code = f"""
     <!DOCTYPE html>
     <html lang="ko">
@@ -32,6 +33,7 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                 align-items: center; 
                 padding: 20px;
                 background-color: transparent;
+                margin: 0;
             }}
             .container {{ width: 100%; max-width: 600px; }}
             #payment-method {{ margin-bottom: 20px; }}
@@ -63,7 +65,6 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
         </div>
 
         <script>
-            // JSON.parse로 안전하게 데이터 로드 (Python에서 json.dumps로 넘김)
             const clientKey = {js_client_key};
             const customerKey = {js_customer_key};
             const amount = {js_amount};
@@ -75,7 +76,6 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
             let failUrl = {js_fail_url};
 
             // URL이 이미 절대 경로로 전달되므로 추가 처리 불필요
-            // 만약 http로 시작하지 않는 경우에만 예외적으로 처리 (혹시 모를 상황 대비)
             if (!successUrl.startsWith('http')) {{
                 successUrl = window.location.origin + successUrl;
             }}
@@ -92,16 +92,13 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                 paymentWidget.renderAgreement('#agreement');
 
                 paymentButton.addEventListener('click', function() {{
-                    // 버튼 중복 클릭 방지
                     paymentButton.disabled = true;
                     paymentButton.innerText = "처리 중...";
                     
-                    // 타임아웃 설정 (15초 후 버튼 복구) - 무한 로딩 방지용
                     const timeoutId = setTimeout(function() {{
                         if (paymentButton.disabled) {{
                             paymentButton.disabled = false;
                             paymentButton.innerText = "결제하기 (시간 초과 - 다시 시도)";
-                            console.warn("Payment request timed out locally.");
                         }}
                     }}, 15000);
 
@@ -114,7 +111,6 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                         customerName: customerName
                     }}).then(function (data) {{
                         console.log(data);
-                        // 성공 시 리다이렉트되므로 타이머나 버튼 상태 복구 불필요할 수 있으나 안전을 위해 유지
                         clearTimeout(timeoutId);
                     }}).catch(function (error) {{
                         clearTimeout(timeoutId);
@@ -124,7 +120,6 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                         if (error.code === 'USER_CANCEL') {{
                             // 사용자 취소
                         }} else {{
-                            // 에러 발생 시 알림
                             alert("결제 오류: " + error.message + " (" + error.code + ")");
                         }}
                     }});
@@ -137,5 +132,20 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     </body>
     </html>
     """
-    # 높이를 충분히 주어 스크롤이 생기지 않도록 함
-    return components.html(html_code, height=800, scrolling=True)
+    
+    # [중요] Iframe Sandbox 권한 부여를 위해 st.markdown 사용
+    # allow-top-navigation: 이 권한이 있어야 Iframe 내부(Toss)에서 최상위 창(Streamlit)을 리다이렉트할 수 있음
+    import html
+    escaped_html = html.escape(html_code)
+    
+    iframe_code = f"""
+    <iframe 
+        srcdoc="{escaped_html}" 
+        width="100%" 
+        height="800" 
+        frameborder="0" 
+        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation"
+    ></iframe>
+    """
+    
+    return st.markdown(iframe_code, unsafe_allow_html=True)
