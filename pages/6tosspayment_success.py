@@ -15,7 +15,45 @@ st.set_page_config(
 )
 
 # iframe 탈출 코드 (결제 성공 시 redirection 문제 해결)
+components.html(
+    """
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffff;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+    <div class="container">
+        <div class="loader"></div>
+        <div class="message">결제 확인 중입니다... 잠시만 기다려주세요.</div>
+    </div>
 
+    """,
+    height=300
+)
 
 # 페이지 UI 변경 사항
 utils.set_page_ui()
