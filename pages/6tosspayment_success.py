@@ -6,8 +6,17 @@ import streamlit.components.v1 as components
 from api.tosspay_handler import handle_payment_callback
 from datetime import datetime, timezone
 
+# 페이지 기본 설정
+st.set_page_config(
+    page_title='AMUREDO - 결제 성공',
+    page_icon=utils.utilsDb().pageIcon,
+    layout='centered',
+    initial_sidebar_state='auto'
+)
+
 # iframe 탈출 코드 (결제 성공 시 redirection 문제 해결)
 components.html(
+
     """
     <style>
         .container {
@@ -44,10 +53,14 @@ components.html(
     </div>
     <script>
         try {
-            // 현재 창(window.self)이 최상위 창(window.top)과 다르면 iframe 내부에 있는 것입니다.
-            if (window.self !== window.top) {
-                // 현재 iframe의 URL(파라미터 포함)로 최상위 창을 이동시킵니다.
-                window.top.location.href = window.location.href;
+            // window.self: 컴포넌트 iframe
+            // window.parent: Streamlit 앱 (tosspayment_success)
+            // window.top: 최상위 브라우저 탭
+            
+            // Streamlit 앱이 최상위가 아니라면 (즉, Toss iframe 안에 있다면)
+            if (window.parent !== window.top) {
+                // 부모 창(Streamlit 앱)의 URL로 최상위 창을 이동
+                window.top.location.href = window.parent.location.href;
             }
         } catch (e) {
             console.error("Frame breakout failed", e);
@@ -55,14 +68,6 @@ components.html(
     </script>
     """,
     height=300
-)
-
-# 페이지 기본 설정
-st.set_page_config(
-    page_title='AMUREDO - 결제 성공',
-    page_icon=utils.utilsDb().pageIcon,
-    layout='centered',
-    initial_sidebar_state='auto'
 )
 
 # 페이지 UI 변경 사항
