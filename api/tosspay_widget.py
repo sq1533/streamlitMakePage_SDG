@@ -74,17 +74,13 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
             let successUrl = {js_success_url};
             let failUrl = {js_fail_url};
 
-            // Origin 처리 (Sandbox 환경 대응)
-            const origin = (window.location.origin && window.location.origin !== 'null') 
-                           ? window.location.origin 
-                           : 'https://amuredo.shop';
-
-            // URL이 상대 경로면 Origin 부착
+            // URL이 이미 절대 경로로 전달되므로 추가 처리 불필요
+            // 만약 http로 시작하지 않는 경우에만 예외적으로 처리 (혹시 모를 상황 대비)
             if (!successUrl.startsWith('http')) {{
-                successUrl = origin + successUrl;
+                successUrl = window.location.origin + successUrl;
             }}
             if (!failUrl.startsWith('http')) {{
-                failUrl = origin + failUrl;
+                failUrl = window.location.origin + failUrl;
             }}
 
             const paymentButton = document.getElementById('payment-button');

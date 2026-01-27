@@ -30,6 +30,10 @@ user_name = st.session_state.user.get('name', '고객')
 success_url = "/payment_bridge?target=success" 
 fail_url = "/payment_bridge?target=fail"
 
+# 결제 성공/실패 시 이동할 URL (절대 경로로 고정하여 오류 방지)
+success_url = "https://amuredo.shop/payment_bridge?target=success" 
+fail_url = "https://amuredo.shop/payment_bridge?target=fail"
+
 # 토스 페이먼츠 위젯 렌더링
 api.tosspay_widget.render_payment_widget(
     client_key=toss_client_key,

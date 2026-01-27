@@ -60,6 +60,7 @@ if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
                 
             if payment_result and payment_result["status"] == "success":
                 paymentData = payment_result["data"]
+                # 주문 시간은 orderNo Prefix (12자리)
                 orderTime = orderId[:12]
 
                 # 주문 확정 (DB 저장)
