@@ -136,8 +136,8 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     # [중요] Iframe Sandbox 권한 부여를 위해 st.markdown 사용
     # allow-top-navigation: 이 권한이 있어야 Iframe 내부(Toss)에서 최상위 창(Streamlit)을 리다이렉트할 수 있음
     # srcdoc을 사용해야 same-origin 정책이 유지되어 리다이렉트가 가능함 (data: URI는 origin이 null이 되어 차단됨)
-    # html.escape()를 쓰면 태그(<, >)까지 바뀌어 텍스트로 나오므로, 따옴표와 앰퍼샌드만 직접 치환함
-    escaped_html = html_code.replace('&', '&amp;').replace('"', '&quot;')
+    import html
+    escaped_html = html.escape(html_code, quote=True)
     
     iframe_code = f"""
     <iframe 
