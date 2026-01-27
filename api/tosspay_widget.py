@@ -133,15 +133,18 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     </body>
     </html>
     """
-    # [중요] Iframe Sandbox 권한 부여를 위해 st.markdown 사용
-    # allow-top-navigation: 이 권한이 있어야 Iframe 내부(Toss)에서 최상위 창(Streamlit)을 리다이렉트할 수 있음
-    # srcdoc을 사용해야 same-origin 정책이 유지되어 리다이렉트가 가능함 (data: URI는 origin이 null이 되어 차단됨)
-    import html
-    escaped_html = html.escape(html_code, quote=True)
+    # [최종 수정] javascript: URI 방식
+    # Iframe의 src 속성 내에서 바로 Base64를 디코딩하여 문서를 씁니다.
+    # 별도의 <script> 태그 실행 여부에 의존하지 않으므로 Streamlit 버전/환경에 상관없이 가장 확실하게 동작합니다.
+    import base64
+    b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
     
+    # javascript: 스킴을 사용하여 즉시 실행 (Origin 상속됨)
+    js_src = f"javascript:var d=document;d.open();d.write(atob('{b64_html}'));d.close();"
+
     iframe_code = f"""
     <iframe 
-        srcdoc="{escaped_html}" 
+        src="{js_src}"
         width="100%" 
         height="800" 
         frameborder="0" 
