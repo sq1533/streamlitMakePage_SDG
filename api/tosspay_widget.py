@@ -1,3 +1,4 @@
+import streamlit as st
 import streamlit.components.v1 as components
 
 def render_payment_widget(client_key, customer_key, amount, order_id, order_name, customer_name, customer_email, success_url, fail_url):
