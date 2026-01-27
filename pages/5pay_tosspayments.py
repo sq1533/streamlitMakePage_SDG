@@ -22,12 +22,8 @@ utils.init_session()
 if 'orderNo' not in st.session_state:
     st.session_state.orderNo = None
 
-try:
-    toss_secret_key = st.secrets["toss_payments"]["secret_key"]
-    toss_client_key = st.secrets["toss_payments"]["client_key"]
-except Exception:
-    toss_secret_key = "TEST_SECRET_KEY"
-    toss_client_key = "TEST_CLIENT_KEY"
+toss_secret_key = st.secrets["tosspayments"]["secret_key"]
+toss_client_key = st.secrets["tosspayments"]["client_key"]
 
 # 세션 복구 function
 def try_restore_session():
@@ -125,7 +121,7 @@ elif any(value is not None for value in st.session_state.token.values()) and st.
         customer_name=st.session_state.user.get('name', '고객'),
         success_url="https://amuredo.shop/5pay_tosspayments", 
         fail_url="https://amuredo.shop/5pay_tosspayments",
-        height=600
+        height=1000
     )
     if st.button("⬅️ 뒤로 가기 (주문 취소)"):
         api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=st.session_state.orderNo[:12])
