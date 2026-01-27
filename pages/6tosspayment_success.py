@@ -15,60 +15,7 @@ st.set_page_config(
 )
 
 # iframe 탈출 코드 (결제 성공 시 redirection 문제 해결)
-components.html(
 
-    """
-    <style>
-        .container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #ffffff;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .message {
-            color: #333;
-            font-size: 16px;
-            font-weight: 500;
-        }
-    </style>
-    <div class="container">
-        <div class="loader"></div>
-        <div class="message">결제 확인 중입니다... 잠시만 기다려주세요.</div>
-    </div>
-    <script>
-        try {
-            // window.self: 컴포넌트 iframe
-            // window.parent: Streamlit 앱 (tosspayment_success)
-            // window.top: 최상위 브라우저 탭
-            
-            // Streamlit 앱이 최상위가 아니라면 (즉, Toss iframe 안에 있다면)
-            if (window.parent !== window.top) {
-                // 부모 창(Streamlit 앱)의 URL로 최상위 창을 이동
-                window.top.location.href = window.parent.location.href;
-            }
-        } catch (e) {
-            console.error("Frame breakout failed", e);
-        }
-    </script>
-    """,
-    height=300
-)
 
 # 페이지 UI 변경 사항
 utils.set_page_ui()
@@ -138,7 +85,15 @@ if 'paymentKey' in st.query_params and 'orderId' in st.query_params:
                         pass
 
                     time.sleep(2)
-                    st.switch_page("pages/3myPage_orderList.py")
+                    st.markdown(
+                        f"""
+                        <meta http-equiv="refresh" content="0; url=https://amuredo.shop/myPage_orderList">
+                        <script>
+                            window.top.location.href = "https://amuredo.shop/myPage_orderList";
+                        </script>
+                        """,
+                        unsafe_allow_html=True
+                    )
                 else:
                     print('주문 트랜잭션 실패 -> 자동 환불 진행')
                     st.error('상품 재고가 소진되어 주문이 취소되었습니다. 결제가 자동 환불됩니다.')
