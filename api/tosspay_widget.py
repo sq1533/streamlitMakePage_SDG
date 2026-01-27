@@ -139,24 +139,57 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
     # 3. 따라서 '빈 Iframe' 생성 후 Sandbox 권한을 부여하고, 스크립트로 내용을 주입하는 방식이 가장 안전함.
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
-    # [최종 방어선 2] Javascript URI + Extended Sandbox (Self-Contained)
-    # 1. 별도 스크립트 실행(Injection) 방식은 DOM 타이밍 이슈로 '화면 안 나옴' 발생 가능.
-    # 2. Javascript URI 방식은 즉시 렌더링되므로 화면은 무조건 나옴.
-    # 3. 기존의 'Navigation Disallowed' 오류는 allow-top-navigation-by-user-activation 권한 부재 가능성 높음.
+    # [최종 완전체 수정] 
+    # 1. Mechanism: Script Injection (srcdoc) -> Origin 유지 (Javascript URI의 Opaque Origin 문제 해결)
+    # 2. Timing: setInterval -> DOM 렌더링 타이밍 이슈 해결 (White Screen 문제 해결)
+    # 3. Permissions: User Activation + Escape Sandbox -> Navigation 차단 문제 해결
+    
     import base64
     b64_html = base64.b64encode(html_code.encode("utf-8")).decode("utf-8")
+    frame_id = f"toss_widget_{order_id}"
     
-    # javascript: 스킴을 사용하여 즉시 실행
-    js_src = f"javascript:var d=document;d.open();d.write(atob('{b64_html}'));d.close();"
-
-    iframe_code = f"""
+    # 1. 빈 Iframe 생성 (권한 풀세트 장착)
+    iframe_tag = f"""
     <iframe 
-        src="{js_src}"
+        id="{frame_id}"
         width="100%" 
         height="1000" 
         frameborder="0" 
-        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation allow-top-navigation-by-user-activation"
+        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox"
     ></iframe>
     """
     
-    return st.markdown(iframe_code, unsafe_allow_html=True)
+    # 2. JS로 내용 주입 (setInterval로 타이밍 확보)
+    script_tag = f"""
+    <script>
+        (function() {{
+            var frameId = "{frame_id}";
+            var b64Content = "{b64_html}";
+            
+            var retryCount = 0;
+            var maxRetries = 200; // 10초간 시도 (넉넉하게)
+            
+            var interval = setInterval(function() {{
+                var iframe = document.getElementById(frameId);
+                if (iframe) {{
+                    try {{
+                        iframe.srcdoc = atob(b64Content);
+                        clearInterval(interval);
+                        console.log("Toss Widget injected successfully");
+                    }} catch(e) {{
+                        console.error("Toss Widget injection error: ", e);
+                        clearInterval(interval);
+                    }}
+                }}
+                
+                retryCount++;
+                if (retryCount >= maxRetries) {{
+                    clearInterval(interval);
+                    console.error("Toss Widget iframe not found");
+                }}
+            }}, 50);
+        }})();
+    </script>
+    """
+    
+    return st.markdown(iframe_tag + script_tag, unsafe_allow_html=True)
