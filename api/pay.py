@@ -28,6 +28,9 @@ class pay:
         self.tosspayRetUrl = st.secrets['tosspay']['retUrl']
         self.tosspayRetCancelUrl = st.secrets['tosspay']['retCancelUrl']
 
+        # 토스페이먼츠 (PG) 기본 정보
+        self.tosspaymentsSecretKey = st.secrets['tosspayments']['secret_key']
+
     # 네이버페이 토큰 발급(paymentId)
     def naverpayToken(self, orderNo: str, itemName: str, amount: int) -> dict:
         url = 'https://dev-pay.paygate.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
@@ -237,6 +240,48 @@ class pay:
         except Exception as e:
             utils.get_logger().error(f"토스페이 승인 오류: {e}")
             return {'access': False, 'message': str(e)}
+
+    # 토스페이먼츠 (PG) 결제 승인
+    def confirm_tosspayments(self, paymentKey: str, orderId: str, amount: int) -> dict:
+        url = "https://api.tosspayments.com/v1/payments/confirm"
+        
+        # Secret Key Base64 인코딩
+        secret_key_str = f"{self.tosspaymentsSecretKey}:"
+        encoded_key = base64.b64encode(secret_key_str.encode("utf-8")).decode("utf-8")
+        
+        headers = {
+            "Authorization": f"Basic {encoded_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "paymentKey": paymentKey,
+            "orderId": orderId,
+            "amount": amount
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            res_json = response.json()
+            
+            if response.status_code == 200:
+                return {
+                    "status": "success",
+                    "data": res_json
+                }
+            else:
+                return {
+                    "status": "error",
+                    "code": res_json.get("code"),
+                    "message": res_json.get("message"),
+                    "data": res_json
+                }
+        except Exception as e:
+            utils.get_logger().error(f"토스페이먼츠 승인 오류: {e}")
+            return {
+                "status": "exception",
+                "message": str(e)
+            }
     
     # 토스페이 결제 환불
     def refund_tosspay(self, payToken : str, refundNo : str, reason : str) -> bool:
@@ -259,4 +304,74 @@ class pay:
                 return False
         except Exception as e:
             print(e)
+            return False
+
+    # 토스페이먼츠 (PG) Key-in 결제
+    def tosspayments_keyin(self, payment_data: dict) -> dict:
+        url = "https://api.tosspayments.com/v1/payments/key-in"
+        
+        # Secret Key Base64 인코딩
+        secret_key_str = f"{self.tosspaymentsSecretKey}:"
+        encoded_key = base64.b64encode(secret_key_str.encode("utf-8")).decode("utf-8")
+        
+        headers = {
+            "Authorization": f"Basic {encoded_key}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payment_data, timeout=30)
+            res_json = response.json()
+            
+            if response.status_code == 200:
+                return {
+                    "status": "success",
+                    "data": res_json
+                }
+            else:
+                return {
+                    "status": "error",
+                    "code": res_json.get("code"),
+                    "message": res_json.get("message"),
+                    "data": res_json
+                }
+                
+        except Exception as e:
+            utils.get_logger().error(f"토스페이먼츠 Key-in 결제 오류: {e}")
+            return {
+                "status": "exception",
+                "message": str(e)
+            }
+
+    # 토스페이먼츠 (PG) 환불 (결제 취소)
+    def refund_tosspayments(self, paymentKey: str, cancelReason: str) -> bool:
+        url = f"https://api.tosspayments.com/v1/payments/{paymentKey}/cancel"
+        
+        # Secret Key Base64 인코딩
+        secret_key_str = f"{self.tosspaymentsSecretKey}:"
+        encoded_key = base64.b64encode(secret_key_str.encode("utf-8")).decode("utf-8")
+        
+        headers = {
+            "Authorization": f"Basic {encoded_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "cancelReason": cancelReason
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            res_json = response.json()
+            
+            # 200 OK and status is usually 'CANCELED' or similar in response data, but API returns transaction object.
+            # If status code is 200, it succeeded.
+            if response.status_code == 200:
+                return True
+            else:
+                utils.get_logger().error(f"토스페이먼츠 환불 실패: {res_json.get('message')} ({res_json.get('code')})")
+                print(f"토스페이먼츠 환불 실패: {res_json}")
+                return False
+        except Exception as e:
+            utils.get_logger().error(f"토스페이먼츠 환불 오류: {e}")
             return False

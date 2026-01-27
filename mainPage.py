@@ -1,4 +1,8 @@
 import streamlit as st
+import mimetypes
+mimetypes.add_type('text/html', '.html')
+mimetypes.add_type('application/javascript', '.js')
+
 import utils
 
 # 페이지 기본 설정
