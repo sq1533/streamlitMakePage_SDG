@@ -94,8 +94,12 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
                     paymentButton.disabled = true;
                     paymentButton.innerText = "처리 중...";
 
-                    // 디버깅: 결제 시도 알림 (필요시 주석 처리)
-                    // alert("결제 요청 시작: " + successUrl);
+                    // 디버깅: 결제 시도 알림
+                    // 필수 파라미터가 올바른지 확인하기 위해 alert를 띄웁니다.
+                    alert("DEBUG INFO:\n" + 
+                          "SuccessUrl: " + successUrl + "\n" +
+                          "Amount: " + amount + "\n" +
+                          "OrderId: " + orderId);
 
                     paymentWidget.requestPayment({{
                         orderId: orderId,
