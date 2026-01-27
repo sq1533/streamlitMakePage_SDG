@@ -148,7 +148,6 @@ def render_payment_widget(client_key, customer_key, amount, order_id, order_name
         width="100%" 
         height="800" 
         frameborder="0" 
-        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation"
     ></iframe>
     """
     
