@@ -73,10 +73,10 @@ def render_payment_widget(
                 const button = document.getElementById("payment-button");
                 let widgets = null;
 
-                // 결제하기 버튼 이벤트 핸들러 (초기화 여부 상관없이 등록)
+                // 결제하기 버튼 이벤트 핸들러
                 button.addEventListener("click", async function () {{
                     if (!widgets) {{
-                        alert("결제 위젯이 정상적으로 로드되지 않았습니다. 페이지를 새로고침하거나 관리자에게 문의하세요.");
+                        alert("결제 위젯이 정상적으로 로드되지 않았습니다.");
                         return;
                     }}
                     
@@ -88,12 +88,12 @@ def render_payment_widget(
                             failUrl: "{fail_url}",
                             customerEmail: "{customer_email}",
                             customerName: "{customer_name}",
-                            // windowTarget: "self" 
+                            windowTarget: "self"  // iframe 내에서 리다이렉트 처리
                         }});
                     }} catch (err) {{
                         console.error(err);
                         if (err.code === "USER_CANCEL") {{
-                            // 사용자 취소 시 별도 알림 없음 (조용히 유지)
+                            // 사용자 취소
                         }} else {{
                             alert("결제 요청 중 에러가 발생했습니다: " + err.message);
                         }}
@@ -103,24 +103,20 @@ def render_payment_widget(
                 try {{
                     const tossPayments = TossPayments(clientKey);
                     
-                    // 회원 결제
                     widgets = tossPayments.widgets({{
                         customerKey: customerKey
                     }});
 
-                    // 결제 금액 설정
                     await widgets.setAmount({{
                         currency: "KRW",
                         value: {amount}
                     }});
 
-                    // 결제 UI 렌더링
                     await widgets.renderPaymentMethods({{
                         selector: "#payment-method",
                         variantKey: "DEFAULT" 
                     }});
 
-                    // 이용약관 UI 렌더링
                     await widgets.renderAgreement({{
                         selector: "#agreement",
                         variantKey: "AGREEMENT" 

@@ -2,6 +2,7 @@ import streamlit as st
 import utils
 import api
 import time
+import streamlit.components.v1 as components
 from api.tosspay_widget import render_payment_widget
 from api.tosspay_handler import handle_payment_callback
 from datetime import datetime, timezone
@@ -12,6 +13,26 @@ st.set_page_config(
     page_icon=utils.utilsDb().pageIcon,
     layout='centered',
     initial_sidebar_state='auto'
+)
+
+# iframe 탈출 코드 (결제 성공 시 redirection 문제 해결)
+# Toss Payments 위젯이 iframe 내에서 리다이렉트 될 때, 상위 창(window.top)을 리다이렉트 URL로 이동시킵니다.
+components.html(
+    """
+    <script>
+        try {
+            // 현재 창(window.self)이 최상위 창(window.top)과 다르고 (iframe 내부)
+            // URL에 paymentKey 등의 파라미터가 포함되어 있다면 (결제 리다이렉트 후)
+            if (window.self !== window.top && window.location.search.includes("paymentKey")) {
+                // 부모 창(window.top)을 현재 URL(파라미터 포함)로 이동시킵니다.
+                window.top.location.href = window.location.href;
+            }
+        } catch (e) {
+            console.error("Frame breakout failed", e);
+        }
+    </script>
+    """,
+    height=0
 )
 
 # 페이지 UI 변경 사항
