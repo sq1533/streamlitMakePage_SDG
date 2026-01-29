@@ -10,6 +10,7 @@ st.set_page_config(
 )
 # 페이지 UI 변경 사항
 utils.set_page_ui()
+utils.set_sidebar()
 
 # 공지 상세보기 세션 구분
 if 'selected_notice' not in st.session_state:

@@ -482,9 +482,9 @@ def set_sidebar():
         width='content'
     )
     sportyBTN = st.button(
-        label='sporty',
+        label='goggles',
         type='tertiary',
-        icon=':material/bolt:',
+        icon=':material/head_mounted_device:',
         width='content'
     )
 
@@ -503,17 +503,21 @@ def set_sidebar():
 
     st.divider()
 
-    st.page_link(
-        page='pages/0notice.py',
+    if st.button(
         label='이벤트 및 공지사항',
-        icon='📢'
-    )
+        type='tertiary',
+        icon='📢',
+        width='content'
+    ):
+        st.switch_page(body='pages/0notice.py')
 
-    st.page_link(
-        page='pages/0cs.py',
+    if st.button(
         label='문의하기',
-        icon='🎧'
-    )
+        type='tertiary',
+        icon='🎧',
+        width='content'
+    ):
+        st.switch_page(body='pages/0cs.py')
 
     st.divider()
 
