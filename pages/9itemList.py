@@ -191,11 +191,7 @@ grouped_items = sortedItems.groupby('code')
 for code, group in grouped_items:
     
     code_info = code_db.get(str(code))
-    optimized_code_img = utils.load_and_optimize_from_url(str(code_info['path']))
-    if optimized_code_img:
-        st.image(optimized_code_img, width='stretch', output_format='WEBP')
-    else:
-        st.image(str(code_info['path']), width='stretch')
+    st.image(str(code_info['path']), width='stretch')
 
     # 2. 아이템 3열 배치
     # 한번만 Marker를 생성하기 위해 컨테이너로 감쌉니다.
@@ -209,12 +205,7 @@ for code, group in grouped_items:
             with col.container():
                 
                 # 이미지 표시
-                if item['paths']:
-                    thumb_img = utils.load_raw_image_from_url(str(item['paths'][0]))
-                    if thumb_img:
-                        st.image(thumb_img, output_format='WEBP')
-                    else:
-                        st.image(image=str(item['paths'][0]), output_format='JPEG')
+                st.image(str(item['paths'][0]))
     
                 # 정보 표시
                 st.markdown(body=f"###### {item['name']}")

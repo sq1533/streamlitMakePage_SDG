@@ -111,20 +111,14 @@ else:
         else:
             st.error(body='고객이 확인되지 않습니다.')
 
-    info, feed = st.tabs(tabs=['detail', 'review'])
+    design, info, feed = st.tabs(tabs=['design', 'information', 'review'])
+
+    with design:
+        st.image(str(itemInfo['paths'][1]))
 
     with info:
-        img_detail = utils.load_and_optimize_from_url(str(itemInfo['detail']))
-        if img_detail:
-            st.image(img_detail, output_format='WEBP')
-        else:
-            st.image(image=str(itemInfo['detail']), output_format='JPEG')
-        
-        img_delivery = utils.load_and_optimize_from_url(str(deliveryInfo.get('path')))
-        if img_delivery:
-            st.image(img_delivery, output_format='WEBP')
-        else:
-            st.image(image=str(deliveryInfo.get('path')), output_format='JPEG')
+        st.image(str(itemInfo['detail']))
+
     with feed:
         st.markdown(body=f"####  :heart: {feedAvg}%")
         if feedText.__len__() == 1:

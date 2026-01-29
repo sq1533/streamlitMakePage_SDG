@@ -9,56 +9,7 @@ import logging
 import threading
 import requests
 from schema.schema import item
-import io
 from streamlit.runtime.scriptrunner import add_script_run_ctx
-
-@st.cache_data(ttl=36000)
-def load_and_optimize_from_url(url, quality=85):
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        
-        input_bytes = io.BytesIO(response.content)
-        img = Image.open(input_bytes)
-
-        if img.mode == "P":
-            img = img.convert("RGBA")
-
-        buffer = io.BytesIO()
-        img.save(buffer, format="WEBP", quality=quality)
-        
-        b64_data = base64.b64encode(buffer.getvalue()).decode()
-        return f"data:image/webp;base64,{b64_data}"
-
-    except Exception as e:
-        print(f"이미지 로드 중 오류 발생: {e}") 
-        return None
-
-@st.cache_data(ttl=36000)
-def load_raw_image_from_url(url):
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        
-        # MIME 타입 추론 (헤더 기반)
-        content_type = response.headers.get('Content-Type')
-        if not content_type or 'image' not in content_type:
-            # URL 파싱하여 확장자 확인 (Query Param 제외)
-            from urllib.parse import urlparse
-            path = urlparse(url).path
-            
-            # 기본값 또는 확장자로 추론 (WebP/PNG)
-            if path.lower().endswith('.png'):
-                content_type = 'image/png'
-            else:
-                content_type = 'image/webp'
-        
-        b64_data = base64.b64encode(response.content).decode()
-        return f"data:{content_type};base64,{b64_data}"
-
-    except Exception as e:
-        print(f"이미지 로드 실패: {e}")
-        return None
 
 # 텔레그램 로그 핸들러
 class TelegramLogHandler(logging.Handler):
@@ -262,7 +213,6 @@ class database:
         # 3. 아이템 로딩
         self._load_items()
 
-
     def _load_items(self):
         try:
             itemSnapshot = self.fs_client.collection('item').stream()
@@ -279,45 +229,8 @@ class database:
 
             self.firestore_item = new_items
             
-            # 별도 스레드에서 프리캐싱 시작 (서버 시작 시 1회 수행됨)
-            precache_thread = threading.Thread(target=self._precache_images, args=(new_items,), daemon=True)
-            add_script_run_ctx(precache_thread)
-            precache_thread.start()
-
         except Exception as e:
             print(f"아이템 목록 로딩 실패: {e}")
-
-    def _precache_images(self, item_dict):
-        print("이미지 프리캐싱 시작...")
-        
-        # Code 이미지 프리캐싱
-        if self.firestore_code:
-            for key, val in self.firestore_code.items():
-                try:
-                    if val.get('path'):
-                        load_and_optimize_from_url(str(val['path']))
-                except Exception:
-                    continue
-
-        count = 0
-        for key, item_data in item_dict.items():
-            try:
-                # 상품 이미지 (paths)
-                if item_data.paths:
-                    for path in item_data.paths:
-                        load_and_optimize_from_url(str(path))
-                        # 리스트용 썸네일도 캐싱 (quality=80)
-                        load_and_optimize_from_url(str(path), quality=80)
-                
-                # 상세 이미지 (detail)
-                if item_data.detail:
-                    load_raw_image_from_url(str(item_data.detail))
-                    
-                count += 1
-            except Exception:
-                continue
-                
-        print(f"이미지 프리캐싱 완료 ({count}개 아이템 처리됨)")
 
     def refresh_items(self):
         """아이템 정보를 강제로 새로고침합니다."""
