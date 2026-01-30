@@ -20,7 +20,7 @@ st.html(
         """
         <style>
         .feature-card {
-            background-color: #f8f9fa;
+            background-color: #1E1E1E;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
@@ -35,10 +35,10 @@ st.html(
             font-weight: bold;
             font-size: 1.2em;
             margin-bottom: 10px;
-            color: #333;
+            color: #D4AF37;
         }
         .feature-desc {
-            color: #666;
+            color: #D4AF37;
             font-size: 0.9em;
             line-height: 1.5;
             word-break: keep-all; /* 단어 단위로 줄바꿈 허용 */

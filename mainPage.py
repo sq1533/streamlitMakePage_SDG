@@ -17,42 +17,96 @@ utils.set_page_ui()
 
 import api
 import time
+import random
 
 utils.init_session()
 
-mainVanner : dict = utils.utilsDb().firestore_vanner.get('vannerMain')
-
-# 상단 vanner
-st.html(
-    body=f"""
-    <style>
-        .banner-video {{
-            width: 100%;
-            height: auto;
-            aspect-ratio: 21 / 9;
-            object-fit: cover;
-        }}
-    </style>
-    <video
-        class="banner-video"
-        autoplay
-        muted
-        loop
-        playsinline 
-        poster="{mainVanner.get('path')}">
-
-        <source src="{mainVanner.get('video_webm')}" type="video/webm">
-        <source src="{mainVanner.get('video_mp4')}" type="video/mp4">
-    </video>
-    """
-)
+st.markdown("""
+<style>
+@media screen and (max-width: 640px) {
+    div[data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+    }
+    div[data-testid="stColumn"] {
+        min-width: 0px !important;
+        width: auto !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 
 # item 정보 불러오기 pandas
 itemData = api.items.showItem()
-itemData = itemData[itemData['event'] == 'best']
+vannerData : dict = utils.utilsDb().firestore_vanner
 
-glassesData = itemData[itemData['sort'] == 'glasses'].copy()
-sunglassesData = itemData[itemData['sort'] == 'sunglasses'].copy()
+def styled_image(url, height='100vw', mobile_height='100vw'):
+    st.markdown(
+        f"""
+        <style>
+            .fixed-img-container {{
+                width: 100%;
+                height: {height};
+                overflow: hidden;
+                border-radius: 4px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }}
+            .fixed-img-container img {{
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }}
+            @media screen and (max-width: 640px) {{
+                .fixed-img-container {{
+                    height: {mobile_height} !important;
+                    aspect-ratio: auto !important;
+                }}
+            }}
+        </style>
+        <div class="fixed-img-container">
+            <img src="{url}">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+vannerKeys = [key for key in vannerData.keys() if key != 'txt']
+selected_key = random.sample(vannerKeys, 1)[0]
+txtImg = vannerData.get('txt')['path']
+item_img_url = vannerData.get(selected_key)['path']
+
+img, txt = st.columns(spec=[2,1], gap='small', vertical_alignment='top')
+with img.container():
+    styled_image(url=item_img_url)
+with txt.container():
+    styled_image(url=txtImg)
+
+itemCode = itemData.loc[selected_key]['code']
+itemList = itemData[itemData['code'] == itemCode]
+
+st.divider()
+
+count_in_card = 0
+for i, (index, item) in enumerate(itemList.iterrows()):
+    if i % 3 == 0:
+        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
+    col = cols[i % 3]
+    with col.container():
+        st.image(str(item['paths'][0]))
+
+        st.markdown(body=f"###### {item['name']}")
+        st.markdown(f"###### {item['price']:,}원")
+
+        if st.button(
+            label='상세보기',
+            key=f"loop_item_{index}",
+            type='primary',
+            width='stretch'
+        ):
+            st.session_state.item = index
+            st.switch_page(page="pages/7item.py")
 
 # siderbar 정의
 with st.sidebar:
@@ -111,63 +165,6 @@ with st.sidebar:
             st.switch_page(page="pages/1signIN.py")
     
     utils.set_sidebar()
-
-line01, subtitle, line02 = st.columns(spec=3, gap='small', vertical_alignment='center')
-line01.divider()
-subtitle.markdown(
-    body="<h3 style='text-align: center;'>recommend for you</h3>",
-    unsafe_allow_html=True
-    )
-line02.divider()
-
-# glassesData의 sort행 상위 3개
-count_in_card = 0
-bestGlasses = glassesData.sort_index()
-
-for i, (index, item) in enumerate(bestGlasses.iterrows()):
-    if i % 3 == 0:
-        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
-    col = cols[i % 3]
-    with col.container():
-        st.image(str(item['paths'][0]))
-
-        st.markdown(body=f"###### {item['name']}")
-        st.markdown(f"###### {item['price']:,}원")
-
-        if st.button(
-            label='상세보기',
-            key=f"loop_item_{index}",
-            type='primary',
-            width='stretch'
-        ):
-            st.session_state.item = index
-            st.switch_page(page="pages/7item.py")
-
-# sunglassesData의 sort행 상위 3개
-count_in_card = 0
-bestSunglasses = sunglassesData.sort_index()
-
-
-for i, (index, item) in enumerate(bestSunglasses.iterrows()):
-    if i % 3 == 0:
-        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
-    col = cols[i % 3]
-    with col.container():
-        st.image(str(item['paths'][0]))
-
-        st.markdown(body=f"###### {item['name']}")
-        st.markdown(f"###### {item['price']:,}원")
-
-        if st.button(
-            label='상세보기',
-            key=f"loop_item_{index}",
-            type='primary',
-            width='stretch'
-        ):
-            st.session_state.item = index
-            st.switch_page(page="pages/7item.py")
-
-    count_in_card += 1
 
 st.divider()
 

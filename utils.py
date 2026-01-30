@@ -328,8 +328,8 @@ def set_page_ui():
 
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="stExpandSidebarButton"] {{
-        background-color: #8D6E63 !important;
-        color: #FFFEFA !important;
+        background-color: #D4AF37 !important;
+        color: #F5F0EB !important;
         border: none !important;
         border-radius: 4px !important;
         z-index: 1000000 !important;
@@ -345,7 +345,7 @@ def set_page_ui():
     section[data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"],
     [data-testid="stCollapseSidebarButton"],
     [data-testid="stSidebarCollapseButton"] {{
-        background-color: #8D6E63 !important;
+        background-color: #D4AF37 !important;
         color: #F5F0EB !important;
         border: none !important;
         border-radius: 4px !important;
@@ -419,7 +419,6 @@ def set_sidebar():
     if st.button(
         label='이벤트 및 공지사항',
         type='tertiary',
-        icon='📢',
         width='content'
     ):
         st.switch_page(page='pages/0notice.py')
@@ -427,7 +426,6 @@ def set_sidebar():
     if st.button(
         label='문의하기',
         type='tertiary',
-        icon='🎧',
         width='content'
     ):
         st.switch_page(page='pages/0cs.py')
