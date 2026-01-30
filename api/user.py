@@ -7,6 +7,7 @@ import secrets
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
+from email.mime.text import MIMEText
 from datetime import date
 
 from schema.schema import user
@@ -407,7 +408,6 @@ class guest(utils.database):
                 
             except smtplib.SMTPAuthenticationError:
                 utils.get_logger().error('오류: SMTP 인증 실패.')
-
             except smtplib.SMTPServerDisconnected:
                 utils.get_logger().error('오류: SMTP 서버 연결 끊김.')
 
@@ -421,77 +421,81 @@ class guest(utils.database):
 
     # 구매 완료 메일 전송
     def sendPurchaseCompleteEmail(userInfo : dict, orderData : dict, itemData : dict) -> bool:
-        # 고객정보 확인
-        name = userInfo.get('name')
-        email = userInfo.get('email')
-
-        # 주문 정보
-        itemName = itemData.get('name')
-        orderNo = orderData.get('orderNo')
-        price = format(int(itemData.get('price')), ',') # 천단위 콤마
-        payMethod = orderData.get('payMethod')
-        
-        # 이메일 셋팅
-        emailMain = MIMEMultipart('related')
-        emailMain['Subject'] = f"[AMUREDO] {name}님, 주문이 완료되었습니다."
-        emailMain['From'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
-        emailMain['To'] = email 
-
-        msgAlternative = MIMEMultipart('alternative')
-        emailMain.attach(msgAlternative)
-        
-        # HTML 본문
-        html_body = f"""
-        <html>
-        <body>
-            <p>안녕하세요, {name}님.<br>
-            AMUREDO를 이용해 주셔서 감사합니다.<br>
-            주문하신 내역이 정상적으로 접수되었습니다.</p>
-            <br><br>
-            <h3>[주문 내역]</h3>
-            <br>
-            주문 번호 : {orderNo}<br>
-            상 품 명 : {itemName}<br>
-            결제 금액 : {price}원<br>
-            결제 수단 : {payMethod}<br>
-            <br><br>
-            <p>감사합니다.</p>
-            <br>
-            <img src="cid:mail_image" alt="Mail Signature">
-        </body>
-        </html>
-        """
-        msgAlternative.attach(MIMEText(html_body, 'html'))
-
-        # 이미지 첨부
         try:
-            with open('database/mail.webp', 'rb') as f:
-                img_data = f.read()
-            msgImage = MIMEImage(img_data)
-            msgImage.add_header('Content-ID', '<mail_image>')
-            emailMain.attach(msgImage)
-        except Exception as e:
-            utils.get_logger().error(f"이미지 첨부 오류: {e}")
+            # 고객정보 확인
+            name = userInfo.get('name')
+            email = userInfo.get('email')
 
-        # 이메일 전송 (비동기 처리)
-        def sending_task():
+            # 주문 정보
+            itemName = itemData.get('name')
+            orderNo = orderData.get('orderNo')
+            price = format(int(itemData.get('price')), ',') # 천단위 콤마
+            payMethod = orderData.get('payMethod')
+            
+            # 이메일 셋팅
+            emailMain = MIMEMultipart('related')
+            emailMain['Subject'] = f"[AMUREDO] {name}님, 주문이 완료되었습니다."
+            emailMain['From'] = utils.utilsDb().emailAccess['SENDER_EMAIL']
+            emailMain['To'] = email 
+
+            msgAlternative = MIMEMultipart('alternative')
+            emailMain.attach(msgAlternative)
+            
+            # HTML 본문
+            html_body = f"""
+            <html>
+            <body>
+                <p>안녕하세요, {name}님.<br>
+                AMUREDO를 이용해 주셔서 감사합니다.<br>
+                주문하신 내역이 정상적으로 접수되었습니다.</p>
+                <br><br>
+                <h3>[주문 내역]</h3>
+                <br>
+                주문 번호 : {orderNo}<br>
+                상 품 명 : {itemName}<br>
+                결제 금액 : {price}원<br>
+                결제 수단 : {payMethod}<br>
+                <br><br>
+                <p>감사합니다.</p>
+                <br>
+                <img src="cid:mail_image" alt="Mail Signature">
+            </body>
+            </html>
+            """
+            msgAlternative.attach(MIMEText(html_body, 'html'))
+
+            # 이미지 첨부
             try:
-                with smtplib.SMTP(
-                    host=utils.utilsDb().emailAccess['SENDER_SERVER'],
-                    port=utils.utilsDb().emailAccess['SENDER_PORT']
-                    ) as smtp_server:
-                    smtp_server.ehlo()
-                    smtp_server.starttls()
-                    smtp_server.login(utils.utilsDb().emailAccess['SENDER_EMAIL'], utils.utilsDb().emailAccess['SENDER_APP_PASSWORD'])
-                    smtp_server.send_message(emailMain)
-                
+                with open('database/mail.webp', 'rb') as f:
+                    img_data = f.read()
+                msgImage = MIMEImage(img_data)
+                msgImage.add_header('Content-ID', '<mail_image>')
+                emailMain.attach(msgImage)
             except Exception as e:
-                utils.get_logger().error(f"구매 완료 이메일 전송 오류: {e}")
+                utils.get_logger().error(f"이미지 첨부 오류: {e}")
 
-        import threading
-        threading.Thread(target=sending_task).start()
-        
-        return True
+            # 이메일 전송 (비동기 처리)
+            def sending_task():
+                try:
+                    with smtplib.SMTP(
+                        host=utils.utilsDb().emailAccess['SENDER_SERVER'],
+                        port=utils.utilsDb().emailAccess['SENDER_PORT']
+                        ) as smtp_server:
+                        smtp_server.ehlo()
+                        smtp_server.starttls()
+                        smtp_server.login(utils.utilsDb().emailAccess['SENDER_EMAIL'], utils.utilsDb().emailAccess['SENDER_APP_PASSWORD'])
+                        smtp_server.send_message(emailMain)
+                    
+                except Exception as e:
+                    utils.get_logger().error(f"구매 완료 이메일 전송 오류: {e}")
+
+            import threading
+            threading.Thread(target=sending_task).start()
+            
+            return True
+        except Exception as e:
+            utils.get_logger().error(f"메일 발송 준비 중 오류 발생 (무시하고 진행): {e}")
+            return False
 
 # 나이 검증_만 14세 이하 (연도 기준)
 def check_under_14(birthdate_int: int) -> bool:
