@@ -87,7 +87,6 @@ with img.container():
 with txt.container():
     styled_image(url=txtImg)
 
-st.divider()
 txtImg = vannerData.get('txt')['path']
 item_img_url = vannerData.get(selected_key)['path']
 
