@@ -72,13 +72,11 @@ def styled_image(url, height='100vw', mobile_height='100vw'):
         unsafe_allow_html=True
     )
 
-vannerKeys = [key for key in vannerData.keys() if key != 'txt']
+vannerKeys = list(vannerData.keys())
 if 'vanner_selected_key' not in st.session_state:
     st.session_state.vanner_selected_key = random.sample(vannerKeys, 1)[0]
 
 selected_key = st.session_state.vanner_selected_key
-
-txtImg = vannerData.get('txt')['path']
 item_img_url = vannerData.get(selected_key)['path']
 
 img, txt = st.columns(spec=[2,1], gap='small', vertical_alignment='top')
@@ -87,7 +85,6 @@ with img.container():
 with txt.container():
     styled_image(url=utils.utilsDb().logo_base64)
 
-txtImg = vannerData.get('txt')['path']
 item_img_url = vannerData.get(selected_key)['path']
 
 st.divider()
