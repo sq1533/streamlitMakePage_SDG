@@ -10,14 +10,66 @@ st.set_page_config(
 )
 # 페이지 UI 변경 사항
 utils.set_page_ui()
-utils.set_sidebar()
 
 # 공지 상세보기 세션 구분
 if 'selected_notice' not in st.session_state:
     st.session_state.selected_notice = None
 
 with st.sidebar:
-    st.title(body='이벤트 및 공지사항')
+    st.page_link(
+        page='mainPage.py',
+        label='AMUREDO'
+    )
+
+    if any(value is not None for value in st.session_state.token.values()):
+        logoutB = st.button(
+            label='sign_out',
+            type="secondary",
+            width='stretch'
+        )
+        if logoutB:
+            st.session_state.clear()
+            st.rerun()
+
+        # 소셜 고객 배송정보 확인
+        if st.session_state.user.get('address'):
+            pass
+        else:
+            st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
+            time.sleep(2)
+            st.switch_page(page='pages/1signIN_address.py')
+
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
+
+        myinfo = myinfo.button(
+            label='마이페이지',
+            type='tertiary',
+            width='stretch'
+        )
+        orderL = orderList.button(
+            label='주문내역',
+            type='tertiary',
+            width='stretch'
+        )
+
+        # 마이페이지
+        if myinfo:
+            st.switch_page(page="pages/3myPage.py")
+        # 주문 내역 페이지
+        if orderL:
+            st.switch_page(page="pages/3myPage_orderList.py")
+
+    # 비회원 상태
+    else:
+        signIn = st.button(
+            label='로그인 / 회원가입',
+            type='primary',
+            width='stretch'
+        )
+        if signIn:
+            st.switch_page(page="pages/1signIN.py")
+
+    utils.set_sidebar()
 
 # 홈으로 이동
 goHome = st.button(

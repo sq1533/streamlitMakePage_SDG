@@ -19,6 +19,50 @@ utils.init_session()
 
 # 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
+    with st.sidebar:
+        st.page_link(
+            page='mainPage.py',
+            label='AMUREDO'
+        )
+        logoutB = st.button(
+            label='sign_out',
+            type="secondary",
+            width='stretch'
+        )
+        if logoutB:
+            st.session_state.clear()
+            st.rerun()
+
+        # 소셜 고객 배송정보 확인
+        if st.session_state.user.get('address'):
+            pass
+        else:
+            st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
+            time.sleep(2)
+            st.switch_page(page='pages/1signIN_address.py')
+
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
+
+        myinfo = myinfo.button(
+            label='마이페이지',
+            type='tertiary',
+            width='stretch'
+        )
+        orderL = orderList.button(
+            label='주문내역',
+            type='tertiary',
+            width='stretch'
+        )
+
+        # 마이페이지
+        if myinfo:
+            st.switch_page(page="pages/3myPage.py")
+        # 주문 내역 페이지
+        if orderL:
+            st.switch_page(page="pages/3myPage_orderList.py")
+
+        utils.set_sidebar()
+
     # 홈으로 이동
     goHome = st.button(
         label='HOME',
@@ -63,5 +107,5 @@ if any(value is not None for value in st.session_state.token.values()):
                         st.switch_page(page='mainPage.py')
 else:
     st.toast('고객확인이 되지 않았습니다. 로그인 이후 문의 부탁드립니다.', icon="⚠️")
-    time.sleep(0.7)
+    time.sleep(2)
     st.switch_page(page='mainPage.py')

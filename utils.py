@@ -422,7 +422,7 @@ def set_sidebar():
         icon='📢',
         width='content'
     ):
-        st.switch_page(body='pages/0notice.py')
+        st.switch_page(page='pages/0notice.py')
 
     if st.button(
         label='문의하기',
@@ -430,7 +430,7 @@ def set_sidebar():
         icon='🎧',
         width='content'
     ):
-        st.switch_page(body='pages/0cs.py')
+        st.switch_page(page='pages/0cs.py')
 
     st.divider()
 
