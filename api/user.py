@@ -445,18 +445,33 @@ class guest(utils.database):
             html_body = f"""
             <html>
             <body>
+                <h2>주문하신 내역이 정상적으로 접수되었습니다.</h2>
                 <p>안녕하세요, {name}님.<br>
-                AMUREDO를 이용해 주셔서 감사합니다.<br>
-                주문하신 내역이 정상적으로 접수되었습니다.</p>
-                <br><br>
-                <h3>[주문 내역]</h3>
+                    <strong style="font-weight: bold; color: #D4AF37">AMUREDO</strong>를 이용해 주셔서 감사합니다.
+                </p>
+                <div
+                    style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', dotum, sans-serif; max-width: 500px; margin-top: 20px; color: #333;">
+                    <h3
+                        style="margin: 0; padding-bottom: 10px; border-bottom: 1px solid #000; font-size: 18px; color: #000; font-weight: bold;">
+                        주문 정보</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 8px 0; color: #666;">결제 수단</td>
+                            <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #333;">{payMethod}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #666;">결제 금액</td>
+                            <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #333;">{price}원</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #666;">상품명</td>
+                            <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #333;">{itemName}</td>
+                        </tr>
+                    </table>
+                </div>
                 <br>
-                주문 번호 : {orderNo}<br>
-                상 품 명 : {itemName}<br>
-                결제 금액 : {price}원<br>
-                결제 수단 : {payMethod}<br>
-                <br><br>
-                <p>감사합니다.</p>
+                <p>주문이 시작되면 알려드릴게요!<br>
+                    감사합니다.</p>
                 <br>
                 <img src="cid:mail_image" alt="Mail Signature">
             </body>
