@@ -60,7 +60,7 @@ if any(value is not None for value in st.session_state.token.values()) and sessi
     pg_token = st.query_params['pg_token']
     orderNo = st.query_params['orderNo']
 
-    if 'tid' not in st.session_state:
+    if sessionData.get('tid') == None:
         st.error("결제 세션이 만료되었습니다. 다시 시도해주세요.")
     else:
         with st.spinner("결제 승인 중..."):
