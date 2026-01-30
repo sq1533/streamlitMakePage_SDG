@@ -85,6 +85,17 @@ if any(value is not None for value in st.session_state.token.values()) and sessi
                 st.success(body="주문이 완료 되었습니다. 주문 내역으로 이동합니다.")
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
 
+                # 구매 완료 메일 전송
+                itemInfo = api.items.showItem()
+                api.guest.sendPurchaseCompleteEmail(
+                    userInfo=st.session_state.user,
+                    orderData={
+                        'orderNo': st.query_params.orderNo,
+                        'payMethod': '토스페이먼츠'
+                    },
+                    itemData=itemInfo.loc[sessionData.get('item')].to_dict()
+                )
+
                 time.sleep(2)
                 st.switch_page("pages/3myPage_orderList.py")
             else:

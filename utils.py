@@ -246,9 +246,12 @@ class database:
             self.pageIcon = None
         
         try:
-            self.logo = Image.open('database/logo.webp')
-        except:
-            self.logo = None
+            with open('database/logo.webp', "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                self.logo_base64 = f"data:image/webp;base64,{encoded_string}"
+        except Exception as e:
+            self.logo_base64 = ""
+            print(f"로고 로딩 실패: {e}")
 
         # SQL 인젝션 방어 키워드
         self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]

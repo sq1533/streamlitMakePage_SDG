@@ -85,7 +85,7 @@ img, txt = st.columns(spec=[2,1], gap='small', vertical_alignment='top')
 with img.container():
     styled_image(url=item_img_url)
 with txt.container():
-    styled_image(url=txtImg)
+    styled_image(url=utils.utilsDb().logo_base64)
 
 txtImg = vannerData.get('txt')['path']
 item_img_url = vannerData.get(selected_key)['path']
