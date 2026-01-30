@@ -112,9 +112,13 @@ utils.init_session()
 if st.session_state.page == 'glasses':
     page = {'sort':'glasses'}
 elif st.session_state.page == 'sunglasses':
-    page = {'sort':'sunglasses'}
+    st.info(body='상품 준비중입니다.')
+    st.stop()
+    # page = {'sort':'sunglasses'}
 elif st.session_state.page == 'sporty':
-    page = {'category':'sporty'}
+    st.info(body='상품 준비중입니다.')
+    st.stop()
+    # page = {'category':'sporty'}
 elif st.session_state.page == 'new':
     page = {'event':'new'}
 else:

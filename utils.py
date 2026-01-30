@@ -241,9 +241,14 @@ class database:
     def _load_configs(self):
         # 페이지 icon
         try:
-            self.pageIcon = Image.open('database/icon.png')
+            self.pageIcon = Image.open('database/icon.webp')
         except:
             self.pageIcon = None
+        
+        try:
+            self.logo = Image.open('database/logo.webp')
+        except:
+            self.logo = None
 
         # SQL 인젝션 방어 키워드
         self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]

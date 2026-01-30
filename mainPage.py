@@ -73,7 +73,11 @@ def styled_image(url, height='100vw', mobile_height='100vw'):
     )
 
 vannerKeys = [key for key in vannerData.keys() if key != 'txt']
-selected_key = random.sample(vannerKeys, 1)[0]
+if 'vanner_selected_key' not in st.session_state:
+    st.session_state.vanner_selected_key = random.sample(vannerKeys, 1)[0]
+
+selected_key = st.session_state.vanner_selected_key
+
 txtImg = vannerData.get('txt')['path']
 item_img_url = vannerData.get(selected_key)['path']
 
@@ -83,10 +87,14 @@ with img.container():
 with txt.container():
     styled_image(url=txtImg)
 
-itemCode = itemData.loc[selected_key]['code']
-itemList = itemData[itemData['code'] == itemCode]
+st.divider()
+txtImg = vannerData.get('txt')['path']
+item_img_url = vannerData.get(selected_key)['path']
 
 st.divider()
+
+itemCode = itemData.loc[selected_key]['code']
+itemList = itemData[itemData['code'] == itemCode]
 
 count_in_card = 0
 for i, (index, item) in enumerate(itemList.iterrows()):
