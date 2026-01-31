@@ -333,7 +333,7 @@ def set_page_ui():
 
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="stExpandSidebarButton"] {{
-        background-color: #D4AF37 !important;
+        background-color: #eaeaea !important;
         color: #F5F0EB !important;
         border: none !important;
         border-radius: 4px !important;
@@ -342,16 +342,16 @@ def set_page_ui():
 
     [data-testid="stSidebarCollapsedControl"] *,
     [data-testid="stExpandSidebarButton"] * {{
-        color: #FFFEFA !important;
-        fill: #FFFEFA !important;
-        stroke: #FFFEFA !important;
+        color: #121212 !important;
+        fill: #121212 !important;
+        stroke: #121212 !important;
     }}
 
     section[data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"],
     [data-testid="stCollapseSidebarButton"],
     [data-testid="stSidebarCollapseButton"] {{
-        background-color: #D4AF37 !important;
-        color: #F5F0EB !important;
+        background-color: #eaeaea !important;
+        color: #121212 !important;
         border: none !important;
         border-radius: 4px !important;
         opacity: 1 !important;
@@ -362,8 +362,8 @@ def set_page_ui():
     section[data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] *,
     [data-testid="stCollapseSidebarButton"] *,
     [data-testid="stSidebarCollapseButton"] * {{
-        color: #F5F0EB !important;
-        fill: #F5F0EB !important;
+        color: #121212 !important;
+        fill: #121212 !important;
     }}
 
     section[data-testid="stSidebar"] > div > div:first-child {{
@@ -376,33 +376,26 @@ def set_page_ui():
     st.html(common_css)
 
 def set_sidebar():
-
     st.divider()
-
-    st.markdown(body='### products')
 
     newBTN = st.button(
         label='new',
         type='tertiary',
-        icon=':material/auto_awesome:',
         width='content'
     )
     glassesBTN = st.button(
         label='glasses',
         type='tertiary',
-        icon=':material/eyeglasses_2:',
         width='content'
     )
     sunglassesBTN = st.button(
         label='sunglasses',
         type='tertiary',
-        icon=':material/sunny:',
         width='content'
     )
     sportyBTN = st.button(
         label='goggles',
         type='tertiary',
-        icon=':material/head_mounted_device:',
         width='content'
     )
 
