@@ -253,9 +253,6 @@ class database:
             self.logo_base64 = ""
             print(f"로고 로딩 실패: {e}")
 
-        # SQL 인젝션 방어 키워드
-        self.sqlInjection = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION",  "FETCH", "DECLARE", "TRUNCATE"]
-
         # email 발송 keys
         try:
             self.emailAccess = {

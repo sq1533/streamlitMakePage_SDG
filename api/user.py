@@ -525,11 +525,12 @@ def check_under_14(birthdate_int: int) -> bool:
 
 # 주소 검색
 def seachAddress(address : str) -> dict:
-    # SQL 인젝션 및 특수문자 방어
-    if re.search(r"[\]\[%;<>=]", address):
-        return {'allow':False, 'result':'특수문자는 포함할 수 없습니다.'}
-    if any(i in address.upper() for i in utils.utilsDb().sqlInjection):
-        return {'allow':False, 'result':'포함할 수 없는 단어가 존재합니다.'}
+    # WhiteList 방식 적용 (한글, 영문, 숫자, 공백, -, _, ., ,, (), [] 만 허용)
+    # [], {} 등은 주소에 포함될 수 있으므로 일부 허용하되, SQL Injection 위험 문자 배제
+    allow_pattern = r"^[가-힣a-zA-Z0-9\s\-\_\.\,\(\)\[\]]+$"
+
+    if not re.match(allow_pattern, address):
+        return {'allow':False, 'result':'올바르지 않은 문자가 포함되어 있습니다.'}
 
     addressKey = {
         "confmKey" : st.secrets["address_search"]["keys"],
