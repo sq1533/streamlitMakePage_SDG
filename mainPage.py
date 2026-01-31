@@ -73,8 +73,10 @@ def styled_image(url, height='100vw', mobile_height='100vw'):
     )
 
 vannerKeys = list(vannerData.keys())
-if 'vanner_selected_key' not in st.session_state:
-    st.session_state.vanner_selected_key = random.sample(vannerKeys, 1)[0]
+
+if 'vanner_selected_key' not in st.session_state or st.session_state.vanner_selected_key not in vannerKeys:
+    st.session_state.vanner_selected_key = random.choice(vannerKeys)
+    utils.init_session()
 
 selected_key = st.session_state.vanner_selected_key
 item_img_url = vannerData.get(selected_key)['path']
@@ -172,19 +174,17 @@ with st.sidebar:
 
 st.divider()
 
-policy, cookies, terms = st.columns(spec=3, gap='small', vertical_alignment='center')
-
-policyB = policy.button(
+policyB = st.button(
     label='개인정보 처리방침',
     type='tertiary',
     width='content'
 )
-cookiesB = cookies.button(
+cookiesB = st.button(
     label='쿠키 정책',
     type='tertiary',
     width='content'
 )
-termsB = terms.button(
+termsB = st.button(
     label='이용약관',
     type='tertiary',
     width='content'

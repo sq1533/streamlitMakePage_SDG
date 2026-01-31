@@ -28,8 +28,8 @@ USER appuser
 EXPOSE 8080
 
 CMD ["streamlit", "run", "mainPage.py", \
-     "--server.port=8080", \
-     "--server.address=0.0.0.0", \
-     "--server.enableCORS=false", \
-     "--server.enableXsrfProtection=false", \
-     "--server.headless=true"]
+    "--server.port=8080", \
+    "--server.address=0.0.0.0", \
+    "--server.enableCORS=false", \
+    "--server.enableXsrfProtection=false", \
+    "--server.headless=true"]
