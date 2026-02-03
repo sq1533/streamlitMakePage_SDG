@@ -14,8 +14,6 @@ utils.set_page_ui()
 import api
 import time
 
-deliveryInfo : dict = utils.utilsDb().firestore_vanner.get('deliveryInfo')
-
 utils.init_session()
 
 # 상품 키 확인 (Hybrid Check)
