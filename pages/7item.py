@@ -18,124 +18,143 @@ deliveryInfo : dict = utils.utilsDb().firestore_vanner.get('deliveryInfo')
 
 utils.init_session()
 
+# 상품 키 확인 (Hybrid Check)
 if "item_id" in st.query_params:
     st.session_state.item = st.query_params["item_id"]
 
-# 상품 키 확인
-if not st.session_state.item:
+# 세션에 아이템 정보가 없으면 메인으로 리다이렉트
+if not ("item" in st.session_state and st.session_state.item):
     st.switch_page(page='mainPage.py')
-else:
 
-    with st.sidebar:
-        st.page_link(
-            page='mainPage.py',
-            label='AMUREDO'
+with st.sidebar:
+    # 회원 로그인 정보 검증
+    if any(value is not None for value in st.session_state.token.values()):
+        logoutB = st.button(
+            label='sign_out',
+            type='secondary',
+            width='stretch'
         )
+        if logoutB:
+            st.session_state.clear()
+            st.rerun()
 
-        # 회원 로그인 정보 검증
-        if any(value is not None for value in st.session_state.token.values()):
-            logoutB = st.button(
-                label='sign_out',
-                type='secondary',
-                width='stretch'
-            )
-            if logoutB:
-                st.session_state.clear()
-                st.rerun()
-
-            if st.session_state.user.get('address'):
-                pass
-            else:
-                st.toast("기본 배송지 설정 필요", icon="⚠️")
-                time.sleep(0.7)
-                st.switch_page(page='pages/1signIN_address.py')
-
-            myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-            myinfo = myinfo.button(
-                label='마이페이지',
-                type='tertiary',
-                width='stretch'
-            )
-            orderL = orderList.button(
-                label='주문내역',
-                type='tertiary',
-                width='stretch'
-            )
-            # 마이페이지
-            if myinfo:
-                st.switch_page(page="pages/3myPage.py")
-            # 주문 내역 페이지
-            if orderL:
-                st.switch_page(page="pages/3myPage_orderList.py")
+        if st.session_state.user.get('address'):
+            pass
         else:
-            signIn = st.button(
-                label='로그인 / 회원가입',
-                type='primary',
-                width='stretch'
-            )
-            if signIn:
-                st.switch_page(page="pages/1signIN.py")
+            st.toast("기본 배송지 설정 필요", icon="⚠️")
+            time.sleep(0.7)
+            st.switch_page(page='pages/1signIN_address.py')
 
-        utils.set_sidebar()
+        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
 
-    itemKey : str = st.session_state.item
-    itemInfo = api.items.showItem().loc[itemKey]
-    itemStatus : dict = api.items.itemStatus(itemId=itemKey)
-    buyAble : bool = not itemStatus.get('enable')
-    feedback : dict = itemStatus.get('feedback')
-    feedCount : int = feedback.get('count', 0)
-    feedPoint : int = feedback.get('point', 0)
-    feedAvg : int = int((feedPoint / feedCount) * 100) if feedCount > 0 else 0
-    feedText : list = feedback.get('text')
-        
-    # 상품 카테고리
+        myinfo = myinfo.button(
+            label='마이페이지',
+            type='tertiary',
+            width='stretch'
+        )
+        orderL = orderList.button(
+            label='주문내역',
+            type='tertiary',
+            width='stretch'
+        )
+        # 마이페이지
+        if myinfo:
+            st.switch_page(page="pages/3myPage.py")
+        # 주문 내역 페이지
+        if orderL:
+            st.switch_page(page="pages/3myPage_orderList.py")
+    else:
+        signIn = st.button(
+            label='로그인 / 회원가입',
+            type='primary',
+            width='stretch'
+        )
+        if signIn:
+            st.switch_page(page="pages/1signIN.py")
+
+    utils.set_sidebar()
+
+itemKey : str = st.session_state.item
+itemInfo = api.items.showItem().loc[itemKey]
+itemStatus : dict = api.items.itemStatus(itemId=itemKey)
+buyAble : bool = not itemStatus.get('enable')
+feedback : dict = itemStatus.get('feedback')
+feedCount : int = feedback.get('count', 0)
+feedPoint : int = feedback.get('point', 0)
+feedAvg : int = int((feedPoint / feedCount) * 100) if feedCount > 0 else 0
+feedText : list = feedback.get('text')
+
+st.html("""
+<style>
+[data-testid="stCode"] button {
+    visibility: visible !important;
+    opacity: 1 !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important; /* 클릭 이벤트 활성화 */
+}
+
+[data-testid="stCode"] button svg {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+</style>
+""")
+
+with st.container(horizontal=True):
     st.markdown(body=f"#### :gray[amuredo > {itemInfo['category']}]")
-    # 상품 이름
-    st.markdown(f"# {itemInfo['name']}")
+    st.space(size='stretch')
+    with st.popover(label='공유하기'):
+        st.code(f"https://amuredo.shop/item?item_id={itemKey}", language="text")
 
-    # 상품 가격 및 구매 버튼
-    price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
+st.markdown(f"# {itemInfo['name']}")
+price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
 
-    price.markdown(body=f"### {itemInfo['price']:,}원")
+price.markdown(body=f"### {itemInfo['price']:,}원")
 
-    buyBTN = buy.button(
-        label='구매하기',
-        type='primary',
-        disabled=buyAble,
-        width='stretch'
-    )
-    if buyBTN:
-        if any(value is not None for value in st.session_state.token.values()):
-            st.switch_page(page="pages/5orderPage.py")
-        else:
-            st.error(body='고객이 확인되지 않습니다.')
+buyBTN = buy.button(
+    label='구매하기',
+    type='primary',
+    disabled=buyAble,
+    width='stretch'
+)
+if buyBTN:
+    if any(value is not None for value in st.session_state.token.values()):
+        st.switch_page(page="pages/5orderPage.py")
+    else:
+        st.error(body='고객이 확인되지 않습니다.')
 
-    design, info, feed = st.tabs(tabs=['design', 'information', 'review'])
+design, info, feed = st.tabs(tabs=['design', 'information', 'review'])
 
-    with design:
-        st.image(str(itemInfo['paths'][1]))
+with design:
+    st.image(str(itemInfo['paths'][1]))
 
-    with info:
-        st.image(str(itemInfo['detail']))
+with info:
+    st.image(str(itemInfo['detail']))
 
-    with feed:
-        st.markdown(body=f"####  :heart: {feedAvg}%")
-        if feedText.__len__() == 1:
-            st.info(body='아직 후기가 없어요...', icon='😪')
-        else:
-            for i in reversed(feedText[1:]):
-                parts = i.split('_', 1)
-                if len(parts) < 2:
-                    continue
+with feed:
+    st.markdown(body=f"####  :heart: {feedAvg}%")
+    if feedText.__len__() == 1:
+        st.info(body='아직 후기가 없어요...', icon='😪')
+    else:
+        for i in reversed(feedText[1:]):
+            parts = i.split('_', 1)
+            if len(parts) < 2:
+                continue
 
-                date = parts[0]
-                content = parts[1]
+            date = parts[0]
+            content = parts[1]
 
-                st.markdown(
-                    f"""
-                    **📅 {date}**
-                    > {content}
-                    """
-                )
-                st.divider()
+            st.markdown(
+                f"""
+                **📅 {date}**
+                > {content}
+                """
+            )
+            st.divider()

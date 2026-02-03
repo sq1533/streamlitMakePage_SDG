@@ -112,17 +112,13 @@ utils.init_session()
 if st.session_state.page == 'glasses':
     page = {'sort':'glasses'}
 elif st.session_state.page == 'sunglasses':
-    st.info(body='상품 준비중입니다.')
-    st.stop()
-    # page = {'sort':'sunglasses'}
+    page = {'sort':'sunglasses'}
 elif st.session_state.page == 'sporty':
-    st.info(body='상품 준비중입니다.')
-    st.stop()
-    # page = {'category':'sporty'}
+    page = {'category':'sporty'}
 elif st.session_state.page == 'new':
     page = {'event':'new'}
 else:
-    st.switch_page(page='mainPage.py')
+    page = {'sort':'glasses'}
 
 index : str = list(page.keys())[0]
 
@@ -137,11 +133,6 @@ code_db : dict = utils.utilsDb().firestore_code
 
 # siderbar 정의
 with st.sidebar:
-    st.page_link(
-        page='mainPage.py',
-        label='AMUREDO'
-    )
-
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
@@ -190,6 +181,10 @@ with st.sidebar:
 
     utils.set_sidebar()
 
+if itemData.empty:
+    st.info(body='상품 준비중입니다.')
+    st.stop()
+
 grouped_items = sortedItems.groupby('code')
 
 for code, group in grouped_items:
@@ -223,6 +218,7 @@ for code, group in grouped_items:
                     width='stretch'
                 ):
                     st.session_state.item = idx
+                    st.query_params["item_id"] = idx
                     st.switch_page(page="pages/7item.py")
 
 st.divider()

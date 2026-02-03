@@ -38,9 +38,10 @@ st.markdown("""
 
 # item 정보 불러오기 pandas
 itemData = api.items.showItem()
-vannerData : dict = utils.utilsDb().firestore_vanner
+vannerData : dict = utils.database().firestore_code
+vannerKeys = list(vannerData.keys())
 
-def styled_image(url, height='100vw', mobile_height='100vw'):
+def styled_image(url, height='50vw', mobile_height='50vw'):
     st.markdown(
         f"""
         <style>
@@ -72,27 +73,19 @@ def styled_image(url, height='100vw', mobile_height='100vw'):
         unsafe_allow_html=True
     )
 
-vannerKeys = list(vannerData.keys())
-
 if 'vanner_selected_key' not in st.session_state or st.session_state.vanner_selected_key not in vannerKeys:
     st.session_state.vanner_selected_key = random.choice(vannerKeys)
     utils.init_session()
 
 selected_key = st.session_state.vanner_selected_key
-item_img_url = vannerData.get(selected_key)['path']
 
-img, txt = st.columns(spec=[2,1], gap='small', vertical_alignment='top')
-with img.container():
-    styled_image(url=item_img_url)
-with txt.container():
-    styled_image(url=utils.utilsDb().logo_base64)
-
-item_img_url = vannerData.get(selected_key)['path']
+code_info : dict = utils.database().firestore_code.get(selected_key)
+st.image(utils.utilsDb().logo_base64, width='stretch')
+st.image(str(code_info['path']), width='stretch')
 
 st.divider()
 
-itemCode = itemData.loc[selected_key]['code']
-itemList = itemData[itemData['code'] == itemCode]
+itemList = itemData[itemData['code'] == selected_key]
 
 count_in_card = 0
 for i, (index, item) in enumerate(itemList.iterrows()):
@@ -112,15 +105,11 @@ for i, (index, item) in enumerate(itemList.iterrows()):
             width='stretch'
         ):
             st.session_state.item = index
+            st.query_params["item_id"] = index
             st.switch_page(page="pages/7item.py")
 
 # siderbar 정의
 with st.sidebar:
-    st.page_link(
-        page='mainPage.py',
-        label='AMUREDO'
-    )
-
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(

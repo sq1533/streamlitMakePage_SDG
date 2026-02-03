@@ -77,12 +77,6 @@ def exchangeCall(key : str, item : str):
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
 
     with st.sidebar:
-        st.page_link(
-            page='mainPage.py',
-            label='AMUREDO'
-        )
-        st.title(body="교환 및 환불 요청")
-
         utils.set_sidebar()
 
     key = st.session_state.orderItem[0]

@@ -20,10 +20,6 @@ utils.init_session()
 if any(value is not None for value in st.session_state.token.values()):
 
     with st.sidebar:
-        st.page_link(
-            page='mainPage.py',
-            label='AMUREDO'
-        )
         st.title(body="회원 탈퇴")
 
     st.title(body="회원을 탈퇴 하시겠습니까?")

@@ -22,12 +22,6 @@ utils.init_session()
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
 
     with st.sidebar:
-        st.page_link(
-            page='mainPage.py',
-            label='AMUREDO'
-        )
-        st.title(body="상품 주문")
-
         utils.set_sidebar()
 
     email : str = str(st.session_state.user.get('email')).split('@', 1)[0]

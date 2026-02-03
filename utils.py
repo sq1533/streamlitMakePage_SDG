@@ -246,7 +246,7 @@ class database:
             self.pageIcon = None
         
         try:
-            with open('database/logo.webp', "rb") as image_file:
+            with open('database/nav.webp', "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
                 self.logo_base64 = f"data:image/webp;base64,{encoded_string}"
         except Exception as e:
@@ -299,32 +299,14 @@ class database:
             return ""
 
 def set_page_ui():
-    try:
-        with open(file='database/Hahmlet-Bold.ttf', mode='rb') as f:
-            data = f.read()
-            b64_data = base64.b64encode(data).decode()
-    except Exception as e:
-        print(f"폰트 로딩 오류: {e}")
-        b64_data = ""
-
     common_css = f"""
     <style>
     [data-testid="stHeaderActionElements"] {{
         display: none !important;
     }}
+
     div[data-testid="stElementToolbar"] {{
         display: none !important;
-    }}
-
-    @font-face {{
-        font-family:'Hahmlet-Bold';
-        src:url(data:font/ttf;base64,{b64_data}) format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }}
-
-    html, body, p, h1, h2, h3, h4, h5, h6, label, button, input, textarea, div {{
-        font-family: 'Hahmlet-Bold', sans-serif;
     }}
     
     [data-testid="stIcon"], .material-icons, .material-symbols-rounded {{
@@ -374,27 +356,32 @@ def set_page_ui():
     """
 
     st.html(common_css)
+    st.logo(
+        image="database/navSide.webp", 
+        link="https://amuredo.shop",
+        icon_image="database/nav.webp"
+    )
 
 def set_sidebar():
     st.divider()
 
     newBTN = st.button(
-        label='new',
+        label='NEW',
         type='tertiary',
         width='content'
     )
     glassesBTN = st.button(
-        label='glasses',
+        label='Glasses',
         type='tertiary',
         width='content'
     )
     sunglassesBTN = st.button(
-        label='sunglasses',
+        label='Sunglasses',
         type='tertiary',
         width='content'
     )
     sportyBTN = st.button(
-        label='goggles',
+        label='Goggles',
         type='tertiary',
         width='content'
     )
