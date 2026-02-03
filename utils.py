@@ -178,7 +178,6 @@ class database:
             self.realtimeDB = None
         
         # 데이터 수집 초기화
-        self.firestore_vanner = {}
         self.firestore_item = {}
         self.firestore_code = {}
         
@@ -189,18 +188,7 @@ class database:
     def _load_data(self):
         if not self.fs_client: return
 
-        # 1. 배너 로딩
-        try:
-            vannerSnapshot = self.fs_client.collection('vanner').stream()
-            for doc in vannerSnapshot:
-                data = doc.to_dict()
-                if data:
-                    self.firestore_vanner[doc.id] = data
-
-        except Exception as e:
-            print(f"배너 로딩 실패: {e}")
-
-        # 2. 코드(그룹) 이미지 로딩
+        # 1. 코드(그룹) 이미지 로딩
         try:
             codeSnapshot = self.fs_client.collection('code').stream()
             for doc in codeSnapshot:
@@ -210,7 +198,7 @@ class database:
         except Exception as e:
             print(f"코드 정보 로딩 실패: {e}")
 
-        # 3. 아이템 로딩
+        # 2. 아이템 로딩
         self._load_items()
 
     def _load_items(self):
