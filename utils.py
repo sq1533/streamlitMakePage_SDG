@@ -354,14 +354,51 @@ def set_page_ui():
     st.html(common_css)
 
 def set_sidebarLogo():
-    logo_html = f"""
-        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-            <a href="https://amuredo.shop" target="_self" style="width: 100%; display: flex; justify-content: center; text-decoration: none;">
-                <img src="{utilsDb().logo_side_base64}" style="width: 100%; max-width: 280px; height: auto; object-fit: contain;">
-            </a>
-        </div>
+    # Base64 이미지 가져오기 및 개행 문자 제거 (CSS 오류 방지)
+    img_url = utilsDb().logo_side_base64.replace('\n', '')
+    
+    # CSS 마커 및 스타일 정의
+    # :has() 선택자와 인접 형제 선택자(+)를 사용하여 마커 바로 다음의 버튼을 정확히 타겟팅
+    logo_css = f"""
+    <style>
+        div[data-testid="stMarkdownContainer"]:has(#logo-marker) + div button,
+        div:has(#logo-marker) + div button {{
+            background-image: url("{img_url}") !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-size: contain !important;
+            height: 60px !important; 
+            width: 100% !important;
+            border: none !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            
+            color: transparent !important;
+            font-size: 0px !important;
+            padding: 0px !important;
+        }}
+        
+        div:has(#logo-marker) + div button:hover,
+        div:has(#logo-marker) + div button:active,
+        div:has(#logo-marker) + div button:focus {{
+            background-color: transparent !important;
+            color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }}
+        
+        div:has(#logo-marker) + div button * {{
+            display: none !important;
+        }}
+    </style>
+    <div id="logo-marker" style="display:none;"></div>
     """
-    st.html(logo_html)
+
+    st.markdown(logo_css, unsafe_allow_html=True)
+    
+    # 마커 바로 다음에 버튼 배치
+    if st.button(label='Amuredo Home Logo', type='tertiary', width='stretch'):
+        st.switch_page("mainPage.py")
 
 def set_sidebar():    
     st.divider()
