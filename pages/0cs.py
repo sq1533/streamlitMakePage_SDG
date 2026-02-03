@@ -20,6 +20,7 @@ utils.init_session()
 # 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
+        utils.set_sidebarLogo()
         logoutB = st.button(
             label='sign_out',
             type="secondary",

@@ -57,6 +57,7 @@ def addrDialog():
 # 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()):
     with st.sidebar:
+        utils.set_sidebarLogo()
         st.title(body='기본 배송지 설정')
 
     addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')

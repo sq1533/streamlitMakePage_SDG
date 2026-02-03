@@ -41,7 +41,7 @@ itemData = api.items.showItem()
 vannerData : dict = utils.database().firestore_code
 vannerKeys = list(vannerData.keys())
 
-def styled_image(url, height='50vw', mobile_height='50vw'):
+def styled_image(url, height='100%', mobile_height='100%'):
     st.markdown(
         f"""
         <style>
@@ -80,8 +80,8 @@ if 'vanner_selected_key' not in st.session_state or st.session_state.vanner_sele
 selected_key = st.session_state.vanner_selected_key
 
 code_info : dict = utils.database().firestore_code.get(selected_key)
-st.image(utils.utilsDb().logo_base64, width='stretch')
-st.image(str(code_info['path']), width='stretch')
+styled_image(utils.utilsDb().logo_base64)
+styled_image(str(code_info['path']))
 
 st.divider()
 
@@ -110,6 +110,7 @@ for i, (index, item) in enumerate(itemList.iterrows()):
 
 # siderbar 정의
 with st.sidebar:
+    utils.set_sidebarLogo()
     # 회원 소셜 로그인 상태
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(

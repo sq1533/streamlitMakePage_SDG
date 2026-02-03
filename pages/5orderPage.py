@@ -22,6 +22,7 @@ utils.init_session()
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
 
     with st.sidebar:
+        utils.set_sidebarLogo()
         utils.set_sidebar()
 
     email : str = str(st.session_state.user.get('email')).split('@', 1)[0]

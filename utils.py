@@ -253,6 +253,14 @@ class database:
             self.logo_base64 = ""
             print(f"로고 로딩 실패: {e}")
 
+        try:
+            with open('database/navSide.webp', "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                self.logo_side_base64 = f"data:image/webp;base64,{encoded_string}"
+        except Exception as e:
+            self.logo_side_base64 = ""
+            print(f"사이드 로고 로딩 실패: {e}")
+
         # email 발송 keys
         try:
             self.emailAccess = {
@@ -356,13 +364,18 @@ def set_page_ui():
     """
 
     st.html(common_css)
-    st.logo(
-        image="database/navSide.webp", 
-        link="https://amuredo.shop",
-        icon_image="database/nav.webp"
-    )
 
-def set_sidebar():
+def set_sidebarLogo():
+    logo_html = f"""
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <a href="https://amuredo.shop" target="_self" style="width: 100%; display: flex; justify-content: center; text-decoration: none;">
+                <img src="{utilsDb().logo_side_base64}" style="width: 100%; max-width: 280px; height: auto; object-fit: contain;">
+            </a>
+        </div>
+    """
+    st.html(logo_html)
+
+def set_sidebar():    
     st.divider()
 
     newBTN = st.button(

@@ -133,6 +133,7 @@ code_db : dict = utils.utilsDb().firestore_code
 
 # siderbar 정의
 with st.sidebar:
+    utils.set_sidebarLogo()
     # 회원 로그인 상태 확인
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(

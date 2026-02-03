@@ -16,6 +16,7 @@ if 'selected_notice' not in st.session_state:
     st.session_state.selected_notice = None
 
 with st.sidebar:
+    utils.set_sidebarLogo()
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(
             label='sign_out',

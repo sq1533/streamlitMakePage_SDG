@@ -59,6 +59,7 @@ def addrDialog():
 if any(value is not None for value in st.session_state.token.values()):
 
     with st.sidebar:
+        utils.set_sidebarLogo()
         signOut = st.button(
             label='회원탈퇴',
             type='primary',

@@ -21,6 +21,7 @@ utils.init_session()
 if any(value is not None for value in st.session_state.token.values()):
 
     with st.sidebar:
+        utils.set_sidebarLogo()
         utils.set_sidebar()
 
     st.markdown(body="주문내역")

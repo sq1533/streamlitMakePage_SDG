@@ -52,6 +52,7 @@ st.html(
     )
 
 with st.sidebar:
+    utils.set_sidebarLogo()
     # 회원 로그인 정보 검증
     if any(value is not None for value in st.session_state.token.values()):
         logoutB = st.button(

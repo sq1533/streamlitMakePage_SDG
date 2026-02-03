@@ -55,6 +55,7 @@ def changeAddr(key : str):
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
 
     with st.sidebar:
+        utils.set_sidebarLogo()
         utils.set_sidebar()
 
     st.title(body="배송지 변경 요청")
