@@ -109,14 +109,25 @@ import pandas as pd
 
 utils.init_session()
 
-if st.session_state.page == 'glasses':
+query_page = st.query_params.get("page", None)
+
+if query_page:
+    current_page = query_page
+elif st.session_state.page:
+    current_page = st.session_state.page
+else:
+    current_page = 'glasses'
+
+if current_page == 'glasses':
     page = {'sort':'glasses'}
-elif st.session_state.page == 'sunglasses':
+elif current_page == 'sunglasses':
     page = {'sort':'sunglasses'}
-elif st.session_state.page == 'sporty':
+elif current_page == 'sporty':
     page = {'category':'sporty'}
-elif st.session_state.page == 'new':
+elif current_page == 'new':
     page = {'event':'new'}
+elif current_page == 'best':
+    page = {'event':'best'}
 else:
     page = {'sort':'glasses'}
 

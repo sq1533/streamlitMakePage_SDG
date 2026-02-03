@@ -366,37 +366,39 @@ def set_sidebarLogo():
 def set_sidebar():    
     st.divider()
 
-    newBTN = st.button(
+    if st.button(
         label='NEW',
         type='tertiary',
         width='content'
-    )
-    glassesBTN = st.button(
+    ):
+        st.session_state.page = 'new'
+        st.switch_page(page='pages/9itemList.py')
+    if st.button(
+        label='BEST',
+        type='tertiary',
+        width='content'
+    ):
+        st.session_state.page = 'best'
+        st.switch_page(page='pages/9itemList.py')
+    if st.button(
         label='Glasses',
         type='tertiary',
         width='content'
-    )
-    sunglassesBTN = st.button(
+    ):
+        st.session_state.page = 'glasses'
+        st.switch_page(page='pages/9itemList.py')
+    if st.button(
         label='Sunglasses',
         type='tertiary',
         width='content'
-    )
-    sportyBTN = st.button(
+    ):
+        st.session_state.page = 'sunglasses'
+        st.switch_page(page='pages/9itemList.py')
+    if st.button(
         label='Goggles',
         type='tertiary',
         width='content'
-    )
-
-    if newBTN:
-        st.session_state.page = 'new'
-        st.switch_page(page='pages/9itemList.py')
-    if glassesBTN:
-        st.session_state.page = 'glasses'
-        st.switch_page(page='pages/9itemList.py')
-    if sunglassesBTN:
-        st.session_state.page = 'sunglasses'
-        st.switch_page(page='pages/9itemList.py')
-    if sportyBTN:
+    ):
         st.session_state.page = 'sporty'
         st.switch_page(page='pages/9itemList.py')
 
@@ -408,7 +410,6 @@ def set_sidebar():
         width='content'
     ):
         st.switch_page(page='pages/0notice.py')
-
     if st.button(
         label='문의하기',
         type='tertiary',
