@@ -357,17 +357,15 @@ def set_sidebarLogo():
     # Base64 이미지 가져오기 및 개행 문자 제거 (CSS 오류 방지)
     img_url = utilsDb().logo_side_base64.replace('\n', '')
     
-    # CSS 마커 및 스타일 정의
-    # :has() 선택자와 인접 형제 선택자(+)를 사용하여 마커 바로 다음의 버튼을 정확히 타겟팅
     logo_css = f"""
     <style>
-        div[data-testid="stMarkdownContainer"]:has(#logo-marker) + div button,
-        div:has(#logo-marker) + div button {{
+        section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"]:has(#logo-marker) + div button,
+        section[data-testid="stSidebar"] div:has(#logo-marker) + div button {{
             background-image: url("{img_url}") !important;
             background-repeat: no-repeat !important;
             background-position: center !important;
             background-size: contain !important;
-            height: 60px !important; 
+            height: 100px !important; 
             width: 100% !important;
             border: none !important;
             box-shadow: none !important;
@@ -378,16 +376,16 @@ def set_sidebarLogo():
             padding: 0px !important;
         }}
         
-        div:has(#logo-marker) + div button:hover,
-        div:has(#logo-marker) + div button:active,
-        div:has(#logo-marker) + div button:focus {{
+        section[data-testid="stSidebar"] div:has(#logo-marker) + div button:hover,
+        section[data-testid="stSidebar"] div:has(#logo-marker) + div button:active,
+        section[data-testid="stSidebar"] div:has(#logo-marker) + div button:focus {{
             background-color: transparent !important;
             color: transparent !important;
             box-shadow: none !important;
             border: none !important;
         }}
         
-        div:has(#logo-marker) + div button * {{
+        section[data-testid="stSidebar"] div:has(#logo-marker) + div button * {{
             display: none !important;
         }}
     </style>
@@ -396,9 +394,12 @@ def set_sidebarLogo():
 
     st.markdown(logo_css, unsafe_allow_html=True)
     
-    # 마커 바로 다음에 버튼 배치
-    if st.button(label='Amuredo Home Logo', type='tertiary', width='stretch'):
-        st.switch_page("mainPage.py")
+    if st.button(
+        label='Amuredo Home Logo',
+        type='tertiary',
+        width='stretch'
+    ):
+        st.switch_page(page="mainPage.py")
 
 def set_sidebar():    
     st.divider()

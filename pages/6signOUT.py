@@ -39,7 +39,7 @@ if any(value is not None for value in st.session_state.token.values()):
     )
 
     if DontOut:
-        st.toast("함께 해주셔서 감사합니다.", icon=":smile:")
+        st.toast("함께 해주셔서 감사합니다.", icon="😄")
         time.sleep(0.7)
         st.switch_page(page="mainPage.py")
 
