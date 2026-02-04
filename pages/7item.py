@@ -127,7 +127,9 @@ if buyBTN:
     if any(value is not None for value in st.session_state.token.values()):
         st.switch_page(page="pages/5orderPage.py")
     else:
-        st.error(body='고객이 확인되지 않습니다.')
+        st.error(body='고객 확인 불가, 로그인 페이지로 이동합니다.')
+        time.sleep(1)
+        st.switch_page(page="pages/1signIN.py")
 
 design, info, feed = st.tabs(tabs=['design', 'information', 'review'])
 
