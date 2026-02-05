@@ -76,7 +76,11 @@ class guest(utils.database):
         try:
             userToken = requests.post(url='https://nid.naver.com/oauth2.0/token', params=encoded_params)
             if userToken.status_code == 200:
-                return {'allow':True, 'result':userToken.json()}
+                token_data = userToken.json()
+                if 'access_token' in token_data:
+                    return {'allow':True, 'result':token_data}
+                else:
+                    return {'allow':False, 'result':f"토큰 응답 오류: {token_data}"}
             else:
                 return {'allow':False, 'result':'토큰 발행 실패'}
         except Exception as e:
@@ -144,7 +148,11 @@ class guest(utils.database):
         try:
             userToken = requests.post(url='https://kauth.kakao.com/oauth/token', params=encoded_params, headers=kakaoHeader)
             if userToken.status_code == 200:
-                return {'allow':True, 'result':userToken.json()}
+                token_data = userToken.json()
+                if 'access_token' in token_data:
+                    return {'allow':True, 'result':token_data}
+                else:
+                    return {'allow':False, 'result':f"토큰 응답 오류: {token_data}"}
             else:
                 return {'allow':False, 'result':'토큰 발행 실패'}
         except Exception as e:
@@ -220,7 +228,11 @@ class guest(utils.database):
         try:
             tokenResponse = requests.post("https://oauth2.googleapis.com/token", data=googleParams)
             if tokenResponse.status_code == 200:
-                return {'allow': True, 'result': tokenResponse.json()}
+                token_data = tokenResponse.json()
+                if 'access_token' in token_data:
+                    return {'allow': True, 'result': token_data}
+                else:
+                    return {'allow': False, 'result':f"토큰 응답 오류: {token_data}"}
             else:
                 return {'allow': False, 'result': '토큰 발행 실패'}
         except Exception as e:

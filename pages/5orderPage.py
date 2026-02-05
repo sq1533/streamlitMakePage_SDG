@@ -14,8 +14,11 @@ utils.set_page_ui()
 import api
 import time
 from datetime import datetime, timezone, timedelta
+from streamlit_javascript import st_javascript
 
 utils.init_session()
+
+is_mobile = st_javascript("/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);")
 
 # 회원 로그인 상태 확인
 if any(value is not None for value in st.session_state.token.values()) and st.session_state.item:
@@ -140,7 +143,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     except Exception as e:
                         print(f"임시 저장 업데이트 실패 (Kakao): {e}")
 
-                    if st.session_state.mobile:
+                    if is_mobile:
                         target = callKakaopay.get('checkoutPage_mobile')
                     else:
                         target = callKakaopay.get('checkoutPage')
