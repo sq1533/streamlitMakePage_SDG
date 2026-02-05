@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_javascript import st_javascript
 import firebase_admin
 from firebase_admin import db, firestore, credentials
 from PIL import Image
@@ -166,6 +167,13 @@ def init_session():
     # 주문 상품 / str
     if 'orderItem' not in st.session_state:
         st.session_state.orderItem = None
+
+    if 'mobile' not in st.session_state:
+        is_mobile = st_javascript("return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);")
+        if is_mobile:
+            st.session_state.mobile = True
+        else:
+            st.session_state.mobile = False
 
 class database:
     def __init__(self):

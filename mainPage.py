@@ -18,14 +18,6 @@ utils.set_page_ui()
 import api
 import time
 import random
-from streamlit_javascript import st_javascript
-
-is_mobile = st_javascript("return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);")
-
-if is_mobile:
-    st.session_state.mobile = True
-else:
-    st.session_state.mobile = False
 
 utils.init_session()
 
