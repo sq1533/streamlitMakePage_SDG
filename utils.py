@@ -348,6 +348,16 @@ def set_page_ui():
         opacity: 1 !important; 
         visibility: visible !important;
     }}
+    @media screen and (max-width: 640px) {{
+        div[data-testid="stHorizontalBlock"] {{
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+        }}
+        div[data-testid="stColumn"] {{
+            min-width: 0px !important;
+            width: auto !important;
+        }}
+    }}
     </style>
     """
 

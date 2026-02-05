@@ -127,7 +127,8 @@ class pay:
                 return {
                     'access': True,
                     'tid': res_json['tid'],
-                    'checkoutPage': res_json['next_redirect_pc_url']
+                    'checkoutPage': res_json['next_redirect_pc_url'],
+                    'checkoutPage_mobile': res_json['next_redirect_mobile_url']
                 }
             else:
                 utils.get_logger().error(f"카카오페이 응답 오류 : {response.status_code} {res_json.get('msg')}")

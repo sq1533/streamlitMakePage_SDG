@@ -18,23 +18,16 @@ utils.set_page_ui()
 import api
 import time
 import random
+from streamlit_javascript import st_javascript
+
+is_mobile = st_javascript("return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);")
+
+if is_mobile:
+    st.session_state.mobile = True
+else:
+    st.session_state.mobile = False
 
 utils.init_session()
-
-st.markdown("""
-<style>
-@media screen and (max-width: 640px) {
-    div[data-testid="stHorizontalBlock"] {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-    }
-    div[data-testid="stColumn"] {
-        min-width: 0px !important;
-        width: auto !important;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
 
 # item 정보 불러오기 pandas
 itemData = api.items.showItem()
@@ -95,7 +88,7 @@ for i, (index, item) in enumerate(itemList.iterrows()):
     with col.container():
         st.image(str(item['paths'][0]))
 
-        st.markdown(body=f"###### {item['name']}")
+        st.markdown(body=f"<div style='font-size: 13px; font-weight: bold;'>{item['name']}</div>", unsafe_allow_html=True)
         st.markdown(f"###### {item['price']:,}원")
 
         if st.button(

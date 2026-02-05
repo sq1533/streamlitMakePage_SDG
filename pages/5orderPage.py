@@ -14,7 +14,6 @@ utils.set_page_ui()
 import api
 import time
 from datetime import datetime, timezone, timedelta
-import streamlit.components.v1 as components
 
 utils.init_session()
 
@@ -126,7 +125,6 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                 
                 if callKakaopay.get('access'):
                     tid : str = callKakaopay.get('tid')
-                    checkoutPage_url = callKakaopay.get('checkoutPage')
 
                     try:
                         ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
@@ -142,12 +140,17 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
                     except Exception as e:
                         print(f"임시 저장 업데이트 실패 (Kakao): {e}")
 
+                    if st.session_state.mobile:
+                        target = callKakaopay.get('checkoutPage_mobile')
+                    else:
+                        target = callKakaopay.get('checkoutPage')
+
                     st.markdown(
-                        body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
+                        body=f"<meta http-equiv='refresh' content='0;url={target}'>",
                         unsafe_allow_html=True
                         )
 
-                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", checkoutPage_url)
+                    st.link_button("결제창이 자동으로 열리지 않으면 클릭하세요", target)
                 else:
                     api.items.cancelReservation(st.session_state.token, item, orderTime)
                     st.toast(f"결제 생성 실패: {callKakaopay.get('message')}", icon="❌")
