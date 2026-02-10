@@ -86,7 +86,7 @@ for i, (index, item) in enumerate(itemList.iterrows()):
         if st.button(
             label='상세보기',
             key=f"loop_item_{index}",
-            type='primary',
+            type='secondary',
             width='stretch'
         ):
             st.session_state.item = index
@@ -139,7 +139,7 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signIn:

@@ -416,36 +416,36 @@ def set_sidebar():
 
     if st.button(
         label='NEW',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.session_state.page = 'new'
         st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='BEST',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.session_state.page = 'best'
         st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='Glasses',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.session_state.page = 'glasses'
         st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='Sunglasses',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.session_state.page = 'sunglasses'
         st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='Goggles',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.session_state.page = 'sporty'
         st.switch_page(page='pages/9itemList.py')
@@ -454,14 +454,14 @@ def set_sidebar():
 
     if st.button(
         label='이벤트 및 공지사항',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.switch_page(page='pages/0notice.py')
     if st.button(
         label='문의하기',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     ):
         st.switch_page(page='pages/0cs.py')
 
@@ -469,8 +469,8 @@ def set_sidebar():
 
     aboutBTN = st.button(
         label='about us',
-        type='tertiary',
-        width='content'
+        type='secondary',
+        width='stretch'
     )
     if aboutBTN:
         st.switch_page(page='pages/9about.py')

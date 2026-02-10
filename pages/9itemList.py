@@ -50,6 +50,11 @@ sortedItems = itemData.sort_index()
 # Code 정보 가져오기
 code_db : dict = utils.utilsDb().firestore_code
 
+st.title(body=f'AMUREDO {current_page}')
+st.caption(body='Beyond the basics, comfort in every moment.')
+
+st.divider()
+
 # siderbar 정의
 with st.sidebar:
     utils.set_sidebarLogo()
@@ -93,7 +98,7 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signIn:
@@ -134,7 +139,7 @@ for code, group in grouped_items:
                 if st.button(
                     label='상세보기',
                     key=f"loop_item_{idx}",
-                    type='primary',
+                    type='secondary',
                     width='stretch'
                 ):
                     st.session_state.item = idx

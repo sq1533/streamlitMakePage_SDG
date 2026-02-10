@@ -159,7 +159,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 changeAddrB = changeAddr.button(
                     label='배송지 변경',
                     key=f"address_{key}",
-                    type='primary',
+                    type='secondary',
                     disabled=btnStatus.get('addressChange'),
                     width='stretch'
                 )
@@ -171,7 +171,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 aboutItemB = aboutItem.button(
                     label='상품 상세',
                     key=f"item_{key}",
-                    type='primary',
+                    type='secondary',
                     width='stretch'
                 )
                 if aboutItemB:
@@ -182,7 +182,7 @@ if any(value is not None for value in st.session_state.token.values()):
                 chagneStatusB = changeStatus.button(
                     label=btnStatus.get('statusChange'),
                     key=f"order_{key}",
-                    type='primary',
+                    type='secondary',
                     disabled=btnStatus.get('cancelB'),
                     width='stretch'
                 )

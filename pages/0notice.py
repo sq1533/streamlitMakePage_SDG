@@ -59,7 +59,7 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signIn:
@@ -70,7 +70,7 @@ with st.sidebar:
 # 홈으로 이동
 goHome = st.button(
     label='HOME',
-    type='primary',
+    type='secondary',
     width='content',
     disabled=False
 )

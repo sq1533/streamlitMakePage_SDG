@@ -92,7 +92,7 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signIn:

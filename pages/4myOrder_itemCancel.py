@@ -34,7 +34,7 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
     empty, cancel = st.columns(spec=[4,1], gap='small', vertical_alignment='center')
     cancelB = cancel.button(
         label='주문 취소',
-        type='primary',
+        type='secondary',
     )
     if cancelB:
         # 결제 수단 분류 및 결제 취소(pay)
@@ -106,7 +106,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
     cancelItemB = cancelItem.button(
         label='주문 취소하기',
-        type='primary',
+        type='secondary',
         width='stretch'
     )
     if cancelItemB:

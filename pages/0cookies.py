@@ -14,7 +14,7 @@ utils.set_page_ui()
 # 홈으로 이동
 goHome = st.button(
     label='HOME',
-    type='primary',
+    type='secondary',
     width='content',
     disabled=False
 )

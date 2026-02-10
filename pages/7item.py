@@ -65,7 +65,7 @@ with st.sidebar:
     else:
         signIn = st.button(
             label='로그인 / 회원가입',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signIn:
@@ -119,7 +119,7 @@ price.markdown(body=f"### {itemInfo['price']:,}원")
 
 buyBTN = buy.button(
     label='구매하기',
-    type='primary',
+    type='secondary',
     disabled=buyAble,
     width='stretch'
 )

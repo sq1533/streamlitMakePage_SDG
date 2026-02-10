@@ -45,7 +45,7 @@ def addrDialog():
                 choice = btn.button(
                     label='선택',
                     key=i,
-                    type='primary',
+                    type='secondary',
                     width='content'
                 )
                 if choice:
@@ -62,7 +62,7 @@ if any(value is not None for value in st.session_state.token.values()):
         utils.set_sidebarLogo()
         signOut = st.button(
             label='회원탈퇴',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if signOut:
@@ -145,7 +145,7 @@ if any(value is not None for value in st.session_state.token.values()):
         )
         searchAddrB = searchAddr.button(
             label='검색',
-            type='primary',
+            type='secondary',
             width='content'
         )
 
@@ -160,7 +160,7 @@ if any(value is not None for value in st.session_state.token.values()):
         )
         addAddressBTN = st.button(
             label='배송지 추가',
-            type='primary',
+            type='secondary',
             width='content'
         )
         if addAddressBTN:
@@ -170,7 +170,7 @@ if any(value is not None for value in st.session_state.token.values()):
                     st.warning(body="추가 등록할 수 없습니다.")
                 else:
                     api.guest.addAddr(token=st.session_state.token, addAddr=newAddr)
-                    st.button(label='잠시만 기다려주세요.', on_click=clear_firstAddr, type='tertiary', disabled=True)
+                    st.button(label='잠시만 기다려주세요.', on_click=clear_firstAddr, type='secondary', disabled=True)
                     st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
                     st.rerun()
             else:

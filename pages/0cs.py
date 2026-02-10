@@ -63,7 +63,7 @@ if any(value is not None for value in st.session_state.token.values()):
     # 홈으로 이동
     goHome = st.button(
         label='HOME',
-        type='primary',
+        type='secondary',
         width='content',
         disabled=False
     )
@@ -85,7 +85,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
         csBTN = st.button(
             label='문의하기',
-            type='primary',
+            type='secondary',
             width='stretch'
             )
         if csBTN:

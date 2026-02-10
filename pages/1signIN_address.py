@@ -44,7 +44,7 @@ def addrDialog():
                 choice = btn.button(
                     label='선택',
                     key=i,
-                    type='primary',
+                    type='secondary',
                     width='stretch'
                 )
                 if choice:
@@ -71,7 +71,7 @@ if any(value is not None for value in st.session_state.token.values()):
 
     searchAddrB = searchAddr.button(
         label='찾아보기',
-        type='primary',
+        type='secondary',
         width='stretch'
     )
 
@@ -105,14 +105,14 @@ if any(value is not None for value in st.session_state.token.values()):
 
         addAddrB = st.button(
             label='기본 배송지 설정하기',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if addAddrB:
             result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
             if result:
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                st.button(label='설정 완료.', on_click=clear_firstAddr, type='tertiary', disabled=True)
+                st.button(label='설정 완료.', on_click=clear_firstAddr, type='secondary', disabled=True)
                 st.switch_page(page='mainPage.py')
             else:
                 st.warning(body='기본 배송지 추가 실패, 다시 시도해주세요.')

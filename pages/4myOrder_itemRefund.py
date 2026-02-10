@@ -32,7 +32,7 @@ def refundCall(key : str, item : str):
     empty, refund = st.columns(spec=[3,1], gap='small', vertical_alignment='center')
     refundB = refund.button(
         label='환불 요청하기',
-        type='primary'
+        type='secondary'
     )
     if refundB:
         func : bool = api.items.orderRefund(token=st.session_state.token, key=key, itemID=item)
@@ -60,7 +60,7 @@ def exchangeCall(key : str, item : str):
     empty, exchange = st.columns(spec=[3,1], gap='small', vertical_alignment='center')
     exchangeB = exchange.button(
         label='교환 요청하기',
-        type='primary'
+        type='secondary'
     )
     if exchangeB:
         func : bool = api.items.orderExchange(token=st.session_state.token, key=key, itemID=item)
@@ -111,7 +111,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
         # 교환 요청 버튼
         exchangeItemB = exchangeItem.button(
             label='교환 요청',
-            type='primary',
+            type='secondary',
             width='stretch'
         )
         if exchangeItemB:

@@ -37,7 +37,7 @@ def changeAddr(key : str):
 
     goBtn = btn.button(
         label='확인',
-        type='primary',
+        type='secondary',
         width='stretch'
     )
     if goBtn:
@@ -92,7 +92,7 @@ if any(value is not None for value in st.session_state.token.values()) and st.se
 
     changeAddrB = cgAddr.button(
         label='배송지 변경',
-        type='primary',
+        type='secondary',
         width='stretch'
     )
     if changeAddrB:

@@ -34,7 +34,7 @@ if any(value is not None for value in st.session_state.token.values()):
     )
     out = YES.button(
         label='탈퇴하기',
-        type='primary',
+        type='secondary',
         width='stretch'
     )
 
