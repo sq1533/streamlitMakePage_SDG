@@ -4,6 +4,7 @@ import re
 import requests
 import urllib.parse
 import secrets
+import base64
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
@@ -53,11 +54,21 @@ class guest(utils.database):
             return {'allow':False, 'result':e}
 
     # 네이버 로그인 요청
-    def naverSignUP() -> str:
+    def naverSignUP(pageState: dict = None) -> str:
+        if pageState is None:
+            pageState = {}
+            
+        state_data = {k: str(v) if v is not None else "" for k, v in pageState.items()}
+        state_query = urllib.parse.urlencode(state_data)
+        
+        # Base64 인코딩으로 안전하게 변환
+        encoded_state = base64.urlsafe_b64encode(state_query.encode()).decode()
+        final_state = f"{secrets.randbits(k=16)}|{encoded_state}"
+
         naverSignInParams = {
             'response_type':'code',
             'client_id':st.secrets['naver_api']['client_id'],
-            'state':secrets.randbits(k=16),
+            'state':final_state,
             'redirect_uri':st.secrets['naver_api']['redirect_uri']
         }
         encoded_params = urllib.parse.urlencode(naverSignInParams)
@@ -124,12 +135,22 @@ class guest(utils.database):
             return {'allow':False, 'result':e}
 
     # 카카오 로그인 요청
-    def kakaoSignUP() -> str:
+    def kakaoSignUP(pageState: dict = None) -> str:
+        if pageState is None:
+            pageState = {}
+
+        state_data = {k: str(v) if v is not None else "" for k, v in pageState.items()}
+        state_query = urllib.parse.urlencode(state_data)
+        
+        # Base64 인코딩
+        encoded_state = base64.urlsafe_b64encode(state_query.encode()).decode()
+        final_state = f"{secrets.randbits(k=16)}|{encoded_state}"
+
         kakaoSignInParams = {
             'client_id':st.secrets['kakao_api']['client_id'],
             'redirect_uri':st.secrets['kakao_api']['redirect_uri'],
             'response_type':'code',
-            'state':secrets.randbits(k=16)
+            'state':final_state
         }
         encoded_params = urllib.parse.urlencode(kakaoSignInParams)
         return f"https://kauth.kakao.com/oauth/authorize?{encoded_params}"
@@ -197,7 +218,7 @@ class guest(utils.database):
             return {'allow':False, 'result':e}
 
     # 구글 gmail 요청
-    def gmailSignUP() -> str:
+    def gmailSignUP(pageState: dict = None) -> str:
         scopes = [
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile',
@@ -205,13 +226,23 @@ class guest(utils.database):
             'https://www.googleapis.com/auth/user.phonenumbers.read'
         ]
         
+        if pageState is None:
+            pageState = {}
+            
+        state_data = {k: str(v) if v is not None else "" for k, v in pageState.items()}
+        state_query = urllib.parse.urlencode(state_data)
+        
+        # Base64 인코딩
+        encoded_state = base64.urlsafe_b64encode(state_query.encode()).decode()
+        final_state = f"{secrets.randbits(k=16)}|{encoded_state}"
+
         googleSignInParams = {
             'client_id': st.secrets['google_api']['client_id'],
             'redirect_uri': st.secrets['google_api']['redirect_uri'],
             'response_type': 'code',
             'scope': ' '.join(scopes), # 공백으로 구분하여 합침
             'access_type': 'offline',
-            'state': secrets.randbits(k=16)
+            'state': final_state
         }
         encoded_params = urllib.parse.urlencode(googleSignInParams)
         return f"https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}"

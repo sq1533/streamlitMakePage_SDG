@@ -8,14 +8,14 @@ st.set_page_config(
     layout='centered',
     initial_sidebar_state='auto'
 )
+# 세션 확인
+utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
 import api
 import time
 from datetime import datetime
-
-utils.init_session()
 
 # 주문 취소 dialog
 @st.dialog(title='주문 취소', width='medium')
@@ -57,8 +57,7 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
             if func:
                 st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                if 'orderItem' in st.session_state:
-                    del st.session_state.orderItem
+                st.session_state.page['orderItem'] = None
                 if 'reason' in st.session_state:
                     del st.session_state.reason
                 st.rerun()
@@ -67,49 +66,51 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
         else:
             st.warning(body='주문 취소 실패, 다시 시도해주세요.')
 
-# 회원 로그인 검증 및 주문 상품 정보 확인
-if any(value is not None for value in st.session_state.token.values()) and st.session_state.orderItem:
-
-    with st.sidebar:
-        utils.set_sidebarLogo()
-        utils.set_sidebar()
-
-    st.title(body="주문 취소")
-
-    key = st.session_state.orderItem[0]
-    orderInfo = st.session_state.orderItem[1]
-
-    address = orderInfo.get('address')
-    status = utils.utilsDb().showStatus[orderInfo.get('status')]
-
-    # 아이템 정보
-    itemIF = api.items.showItem().loc[orderInfo.get('item')]
-    with st.container(height='content', border=True):
-        image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
-
-        image.image(
-            image=str(itemIF['paths'][0]),
-            caption=None,
-            clamp=False,
-            output_format='auto'
-            )
-        info.markdown(
-            body=f"""
-            상품명 : {itemIF['name']}\n\n
-            주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
-            주문 상태 : {status}\n\n
-            {address}
-            """
-            )
-
-    empty, cancelItem = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
-
-    cancelItemB = cancelItem.button(
-        label='주문 취소하기',
-        type='secondary',
-        width='stretch'
-    )
-    if cancelItemB:
-        cancelOrder(key=key, orderInfo=orderInfo, itemInfo=itemIF)
-else:
+# 페이지 접근 검증
+if not any(value is not None for value in st.session_state.token.values()):
+    st.switch_page(page='mainPage.py')
+if st.session_state.page['orderItem'] == '':
     st.switch_page(page='pages/3myPage_orderList.py')
+
+# 페이지 시작
+with st.sidebar:
+    utils.set_sidebarLogo()
+    utils.set_sidebar()
+
+st.title(body="주문 취소")
+
+key = st.session_state.page['orderItem'][0]
+orderInfo = st.session_state.page['orderItem'][1]
+
+address = orderInfo.get('address')
+status = utils.utilsDb().showStatus[orderInfo.get('status')]
+
+# 아이템 정보
+itemIF = api.items.showItem().loc[orderInfo.get('item')]
+with st.container(height='content', border=True):
+    image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
+
+    image.image(
+        image=str(itemIF['paths'][0]),
+        caption=None,
+        clamp=False,
+        output_format='auto'
+        )
+    info.markdown(
+        body=f"""
+        상품명 : {itemIF['name']}\n\n
+        주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
+        주문 상태 : {status}\n\n
+        {address}
+        """
+        )
+
+empty, cancelItem = st.columns(spec=[2,1], gap='small', vertical_alignment='center')
+
+cancelItemB = cancelItem.button(
+    label='주문 취소하기',
+    type='secondary',
+    width='stretch'
+)
+if cancelItemB:
+    cancelOrder(key=key, orderInfo=orderInfo, itemInfo=itemIF)

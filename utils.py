@@ -148,7 +148,12 @@ def init_session():
 
     # 페이지 진입 구분 / str
     if 'page' not in st.session_state:
-        st.session_state.page = None
+        st.session_state.page = {
+            'page':'mainPage.py',
+            'sort':'',
+            'item':'',
+            'orderItem':''
+        }
 
     # 주소 찾기 defult 값 / str
     if 'searchAddr' not in st.session_state:
@@ -159,13 +164,6 @@ def init_session():
     # 상세 주소 정보 / str
     if 'detailAddr' not in st.session_state:
         st.session_state.detailAddr = None
-
-    # 상품 상세페이지 / str
-    if 'item' not in st.session_state:
-        st.session_state.item = None
-    # 주문 상품 / str
-    if 'orderItem' not in st.session_state:
-        st.session_state.orderItem = None
 
 class database:
     def __init__(self):
@@ -419,36 +417,41 @@ def set_sidebar():
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page = 'new'
-        st.switch_page(page='pages/9itemList.py')
+        st.session_state.page['sort'] ='new'
+        st.session_state.page['page'] = 'pages/9itemList.py'
+        st.switch_page(page=f"{st.session_state.page['page']}")
     if st.button(
         label='BEST',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page = 'best'
-        st.switch_page(page='pages/9itemList.py')
+        st.session_state.page['sort'] = 'best'
+        st.session_state.page['page'] = 'pages/9itemList.py'
+        st.switch_page(page=f"{st.session_state.page['page']}")
     if st.button(
         label='Glasses',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page = 'glasses'
-        st.switch_page(page='pages/9itemList.py')
+        st.session_state.page['sort'] = 'glasses'
+        st.session_state.page['page'] = 'pages/9itemList.py'
+        st.switch_page(page=f"{st.session_state.page['page']}")
     if st.button(
         label='Sunglasses',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page = 'sunglasses'
-        st.switch_page(page='pages/9itemList.py')
+        st.session_state.page['sort'] = 'sunglasses'
+        st.session_state.page['page'] = 'pages/9itemList.py'
+        st.switch_page(page=f"{st.session_state.page['page']}")
     if st.button(
         label='Goggles',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page = 'sporty'
-        st.switch_page(page='pages/9itemList.py')
+        st.session_state.page['sort'] = 'sporty'
+        st.session_state.page['page'] = 'pages/9itemList.py'
+        st.switch_page(page=f"{st.session_state.page['page']}")
 
     st.divider()
 

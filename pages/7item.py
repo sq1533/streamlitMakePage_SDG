@@ -8,22 +8,24 @@ st.set_page_config(
     layout='centered',
     initial_sidebar_state='auto'
 )
+# 세션 확인
+utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
 import api
 import time
 
-utils.init_session()
-
-# 상품 키 확인 (Hybrid Check)
+# 파라미터 접근 확인
 if "item_id" in st.query_params:
-    st.session_state.item = st.query_params["item_id"]
+    st.session_state.page['item'] = st.query_params["item_id"]
 
-# 세션에 아이템 정보가 없으면 메인으로 리다이렉트
-if not ("item" in st.session_state and st.session_state.item):
+# 페이지 접근 검증
+if st.session_state.page['item'] == '':
     st.switch_page(page='mainPage.py')
 
+# 페이지 시작
+st.session_state.page['page'] = 'pages/7item.py'
 with st.sidebar:
     utils.set_sidebarLogo()
     # 회원 로그인 정보 검증
@@ -40,8 +42,6 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.toast("기본 배송지 설정 필요", icon="⚠️")
-            time.sleep(0.7)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -73,7 +73,7 @@ with st.sidebar:
 
     utils.set_sidebar()
 
-itemKey : str = st.session_state.item
+itemKey : str = st.session_state.page['item']
 itemInfo = api.items.showItem().loc[itemKey]
 itemStatus : dict = api.items.itemStatus(itemId=itemKey)
 buyAble : bool = not itemStatus.get('enable')

@@ -89,8 +89,8 @@ for i, (index, item) in enumerate(itemList.iterrows()):
             type='secondary',
             width='stretch'
         ):
-            st.session_state.item = index
-            st.query_params["item_id"] = index
+            st.session_state.page['item'] = index
+            st.session_state.page['page'] = 'pages/7item.py'
             st.switch_page(page="pages/7item.py")
 
 # siderbar 정의
@@ -111,8 +111,6 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
-            time.sleep(2)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")

@@ -20,7 +20,7 @@ def cancelReservation():
         orderTime = st.query_params['orderNo'][:12]
 
     if orderTime:
-        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.item, orderTime=orderTime)
+        api.items.cancelReservation(token=st.session_state.token, itemID=st.session_state.page['item'], orderTime=orderTime)
 
 # 세션 복구
 def try_restore_session():
@@ -49,73 +49,77 @@ def try_restore_session():
         print(f"DB 오류: {e}")
     return None
 
-sessionData = try_restore_session()
+sessionData : dict|None = try_restore_session()
 
-# 메인 로직
-if any(value is not None for value in st.session_state.token.values()) and sessionData:
+# 페이지 접근 검증
+if not any(value is not None for value in st.session_state.token.values()):
+    st.switch_page('mainPage.py')
+if not sessionData:
+    st.switch_page('mainPage.py')
 
-    # 아이템 정보 호출( 환불시 가격 정보 필요 )
-    itemInfo = api.items.showItem()
+# 페이지 시작
 
-    pg_token = st.query_params['pg_token']
-    orderNo = st.query_params['orderNo']
+# 아이템 정보 호출( 환불시 가격 정보 필요 )
+itemInfo = api.items.showItem()
 
-    if sessionData.get('tid') == None:
-        st.error("결제 세션이 만료되었습니다. 다시 시도해주세요.")
-    else:
-        with st.spinner("결제 승인 중..."):
-            approve_result = api.pay().approve_kakaopay(
-                tid=sessionData.get('tid'),
-                pg_token=pg_token,
-                orderNo=orderNo
+pg_token = st.query_params['pg_token']
+orderNo = st.query_params['orderNo']
+
+if sessionData.get('tid') == None:
+    st.error("결제 세션이 만료되었습니다. 다시 시도해주세요.")
+else:
+    with st.spinner("결제 승인 중..."):
+        approve_result = api.pay().approve_kakaopay(
+            tid=sessionData.get('tid'),
+            pg_token=pg_token,
+            orderNo=orderNo
+        )
+        if approve_result['access']:
+
+            orderTime = orderNo[:12]
+
+            order_success = api.items.itemOrder(
+                token=st.session_state.token,
+                itemID=sessionData.get('item'),
+                orderTime=orderTime,
+                address=sessionData.get('user_address'),
+                comment=sessionData.get('delicomment'),
+                payId=sessionData.get('tid'),
+                pay='kakao'
             )
-            if approve_result['access']:
 
-                orderTime = orderNo[:12]
+            if order_success:
+                st.success("주문이 완료되었습니다.")
+                st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
 
-                order_success = api.items.itemOrder(
-                    token=st.session_state.token,
-                    itemID=sessionData.get('item'),
-                    orderTime=orderTime,
-                    address=sessionData.get('user_address'),
-                    comment=sessionData.get('delicomment'),
-                    payId=sessionData.get('tid'),
-                    pay='kakao'
+                # 구매 완료 메일 전송
+                api.guest.sendPurchaseCompleteEmail(
+                    userInfo=st.session_state.user,
+                    orderData={
+                        'orderNo': orderNo,
+                        'payMethod': '카카오페이'
+                    },
+                    itemData=itemInfo.loc[sessionData.get('item')].to_dict()
                 )
 
-                if order_success:
-                    st.success("주문이 완료되었습니다.")
-                    st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-
-                    # 구매 완료 메일 전송
-                    api.guest.sendPurchaseCompleteEmail(
-                        userInfo=st.session_state.user,
-                        orderData={
-                            'orderNo': orderNo,
-                            'payMethod': '카카오페이'
-                        },
-                        itemData=itemInfo.loc[sessionData.get('item')].to_dict()
-                    )
-
-                    time.sleep(2)
-                    st.switch_page("pages/3myPage_orderList.py")
-                else:
-                    st.error("재고 소진 등의 이유로 주문 처리에 실패했습니다. (자동 환불 필요)")
-                    refund_result = api.pay().refund_kakaopay(
-                        tid=sessionData.get('tid'),
-                        amount=int(itemInfo.loc[sessionData.get('item')]['price'])
-                    )
-                    if refund_result:
-                        st.toast("환불이 완료되었습니다.")
-                    else:
-                        st.toast(f"결제 승인 실패: {approve_result.get('message')}", icon="❌")
-
-                    time.sleep(0.7)
-                    cancelReservation()
-                    st.rerun()
+                time.sleep(2)
+                st.switch_page("pages/3myPage_orderList.py")
             else:
-                st.toast(f"결제 생성 실패: {approve_result.get('message')}", icon="❌")
+                st.error("재고 소진 등의 이유로 주문 처리에 실패했습니다. (자동 환불 필요)")
+                refund_result = api.pay().refund_kakaopay(
+                    tid=sessionData.get('tid'),
+                    amount=int(itemInfo.loc[sessionData.get('item')]['price'])
+                )
+                if refund_result:
+                    st.toast("환불이 완료되었습니다.")
+                else:
+                    st.toast(f"결제 승인 실패: {approve_result.get('message')}", icon="❌")
+
                 time.sleep(0.7)
                 cancelReservation()
-else:
-    st.switch_page('mainPage.py')
+                st.switch_page(page=f"{st.session_state.page['page']}")
+        else:
+            st.toast(f"결제 생성 실패: {approve_result.get('message')}", icon="❌")
+            time.sleep(0.7)
+            cancelReservation()
+            st.switch_page(page=f"{st.session_state.page['page']}")

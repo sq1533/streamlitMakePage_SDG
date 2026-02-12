@@ -8,6 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
+# 세션 확인
+utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
@@ -31,8 +33,6 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
-            time.sleep(2)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -50,10 +50,12 @@ with st.sidebar:
 
         # 마이페이지
         if myinfo:
-            st.switch_page(page="pages/3myPage.py")
+            st.session_state.page['page'] = 'pages/3myPage.py'
+            st.switch_page(page=f"{st.session_state.page['page']}")
         # 주문 내역 페이지
         if orderL:
-            st.switch_page(page="pages/3myPage_orderList.py")
+            st.session_state.page['page'] = 'pages/3myPage_orderList.py'
+            st.switch_page(page=f"{st.session_state.page['page']}")
 
     # 비회원 상태
     else:
@@ -63,7 +65,7 @@ with st.sidebar:
             width='stretch'
         )
         if signIn:
-            st.switch_page(page="pages/1signIN.py")
+            st.switch_page(page='pages/1signIN.py')
 
     utils.set_sidebar()
 
@@ -75,7 +77,8 @@ goHome = st.button(
     disabled=False
 )
 if goHome:
-    st.switch_page(page='mainPage.py')
+    st.session_state.page['page'] = 'mainPage.py'
+    st.switch_page(page=f"{st.session_state.page['page']}")
 
 if st.session_state.selected_notice:
     notice = st.session_state.selected_notice

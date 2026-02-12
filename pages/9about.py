@@ -8,12 +8,10 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-
-# 페이지 UI 변경 사항
-utils.set_page_ui()
-
 # 세션 관리
 utils.init_session()
+# 페이지 UI 변경 사항
+utils.set_page_ui()
 
 # 페이지 UI 변경 사항
 st.html(
@@ -67,8 +65,6 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.toast("기본 배송지 설정 필요", icon="⚠️")
-            time.sleep(0.7)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")

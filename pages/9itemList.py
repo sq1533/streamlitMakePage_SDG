@@ -8,6 +8,8 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
+# 세션 확인
+utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
@@ -15,14 +17,13 @@ import api
 import time
 import pandas as pd
 
-utils.init_session()
-
-query_page = st.query_params.get("page", None)
+query_page : str|None = st.query_params.get("page", None)
+st.session_state.page['page'] = 'pages/9itemList.py'
 
 if query_page:
     current_page = query_page
-elif st.session_state.page:
-    current_page = st.session_state.page
+elif st.session_state.page['sort']:
+    current_page = st.session_state.page['sort']
 else:
     current_page = 'glasses'
 
@@ -72,8 +73,6 @@ with st.sidebar:
         if st.session_state.user.get('address'):
             pass
         else:
-            st.toast("기본 배송지 설정 필요", icon="⚠️")
-            time.sleep(0.7)
             st.switch_page(page='pages/1signIN_address.py')
 
         myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
@@ -142,8 +141,8 @@ for code, group in grouped_items:
                     type='secondary',
                     width='stretch'
                 ):
-                    st.session_state.item = idx
-                    st.query_params["item_id"] = idx
+                    st.session_state.page['item'] = idx
+                    st.session_state.page['page'] = 'pages/7item.py'
                     st.switch_page(page="pages/7item.py")
 
 st.divider()
