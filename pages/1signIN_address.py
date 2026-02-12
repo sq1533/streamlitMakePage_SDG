@@ -58,9 +58,20 @@ def addrDialog():
 if not any(value is not None for value in st.session_state.token.values()):
     st.switch_page(page='mainPage.py')
 
+# 페이지 시작
 with st.sidebar:
     utils.set_sidebarLogo()
     st.title(body='기본 배송지 설정')
+
+# 전화번호 없을 경우(gmail 로그인)
+if st.session_state.user.get('phoneNumber') == '0':
+    phone = st.text_input(
+        label='전화번호',
+        type='default'
+    )
+    userPhone = phone
+else:
+    userPhone = st.session_state.user.get('phoneNumber')
 
 addr, searchAddr = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
 
@@ -101,7 +112,8 @@ infoUsed = infoUsedBox.checkbox(
     label='동의',
     key='usedAgree'
 )
-# 입력사항 확인 후 기본 배송지 설정
+
+# 입력사항 확인
 if st.session_state.firstAddr and st.session_state.detailAddr and condtion and infoUsed:
     address = st.session_state.firstAddr + ' ' + st.session_state.detailAddr
 
@@ -111,7 +123,15 @@ if st.session_state.firstAddr and st.session_state.detailAddr and condtion and i
         width='stretch'
     )
     if addAddrB:
-        result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
+        if st.session_state.user.get('phoneNumber') == '0':
+            if userPhone:
+                result = api.guest.addHomeAddr(token=st.session_state.token, addr=address, phoneNumber=userPhone)
+            else:
+                result = False
+                st.warning(body='전화번호를 입력해주세요.')
+        else:
+            result = api.guest.addHomeAddr(token=st.session_state.token, addr=address)
+
         if result:
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
             st.button(label='설정 완료.', on_click=clear_addr, type='secondary', disabled=True)

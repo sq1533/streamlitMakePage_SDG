@@ -222,8 +222,7 @@ class guest(utils.database):
         scopes = [
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/user.birthday.read',
-            'https://www.googleapis.com/auth/user.phonenumbers.read'
+            'https://www.googleapis.com/auth/user.birthday.read'
         ]
         
         if pageState is None:
@@ -269,7 +268,6 @@ class guest(utils.database):
         except Exception as e:
             return {'allow': False, 'result': e}
 
-    # gmail 로그인 고객 firebase 처리
     def gmailUser(response : dict) -> bool:
         realtimeUser = utils.utilsDb().realtimeDB.reference(path='user')
         try:
@@ -291,12 +289,7 @@ class guest(utils.database):
                 emails = response.get('emailAddresses', [])
                 email = emails[0].get('value') if emails else ''
 
-                # 3. 전화번호 파싱 및 정제
-                phones = response.get('phoneNumbers', [])
-                raw_phone = phones[0].get('value') if phones else '00000000000'
-                phoneNumber = raw_phone.replace('-', '').replace(' ', '').replace('+82', '0')
-
-                # 4. 생년월일 파싱 및 나이 계산
+                # 3. 생년월일 파싱 및 나이 계산
                 birthdays = response.get('birthdays', [])
                 age = 0
                 if birthdays:
@@ -312,7 +305,7 @@ class guest(utils.database):
 
                 userData = {
                     'name': name,
-                    'phoneNumber': phoneNumber,
+                    'phoneNumber': '0',
                     'email': email,
                     'age': age,
                     'address': '',
@@ -365,7 +358,7 @@ class guest(utils.database):
         return True
 
     # 소셜 사용자 기본 배송지 추가
-    def addHomeAddr(token : dict, addr : str) -> bool:
+    def addHomeAddr(token : dict, addr : str, phoneNumber : str = None) -> bool:
         uid : dict = guest.tokenToUid(token=token)
         if not uid.get('allow'):
             utils.get_logger().error('고객정보 호출 실패')
@@ -374,6 +367,10 @@ class guest(utils.database):
         uid = str(uid.get('result'))
 
         utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/address").set({'home':addr})
+        if phoneNumber:
+            utils.utilsDb().realtimeDB.reference(path=f"user/{uid}/phoneNumber").set(phoneNumber)
+        else:
+            pass
         return True
 
     # 사용자 주소 추가
