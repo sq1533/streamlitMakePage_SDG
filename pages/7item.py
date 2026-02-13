@@ -131,6 +131,20 @@ if buyBTN:
         time.sleep(1)
         st.switch_page(page="pages/1signIN.py")
 
+lensOption = st.selectbox(
+    label='lensOptionSelect',
+    options=['변색렌즈_브라운(40,000원)','변색렌즈_그레이(40,000원)','편광렌즈(50,000원)','UV차단렌즈(30,000원)'],
+    index=None,
+    key='lens',
+    placeholder='렌즈 옵션 변경',
+    label_visibility='collapsed',
+    width='stretch'
+)
+if lensOption:
+    st.session_state.page['lens'] = lensOption
+else:
+    pass
+
 design, info, feed = st.tabs(tabs=['design', 'information', 'review'])
 
 with design:

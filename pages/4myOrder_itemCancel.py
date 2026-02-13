@@ -20,6 +20,25 @@ from datetime import datetime
 # 주문 취소 dialog
 @st.dialog(title='주문 취소', width='medium')
 def cancelOrder(key : str, orderInfo : dict, itemInfo):
+    # 렌즈 옵션 확인
+    splitID = orderInfo.get('item').split(',', 1)
+    itemID = splitID[0]
+    lensOption = splitID[1]
+    if lensOption == '변색렌즈_브라운(40,000원)':
+        lensPrice = 40000
+    elif lensOption == '변색렌즈_그레이(40,000원)':
+        lensPrice = 40000
+    elif lensOption == '편광렌즈(50,000원)':
+        lensPrice = 50000
+    elif lensOption == 'UV차단렌즈(30,000원)':
+        lensPrice = 30000
+    else:
+        lensPrice = 0
+    orderPrice = int(itemInfo['price']) + lensPrice
+    
+    # 결제 수단 분류 및 결제 취소(pay)
+    payWay = orderInfo.get('pay')
+
     st.markdown(body='주문 취소하시겠습니까?')
 
     st.selectbox(
@@ -37,15 +56,11 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
         type='secondary',
     )
     if cancelB:
-        # 결제 수단 분류 및 결제 취소(pay)
-        payWay = orderInfo.get('pay')
-        if payWay == 'naver':
-            pass
-        elif payWay == 'kakao':
-            refundResult = api.pay().refund_kakaopay(tid=orderInfo.get('payId'), amount=int(itemInfo['price']), reason=st.session_state.reason)
+        if payWay == 'kakao':
+            refundResult = api.pay().refund_kakaopay(tid=orderInfo.get('payId'), amount=orderPrice, reason=st.session_state.reason)
         elif payWay == 'toss':
             email = str(st.session_state.user.get('email')).split('@', 1)[0]
-            raw_order_no = f"{key}{orderInfo.get('item')}{email}"
+            raw_order_no = f"{key}{itemID}{email}"
             orderNo = raw_order_no.ljust(35, '0')[:35]
             refundResult = api.pay().refund_tosspay(payToken=orderInfo.get('payId'), refundNo=orderNo, reason=st.session_state.reason)
         else:
@@ -53,11 +68,11 @@ def cancelOrder(key : str, orderInfo : dict, itemInfo):
 
         # 결제 취소 진행(firebase)
         if refundResult:
-            func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=orderInfo.get('item'))
+            func = api.items.orderCancel(token=st.session_state.token, key=key, itemID=itemID)
             if func:
                 st.info(body='주문 취소 완료, 주문내역으로 이동합니다.')
                 st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-                st.session_state.page['orderItem'] = None
+                st.session_state.page['orderItem'] = ''
                 if 'reason' in st.session_state:
                     del st.session_state.reason
                 st.rerun()
@@ -84,9 +99,12 @@ orderInfo = st.session_state.page['orderItem'][1]
 
 address = orderInfo.get('address')
 status = utils.utilsDb().showStatus[orderInfo.get('status')]
+splitID = orderInfo.get('item').split(',',1)
+itemID = splitID[0]
+lensOption = splitID[1]
 
 # 아이템 정보
-itemIF = api.items.showItem().loc[orderInfo.get('item')]
+itemIF = api.items.showItem().loc[itemID]
 with st.container(height='content', border=True):
     image, info = st.columns(spec=[1,2], gap="small", vertical_alignment="top")
 
@@ -98,7 +116,7 @@ with st.container(height='content', border=True):
         )
     info.markdown(
         body=f"""
-        상품명 : {itemIF['name']}\n\n
+        상품명 : {itemIF['name']}, {lensOption}\n\n
         주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
         주문 상태 : {status}\n\n
         {address}

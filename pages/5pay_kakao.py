@@ -64,6 +64,21 @@ itemInfo = api.items.showItem()
 
 pg_token = st.query_params['pg_token']
 orderNo = st.query_params['orderNo']
+splitID = sessionData.get('item').split(',', 1)
+itemID = splitID[0]
+lensOption = splitID[1]
+if lensOption == '변색렌즈_브라운(40,000원)':
+    lensPrice = 40000
+elif lensOption == '변색렌즈_그레이(40,000원)':
+    lensPrice = 40000
+elif lensOption == '편광렌즈(50,000원)':
+    lensPrice = 50000
+elif lensOption == 'UV차단렌즈(30,000원)':
+    lensPrice = 30000
+else:
+    lensPrice = 0
+
+orderPrice = int(itemInfo.loc[itemID]['price']) + lensPrice
 
 if sessionData.get('tid') == None:
     st.error("결제 세션이 만료되었습니다. 다시 시도해주세요.")
@@ -99,7 +114,7 @@ else:
                         'orderNo': orderNo,
                         'payMethod': '카카오페이'
                     },
-                    itemData=itemInfo.loc[sessionData.get('item')].to_dict()
+                    itemData=itemInfo.loc[itemID].to_dict()
                 )
 
                 time.sleep(2)
@@ -108,7 +123,7 @@ else:
                 st.error("재고 소진 등의 이유로 주문 처리에 실패했습니다. (자동 환불 필요)")
                 refund_result = api.pay().refund_kakaopay(
                     tid=sessionData.get('tid'),
-                    amount=int(itemInfo.loc[sessionData.get('item')]['price'])
+                    amount=orderPrice
                 )
                 if refund_result:
                     st.toast("환불이 완료되었습니다.")

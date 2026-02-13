@@ -39,7 +39,7 @@ def refundCall(key : str, item : str):
         if func:
             st.info(body='환불 요청 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-            st.session_state.page['orderItem'] = None
+            st.session_state.page['orderItem'] = ''
             st.rerun()
         else:
             st.warning(body='환불 요청 실패, 다시 시도해주세요.')
@@ -66,7 +66,7 @@ def exchangeCall(key : str, item : str):
         if func:
             st.info(body='교환 요청 완료, 주문내역으로 이동합니다.')
             st.session_state.user = api.guest.showUserInfo(token=st.session_state.token)['result']
-            st.session_state.page['orderItem'] = None
+            st.session_state.page['orderItem'] = ''
             st.rerun()
         else:
             st.warning(body='교환 요청 실패, 다시 시도해주세요.')
@@ -85,7 +85,9 @@ with st.sidebar:
 key = st.session_state.page['orderItem'][0]
 orderInfo = st.session_state.page['orderItem'][1]
 
-itemID = orderInfo.get('item')
+splitID = orderInfo.get('item').split(',',1)
+itemID = splitID[0]
+lensOption = splitID[1]
 address = orderInfo.get('address')
 status = utils.utilsDb().showStatus[orderInfo.get('status')]
 
@@ -101,7 +103,7 @@ with st.container(height='content', border=True):
         )
     info.markdown(
         body=f"""
-        상품명 : {itemIF['name']}\n\n
+        상품명 : {itemIF['name']}, {lensOption}\n\n
         주문 날짜 : {datetime.strptime(key, '%y%m%d%H%M%S')}\n\n
         주문 상태 : {status}\n\n
         {address}

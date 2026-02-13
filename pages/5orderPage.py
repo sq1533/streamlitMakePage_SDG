@@ -35,13 +35,24 @@ email : str = str(st.session_state.user.get('email')).split('@', 1)[0]
 item : str = st.session_state.page['item']
 itemInfo = api.items.showItem().loc[item]
 
+if st.session_state.page['lens'] == '변색렌즈_브라운(40,000원)':
+    itemInfo['price'] += 40000
+elif st.session_state.page['lens'] == '변색렌즈_그레이(40,000원)':
+    itemInfo['price'] += 40000
+elif st.session_state.page['lens'] == '편광렌즈(50,000원)':
+    itemInfo['price'] += 50000
+elif st.session_state.page['lens'] == 'UV차단렌즈(30,000원)':
+    itemInfo['price'] += 30000
+else:
+    pass
+
 col1, col2 = st.columns(spec=[2,1], gap="small", vertical_alignment="top")
 
 with col1:
-    st.title(body=itemInfo['name'])
+    st.title(body=f"{itemInfo['name']}, {st.session_state.page['lens']}")
     st.markdown(
         body=f"""
-        ### {itemInfo['price']:,}원 
+        ### {itemInfo['price']:,}원
         """
         )
     st.markdown(body='##### 배송비 :blue[무료배송]')
@@ -126,7 +137,7 @@ if kakaopayBTN:
 
             callKakaopay : dict = api.pay().kakaopayToken(
                 orderNo=orderNo,
-                itemName=itemInfo['name'],
+                itemName=f"{itemInfo['name']},{st.session_state.page['lens']}",
                 amount=int(itemInfo['price'])
                 )
             
@@ -137,7 +148,7 @@ if kakaopayBTN:
                     ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                     ref.update({
                         'token': st.session_state.token,
-                        'item': item,
+                        'item': f"{item},{st.session_state.page['lens']}",
                         'delicomment': st.session_state.get('delicomment'),
                         'user_address': deliveryAddress,
                         'tid': tid,
@@ -162,17 +173,17 @@ if kakaopayBTN:
                 api.items.cancelReservation(st.session_state.token, item, orderTime)
                 st.toast(f"결제 생성 실패: {callKakaopay.get('message')}", icon="❌")
                 time.sleep(1)
-                st.session_state.page['item'] = None
+                st.session_state.page['item'] = ''
                 st.switch_page(page=f"{st.session_state.page['page']}")
         else:
                 st.warning("재고가 부족하여 주문할 수 없습니다. (Sold Out)")
                 time.sleep(2)
-                st.session_state.page['item'] = None
+                st.session_state.page['item'] = ''
                 st.switch_page(page=f"{st.session_state.page['page']}")
     else:
         st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
         time.sleep(1)
-        st.session_state.page['item'] = None
+        st.session_state.page['item'] = ''
         st.switch_page(page=f"{st.session_state.page['page']}")
 
 # 토스페이(간편) 결제 요청
@@ -197,7 +208,7 @@ if tosspayBTN:
             # 토스 페이 토큰 발급
             callTosspayToken : dict = api.pay().tosspayToken(
                 orderNo=orderNo,
-                itemName=itemInfo['name'],
+                itemName=f"{itemInfo['name']},{st.session_state.page['lens']}",
                 amount=int(itemInfo['price'])
                 )
             
@@ -209,7 +220,7 @@ if tosspayBTN:
                     ref = utils.utilsDb().realtimeDB.reference(path=f"payment_temp/{orderNo}")
                     ref.update({
                         'token': st.session_state.token,
-                        'item': item,
+                        'item': f"{item},{st.session_state.page['lens']}",
                         'delicomment': st.session_state.get('delicomment'),
                         'user_address': deliveryAddress,
                         'payToken': payToken,
@@ -218,7 +229,7 @@ if tosspayBTN:
                     print(f"임시 저장 업데이트 (toss): {orderNo}")
                 except Exception as e:
                     print(f"임시 저장 업데이트 실패 (toss): {e}")
-                    st.session_state.page['item'] = None
+                    st.session_state.page['item'] = ''
                     st.switch_page(page=f"{st.session_state.page['page']}")
                 st.markdown(
                     body=f"<meta http-equiv='refresh' content='0;url={checkoutPage_url}'>",
@@ -231,18 +242,18 @@ if tosspayBTN:
                 api.items.cancelReservation(st.session_state.token, item, orderTime)
                 st.toast(f"결제 생성 실패: {callTosspayToken.get('message')}", icon="❌")
                 time.sleep(1)
-                st.session_state.page['item'] = None
+                st.session_state.page['item'] = ''
                 st.switch_page(page=f"{st.session_state.page['page']}")
         else:
             st.toast("재고가 부족하여 주문할 수 없습니다. (Sold Out)", icon="⚠️")
             time.sleep(1)
-            st.session_state.page['item'] = None
+            st.session_state.page['item'] = ''
             st.switch_page(page=f"{st.session_state.page['page']}")
 
     else:
         st.toast('상품 구매가 불가합니다 - soldout', icon="⚠️")
         time.sleep(1)
-        st.session_state.page['item'] = None
+        st.session_state.page['item'] = ''
         st.switch_page(page=f"{st.session_state.page['page']}")
 
 st.divider()

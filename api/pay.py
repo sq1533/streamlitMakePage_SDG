@@ -162,7 +162,7 @@ class pay:
             return {'access': False, 'message': str(e)}
 
     # 카카오페이 환불
-    def refund_kakaopay(self, tid : str, amount : int, reason : str) -> bool:
+    def refund_kakaopay(self, tid : str, amount : int, reason : str|None = None) -> bool:
         url = 'https://open-api.kakaopay.com/online/v1/payment/cancel'
 
         data = {

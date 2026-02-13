@@ -35,8 +35,10 @@ if userOrder:
 
     for key, order in reversed(st.session_state.user.get('orderList').items()):
         # 주문 정보
+        splitID = order.get('item').split(',', 1)
         orderTime = key
-        itemID = order.get('item')
+        itemID = splitID[0]
+        lensOption = splitID[1]
         address = order.get('address')
         comment = order.get('comment')
         feedback = order.get('feedback')
@@ -55,6 +57,7 @@ if userOrder:
                 )
             with info.container():
                 st.markdown(body=f"##### {itemIF['name']}")
+                st.markdown(body=f"##### {lensOption}")
                 st.markdown(body=f"##### {address}")
                 if comment:
                     st.markdown(body=f"##### {comment}")

@@ -152,7 +152,8 @@ def init_session():
             'page':'mainPage.py',
             'sort':'',
             'item':'',
-            'orderItem':''
+            'orderItem':'',
+            'lens':'편광렌즈'
         }
 
     # 주소 찾기 defult 값 / str
