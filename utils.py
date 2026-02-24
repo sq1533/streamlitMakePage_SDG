@@ -4,11 +4,10 @@ from firebase_admin import db, firestore, credentials
 from PIL import Image
 import base64
 import json
-
 import logging
 import threading
 import requests
-from schema.schema import item
+
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 # 텔레그램 로그 핸들러
@@ -45,32 +44,6 @@ class TelegramLogHandler(logging.Handler):
         thread = threading.Thread(target=send_msg)
         add_script_run_ctx(thread)
         thread.start()
-    
-
-
-# 일반 알림 전송 (환불, 교환 등)
-def send_telegram_message(msg: str):
-    try:
-        bot_token = st.secrets["telegram"]["bot_token"]
-        user_request_id = st.secrets["telegram"]["user_request_id"]
-    except Exception:
-        return
-
-    def send_msg():
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        data = {
-            'chat_id': user_request_id,
-            'text': str(msg),
-            'parse_mode': 'HTML'
-        }
-        try:
-            requests.post(url, data=data, timeout=5)
-        except Exception:
-            pass
-
-    thread = threading.Thread(target=send_msg)
-    add_script_run_ctx(thread)
-    thread.start()
 
 def get_logger():
     logger = logging.getLogger('amuredo')
@@ -145,8 +118,7 @@ def init_session():
         st.session_state.page = {
             'page':'mainPage.py',
             'sort':'',
-            'item':'',
-            'lens':'편광렌즈'
+            'item':''
         }
 
 class database:
@@ -191,8 +163,7 @@ class database:
                 data = doc.to_dict()
                 if data:
                     try:
-                        itemData = item(**data) # 스키마 적용
-                        new_items[doc.id] = itemData
+                        new_items[doc.id] = data
 
                     except Exception as e:
                         print(f"아이템 파싱 오류 {doc.id}: {e}")
@@ -214,14 +185,6 @@ class database:
             self.pageIcon = Image.open('database/icon.webp')
         except:
             self.pageIcon = None
-        
-        try:
-            with open('database/nav.webp', "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode()
-                self.logo_base64 = f"data:image/webp;base64,{encoded_string}"
-        except Exception as e:
-            self.logo_base64 = ""
-            print(f"로고 로딩 실패: {e}")
 
         try:
             with open('database/navSide.webp', "rb") as image_file:
@@ -242,19 +205,6 @@ class database:
             }
         except Exception:
             self.emailAccess = {}
-
-        # 주문 상태 메세지
-        self.showStatus = {
-                'ready':'상품 제작 중...',
-                'delivery':'상품 배송 중...',
-                'complete':'배송 완료',
-                'Done':'배송 완료',
-                'cancel':'취소 완료',
-                'exchange':'교환 요청 완료',
-                'exchanged':'교환 완료',
-                'refund':'환불 요청 완료',
-                'refunded':'환불 완료'
-            }
 
         # 약관 및 정보 (파일 읽기 예외처리 추가)
         self.condition = self._read_file('database/condition.txt')
@@ -451,16 +401,6 @@ def set_sidebar():
         width='stretch'
     ):
         st.switch_page(page='pages/0cs.py')
-
-    st.divider()
-
-    aboutBTN = st.button(
-        label='about us',
-        type='secondary',
-        width='stretch'
-    )
-    if aboutBTN:
-        st.switch_page(page='pages/9about.py')
 
 # utils.py 전역에 싱글톤 인스턴스 관리
 _db_instance = None
