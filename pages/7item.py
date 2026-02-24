@@ -28,49 +28,14 @@ if st.session_state.page['item'] == '':
 st.session_state.page['page'] = 'pages/7item.py'
 with st.sidebar:
     utils.set_sidebarLogo()
-    # 회원 로그인 정보 검증
-    if any(value is not None for value in st.session_state.token.values()):
-        logoutB = st.button(
-            label='sign_out',
-            type='secondary',
-            width='stretch'
-        )
-        if logoutB:
-            st.session_state.clear()
-            st.rerun()
-
-        if st.session_state.user.get('address'):
-            pass
-        else:
-            st.switch_page(page='pages/1signIN_address.py')
-
-        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-        myinfo = myinfo.button(
-            label='마이페이지',
-            type='tertiary',
-            width='stretch'
-        )
-        orderL = orderList.button(
-            label='주문내역',
-            type='tertiary',
-            width='stretch'
-        )
-        # 마이페이지
-        if myinfo:
-            st.switch_page(page="pages/3myPage.py")
-        # 주문 내역 페이지
-        if orderL:
-            st.switch_page(page="pages/3myPage_orderList.py")
-    else:
-        signIn = st.button(
-            label='로그인 / 회원가입',
-            type='secondary',
-            width='stretch'
-        )
-        if signIn:
-            st.switch_page(page="pages/1signIN.py")
-
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 1rem 0; color: #555;'>
+            <em>Office Eyewear<br>for Professionals</em>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     utils.set_sidebar()
 
 itemKey : str = st.session_state.page['item']
@@ -117,19 +82,23 @@ price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
 
 price.markdown(body=f"### {itemInfo['price']:,}원")
 
-buyBTN = buy.button(
-    label='구매하기',
-    type='secondary',
-    disabled=buyAble,
-    width='stretch'
-)
-if buyBTN:
-    if any(value is not None for value in st.session_state.token.values()):
-        st.switch_page(page="pages/5orderPage.py")
-    else:
-        st.error(body='고객 확인 불가, 로그인 페이지로 이동합니다.')
-        time.sleep(1)
-        st.switch_page(page="pages/1signIN.py")
+buy_naver, buy_kakao = buy.columns(2)
+
+with buy_naver:
+    st.link_button(
+        label='네이버 스토어 구매',
+        url=f'https://smartstore.naver.com/amuredo?item_id={itemKey}', # 임시 목적지 URL
+        type='secondary',
+        use_container_width=True
+    )
+
+with buy_kakao:
+    st.link_button(
+        label='카카오 쇼핑 구매',
+        url=f'https://store.kakao.com/amuredo?item_id={itemKey}', # 임시 목적지 URL
+        type='secondary',
+        use_container_width=True
+    )
 
 lensOption = st.selectbox(
     label='lensOptionSelect',

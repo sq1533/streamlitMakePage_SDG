@@ -16,55 +16,17 @@ utils.set_page_ui()
 import api
 import time
 
-# 페이지 접근 확인
-if not any(value is not None for value in st.session_state.token.values()):
-    st.info(body='고객확인이 되지 않았습니다. 로그인 이후 문의 부탁드립니다.')
-    time.sleep(2)
-    st.switch_page(page=f"{st.session_state.page['page']}")
-
 # 페이지 시작
 with st.sidebar:
     utils.set_sidebarLogo()
-    logoutB = st.button(
-        label='sign_out',
-        type="secondary",
-        width='stretch'
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 1rem 0; color: #555;'>
+            <em>Office Eyewear<br>for Professionals</em>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-    if logoutB:
-        st.session_state.clear()
-        st.rerun()
-
-    # 소셜 고객 배송정보 확인
-    if st.session_state.user.get('address'):
-        pass
-    else:
-        st.info(body='환영합니다. 배송지 정보를 입력해주세요.')
-        time.sleep(2)
-        st.session_state.page['page'] = 'pages/1signIN_address.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
-
-    myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-    myinfo = myinfo.button(
-        label='마이페이지',
-        type='tertiary',
-        width='stretch'
-    )
-    orderL = orderList.button(
-        label='주문내역',
-        type='tertiary',
-        width='stretch'
-    )
-
-    # 마이페이지
-    if myinfo:
-        st.session_state.page['page'] = 'pages/3myPage.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
-    # 주문 내역 페이지
-    if orderL:
-        st.session_state.page['page'] = 'pages/3myPage_orderList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
-
     utils.set_sidebar()
 
 # 홈으로 이동

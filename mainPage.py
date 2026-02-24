@@ -70,6 +70,20 @@ styled_image(str(code_info['path']))
 
 st.divider()
 
+st.markdown(
+    """
+    <div style='text-align: center; padding: 2rem 0;'>
+        <h2 style='color: #121212; font-weight: 800; font-family: "Outfit", sans-serif;'>업무의 효율을 높이는 안경, AMUREDO</h2>
+        <p style='color: #555555; font-size: 1.1rem; margin-top: 0.5rem;'>
+            모니터 앞에서의 긴 시간, 당신의 눈과 집중력을 지켜줄 사무용 안경 컬렉션
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.divider()
+
 itemList = itemData[itemData['code'] == selected_key]
 
 count_in_card = 0
@@ -96,53 +110,16 @@ for i, (index, item) in enumerate(itemList.iterrows()):
 # siderbar 정의
 with st.sidebar:
     utils.set_sidebarLogo()
-    # 회원 소셜 로그인 상태
-    if any(value is not None for value in st.session_state.token.values()):
-        logoutB = st.button(
-            label='sign_out',
-            type="secondary",
-            width='stretch'
-        )
-        if logoutB:
-            st.session_state.clear()
-            st.rerun()
-
-        # 소셜 고객 배송정보 확인
-        if st.session_state.user.get('address'):
-            pass
-        else:
-            st.switch_page(page='pages/1signIN_address.py')
-
-        myinfo, orderList = st.columns(spec=2, gap="small", vertical_alignment="center")
-
-        myinfo = myinfo.button(
-            label='마이페이지',
-            type='tertiary',
-            width='stretch'
-        )
-        orderL = orderList.button(
-            label='주문내역',
-            type='tertiary',
-            width='stretch'
-        )
-
-        # 마이페이지
-        if myinfo:
-            st.switch_page(page="pages/3myPage.py")
-        # 주문 내역 페이지
-        if orderL:
-            st.switch_page(page="pages/3myPage_orderList.py")
-
-    # 비회원 상태
-    else:
-        signIn = st.button(
-            label='로그인 / 회원가입',
-            type='secondary',
-            width='stretch'
-        )
-        if signIn:
-            st.switch_page(page="pages/1signIN.py")
     
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 1rem 0; color: #555;'>
+            <em>Office Eyewear<br>for Professionals</em>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     utils.set_sidebar()
 
 st.divider()

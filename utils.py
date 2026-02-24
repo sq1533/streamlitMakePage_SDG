@@ -140,31 +140,14 @@ def get_firebase_app():
 get_firebase_app()
 
 def init_session():
-    # 회원 토큰 세션 및 정보 / dict
-    if 'token' not in st.session_state:
-        st.session_state.token = {'naver': None, 'kakao': None, 'gmail': None}
-    if 'user' not in st.session_state:
-        st.session_state.user = None
-
     # 페이지 진입 구분 / str
     if 'page' not in st.session_state:
         st.session_state.page = {
             'page':'mainPage.py',
             'sort':'',
             'item':'',
-            'orderItem':'',
             'lens':'편광렌즈'
         }
-
-    # 주소 찾기 defult 값 / str
-    if 'searchAddr' not in st.session_state:
-        st.session_state.searchAddr = None
-    # 신규 고객 주소 정보 / str
-    if 'firstAddr' not in st.session_state:
-        st.session_state.firstAddr = None
-    # 상세 주소 정보 / str
-    if 'detailAddr' not in st.session_state:
-        st.session_state.detailAddr = None
 
 class database:
     def __init__(self):
