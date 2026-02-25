@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import time
 import utils
 
 class items(utils.database):
@@ -27,6 +26,7 @@ class items(utils.database):
                 'code',
                 'category',
                 'name',
+                'naver',
                 'color',
                 'event',
                 'price',

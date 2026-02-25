@@ -70,6 +70,39 @@ def get_logger():
         
     return logger
 
+def sendCS(email : str, content : str) -> bool:
+    try:
+        bot_token = st.secrets["telegram"]["bot_token"]
+        chat_id = st.secrets["telegram"]["user_request_id"]
+        
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        
+        message_text = (
+            f"<b>신규문의 접수</b>\n"
+            f"━━━━━━━━━━━\n"
+            f"<b>고객 이메일:</b>\n{email}\n"
+            f"<b>문의 내용:</b>\n{content}\n"
+            f"━━━━━━━━━━━"
+        )
+        
+        data = {
+            'chat_id': chat_id,
+            'text': message_text,
+            'parse_mode': 'HTML'
+        }
+        
+        response = requests.post(url, data=data, timeout=5)
+        
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"텔레그램 전송 실패: {response.text}")
+            return False
+
+    except Exception as e:
+        print(f"텔레그램 전송 중 예외 발생: {e}")
+        return False
+
 # 1. Firebase 앱 초기화 (싱글톤 패턴 강화)
 @st.cache_resource
 def get_firebase_app():
@@ -111,15 +144,6 @@ def get_firebase_app():
 
 # 앱 초기화 실행
 get_firebase_app()
-
-def init_session():
-    # 페이지 진입 구분 / str
-    if 'page' not in st.session_state:
-        st.session_state.page = {
-            'page':'mainPage.py',
-            'sort':'',
-            'item':''
-        }
 
 class database:
     def __init__(self):
@@ -229,6 +253,7 @@ class database:
 def set_page_ui():
     common_css = f"""
     <style>
+    /* streamlit 기본기능, text 툴바 비활성화 */
     [data-testid="stHeaderActionElements"] {{
         display: none !important;
     }}
@@ -236,7 +261,8 @@ def set_page_ui():
     div[data-testid="stElementToolbar"] {{
         display: none !important;
     }}
-    
+
+    /* streamlit 사이드바 활성, 비활성 버튼 UI 수정 */
     [data-testid="stIcon"], .material-icons, .material-symbols-rounded {{
         font-family: 'Material Symbols Rounded', 'Material Icons' !important;
     }}
@@ -280,15 +306,25 @@ def set_page_ui():
         opacity: 1 !important; 
         visibility: visible !important;
     }}
-    @media screen and (max-width: 640px) {{
-        div[data-testid="stHorizontalBlock"] {{
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-        }}
-        div[data-testid="stColumn"] {{
-            min-width: 0px !important;
-            width: auto !important;
-        }}
+
+    /* st.code() text 및 복사 버튼 UI 수정 */
+    [data-testid="stCode"] button {{
+        visibility: visible !important;
+        opacity: 1 !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: none !important;
+        position: absolute !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1 !important;
+        cursor: pointer !important;
+        pointer-events: auto !important; /* 클릭 이벤트 활성화 */
+    }}
+
+    [data-testid="stCode"] button svg {{
+        visibility: visible !important;
+        opacity: 1 !important;
     }}
     </style>
     """
@@ -343,58 +379,40 @@ def set_sidebarLogo():
     ):
         st.switch_page(page="mainPage.py")
 
-def set_sidebar():    
+def set_sidebar():
+    st.html(
+            """
+            <div style='text-align: center; padding: 1rem 0; color: #555;'>
+                <em>Office Eyewear<br>for Professionals</em>
+            </div>
+            """
+        )
     st.divider()
 
-    if st.button(
-        label='NEW',
-        type='secondary',
-        width='stretch'
-    ):
-        st.session_state.page['sort'] ='new'
-        st.session_state.page['page'] = 'pages/9itemList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
-    if st.button(
-        label='BEST',
-        type='secondary',
-        width='stretch'
-    ):
-        st.session_state.page['sort'] = 'best'
-        st.session_state.page['page'] = 'pages/9itemList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
     if st.button(
         label='Glasses',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page['sort'] = 'glasses'
-        st.session_state.page['page'] = 'pages/9itemList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
+        st.session_state.item['sort'] = 'glasses'
+        st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='Sunglasses',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page['sort'] = 'sunglasses'
-        st.session_state.page['page'] = 'pages/9itemList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
+        st.session_state.item['sort'] = 'sunglasses'
+        st.switch_page(page='pages/9itemList.py')
     if st.button(
         label='Goggles',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.page['sort'] = 'sporty'
-        st.session_state.page['page'] = 'pages/9itemList.py'
-        st.switch_page(page=f"{st.session_state.page['page']}")
+        st.session_state.item['sort'] = 'goggles'
+        st.switch_page(page='pages/9itemList.py')
 
     st.divider()
 
-    if st.button(
-        label='이벤트 및 공지사항',
-        type='secondary',
-        width='stretch'
-    ):
-        st.switch_page(page='pages/0notice.py')
     if st.button(
         label='문의하기',
         type='secondary',

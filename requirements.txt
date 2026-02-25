@@ -1,5 +1,5 @@
 streamlit==1.51.0
-streamlit-javascript==0.1.5
+email-validator==2.3.0
 firebase-admin==7.1.0
 requests==2.32.3
 pydantic==2.12.4

@@ -15,42 +15,28 @@ st.set_page_config(
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
-import api
-import time
-import random
+# 페이지 세션 관리
+if 'item' not in st.session_state:
+    st.session_state.item = {
+        'item' : '',
+        'sort' : '',
+        'itemKey' : 0
+    }
 
-utils.init_session()
+if 'vannerKey' not in st.session_state:
+    st.session_state.vannerKey = 0
 
-# item 정보 불러오기 pandas
-itemData = api.items.showItem()
+# vannerCode > dict
 vannerData : dict = utils.database().firestore_code
-vannerKeys = list(vannerData.keys())
+vanner = list(vannerData.keys())
 
-if 'vanner_selected_key' not in st.session_state or st.session_state.vanner_selected_key not in vannerKeys:
-    st.session_state.vanner_selected_key = random.choice(vannerKeys)
-    utils.init_session()
+# 브랜드 카피라이트 및 철학
+brandStory, brandColor = st.columns(spec=[2,1], gap='small', vertical_alignment='top',width='stretch')
 
-selected_key = st.session_state.vanner_selected_key
-
-code_info : dict = utils.database().firestore_code.get(selected_key)
-
-st.divider()
-
-st.markdown(
-    """
+brandStory.html(
+    body="""
     <style>
-    .grid-container {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        margin-bottom: 40px;
-    }
-    .grid-top {
-        display: flex;
-        gap: 20px;
-    }
     .grid-left {
-        flex: 1;
         background-color: #F8F9FA;
         padding: 40px 30px;
         border-radius: 12px;
@@ -58,13 +44,33 @@ st.markdown(
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+        height: 100%;
     }
+    </style>
+
+    <div class="grid-left">
+        <h2 style='color: #0E3A5B; font-weight: 800; font-family: "Outfit", sans-serif; letter-spacing: -1px; margin-bottom: 20px;'>
+            That's it, AMUREDO
+        </h2>
+        <div style="text-align: center; line-height: 1.8; color: #444; font-size:1.05rem; word-break: keep-all;">
+            <b>AMUREDO</b>는 안경을 단순한 패션 아이템이 아닌,<br>
+            당신의 능률을 끌어올릴 <b>최고의 오피스 기어</b>로 정의합니다.<br><br>
+            모니터 앞에서의 치열한 컴퓨터 작업부터 출퇴근 길의 운전까지.<br>
+            당신은 그저 일에만 집중하세요.<br>
+            시야의 편안함은 아무래도가 책임지겠습니다.
+        </div>
+    </div>
+    """
+)
+brandColor.html(
+    body="""
+    <style>
     .grid-right {
-        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 20px;
+        height: 100%;
     }
     .grid-right-top, .grid-right-bottom {
         flex: 1;
@@ -73,67 +79,69 @@ st.markdown(
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-    }
-    .grid-right-top {
-        background-color: #F4F6F8;
+        padding: 30px;
     }
     .grid-right-bottom {
         background-color: #0E3A5B;
         color: white;
     }
-    
-    @media (max-width: 768px) {
-        .grid-top {
-            flex-direction: column;
-        }
-    }
     </style>
-    
-    <div class="grid-container">
-        <!-- 상단 영역 -->
-        <div class="grid-top">
-            <!-- 좌측 큰 박스 -->
-            <div class="grid-left">
-                <h2 style='color: #0E3A5B; font-weight: 800; font-family: "Outfit", sans-serif; letter-spacing: -1px; margin-bottom: 20px;'>
-                    "아무래도, 역시 AMUREDO"
-                </h2>
-                <div style="text-align: center; line-height: 1.8; color: #444; font-size:1.05rem; word-break: keep-all;">
-                    <b>AMUREDO</b>는 안경을 단순한 패션 아이템이 아닌,<br>
-                    당신의 능률을 끌어올릴 <b>최고의 오피스 기어</b>로 정의합니다.<br><br>
-                    모니터 앞에서의 치열한 컴퓨터 작업부터 출퇴근 길의 운전까지.<br>
-                    당신은 그저 일에만 집중하세요.<br>
-                    시야의 편안함은 아무래도가 책임지겠습니다.
-                </div>
-            </div>
-            
-            <!-- 우측 위/아래 박스 -->
-            <div class="grid-right">
-                <div class="grid-right-top">
-                    <div>
-                        <h4 style="color:#1b5b8d; margin-bottom:10px; font-weight:700;">아무래도 브랜드 철학</h4>
-                        <p style="color:#555; font-size:0.95rem; margin:0;">
-                            당신의 일상에 스며드는 편안함.<br>화려함보다 본질에 집중합니다.
-                        </p>
-                    </div>
-                </div>
-                <div class="grid-right-bottom">
-                    <div>
-                        <h4 style="color:#ffffff; margin-bottom:10px; font-weight:700; opacity:0.9;">시그니처 컬러 : 딥 네이비</h4>
-                        <p style="color:#e2e8f0; font-size:0.95rem; margin:0;">
-                            무게감 있는 신뢰와 흔들림 없는 집중력
-                        </p>
-                    </div>
-                </div>
+
+    <div class="grid-right">
+        <div class="grid-right-top">
+            <div>
+                <h4 style="color:#0E3A5B; margin-bottom:10px; font-weight:700;">아무래도 브랜드 철학</h4>
+                <p style="color:#555; font-size:0.95rem; margin:0;">
+                    눈의 피로가<br>당신의 하루를 망칠 수 없도록.
+                </p>
             </div>
         </div>
+        <div class="grid-right-bottom">
+            <h4 style="color:#ffffff; font-weight:700; opacity:0.9;">시그니처 컬러<br>딥 네이비</h4>
+        </div>
     </div>
-    """,
-    unsafe_allow_html=True
+    """
 )
 
-st.markdown("### 브랜드 핵심 가치")
+# brand keywords 스타일
+st.html(
+    body="""
+    <style>
+    @keyframes toastPopup {
+        0% { opacity: 0; transform: translateY(40px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .feature-card {
+        background-color: #F8F9FA;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        height: 100%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        opacity: 0;
+        animation: toastPopup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .delay-1 { animation-delay: 0.5s; }
+    .delay-2 { animation-delay: 0.8s; }
+    .feature-icon {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+    .feature-title {
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        color: #0E3A5B;
+    }
+    .feature-desc {
+        color: #555555;
+        font-size: 0.9em;
+        line-height: 1.5;
+        word-break: keep-all; /* 단어 단위로 줄바꿈 허용 */
+    }
+    </style>
+    """
+)
 
 # 4개의 기능 카드 (2x2 그리드)
 col1, col2 = st.columns(2)
@@ -141,7 +149,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.html(
         """
-        <div class="feature-card">
+        <div class="feature-card delay-1">
             <div class="feature-icon">☁️</div>
             <div class="feature-title">Comfortable Fit</div>
             <div class="feature-desc">
@@ -154,7 +162,7 @@ with col1:
 with col2:
     st.html(
         """
-        <div class="feature-card">
+        <div class="feature-card delay-1">
             <div class="feature-icon">💎</div>
             <div class="feature-title">Reasonable Price</div>
             <div class="feature-desc">
@@ -164,14 +172,12 @@ with col2:
         """
     )
 
-st.write("") # 간격 조정
-
 col3, col4 = st.columns(2)
 
 with col3:
     st.html(
         """
-        <div class="feature-card">
+        <div class="feature-card delay-2">
             <div class="feature-icon">🍃</div>
             <div class="feature-title">Light Weight</div>
             <div class="feature-desc">
@@ -184,7 +190,7 @@ with col3:
 with col4:
     st.html(
         """
-        <div class="feature-card">
+        <div class="feature-card delay-2">
             <div class="feature-icon">✨</div>
             <div class="feature-title">Simple Design</div>
             <div class="feature-desc">
@@ -196,42 +202,89 @@ with col4:
 
 st.divider()
 
-itemList = itemData[itemData['code'] == selected_key]
+showcaseKey : str = vanner[st.session_state.vannerKey]
+showcase : dict = vannerData.get(showcaseKey)
 
-count_in_card = 0
-for i, (index, item) in enumerate(itemList.iterrows()):
-    if i % 3 == 0:
-        cols = st.columns(spec=3, gap="small", vertical_alignment="top")
-    col = cols[i % 3]
-    with col.container():
-        st.image(str(item['paths'][0]))
+st.html(
+    """
+    <style>
+    .showcase-img-container {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    }
+    .showcase-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .showcase-title {
+        color: #0E3A5B;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .showcase-desc {
+        color: #555;
+        line-height: 1.6;
+        font-size: 1.05rem;
+        word-break: keep-all;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: center;
+    }
+    </style>
+    """
+)
 
-        st.markdown(body=f"<div style='font-size: 13px; font-weight: bold;'>{item['name']}</div>", unsafe_allow_html=True)
-        st.markdown(f"###### {item['price']:,}원")
+sc_left, sc_right = st.columns([1, 2], gap="medium", vertical_alignment="center")
 
-        if st.button(
-            label='상세보기',
-            key=f"loop_item_{index}",
-            type='secondary',
-            width='stretch'
-        ):
-            st.session_state.page['item'] = index
-            st.session_state.page['page'] = 'pages/7item.py'
-            st.switch_page(page="pages/7item.py")
+with sc_left.container():
+    img_url = str(showcase.get('path', ''))
+    st.html(f'''
+        <div class="showcase-img-container">
+            <img src="{img_url}">
+        </div>
+    ''')
+
+    with st.container(horizontal=True):
+        if st.button('◀ before', type='secondary', width=100):
+            st.session_state.vannerKey = (st.session_state.vannerKey - 1) % len(vanner)
+            st.rerun()
+
+        st.space(size='stretch')
+
+        if st.button('next ▶', type='secondary', width=100):
+            st.session_state.vannerKey = (st.session_state.vannerKey + 1) % len(vanner)
+            st.rerun()
+
+with sc_right:
+    sc_name = showcase.get('name', '대표 상품 이름')
+    sc_text = showcase.get('info', '이곳에 상품에 대한 상세한 설명이 들어갑니다.')
+
+    st.html(
+        body=f'''
+        <div style="padding: 20px 0;">
+            <div class="showcase-title">{sc_name}</div>
+            <div class="showcase-desc">{sc_text}</div>
+        </div>
+    ''')
+    with st.container(horizontal=True):
+        st.space(size='stretch')
+        if st.button('상세보기', type='primary', width='stretch'):
+            st.session_state.item['item'] = showcaseKey
+            st.session_state.item['itemKey'] = 0
+            st.switch_page(page='pages/7item.py')
+        st.space(size='stretch')
 
 # siderbar 정의
 with st.sidebar:
     utils.set_sidebarLogo()
-    
-    st.markdown(
-        """
-        <div style='text-align: center; padding: 1rem 0; color: #555;'>
-            <em>Office Eyewear<br>for Professionals</em>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
     utils.set_sidebar()
 
 st.divider()

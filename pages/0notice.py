@@ -8,8 +8,6 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-# 세션 확인
-utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
 
@@ -37,8 +35,7 @@ goHome = st.button(
     disabled=False
 )
 if goHome:
-    st.session_state.page['page'] = 'mainPage.py'
-    st.switch_page(page=f"{st.session_state.page['page']}")
+    st.switch_page(page='mainPage.py')
 
 if st.session_state.selected_notice:
     notice = st.session_state.selected_notice

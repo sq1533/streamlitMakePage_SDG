@@ -1,6 +1,5 @@
 import streamlit as st
 import utils
-
 # 페이지 기본 설정
 st.set_page_config(
     page_title='AMUREDO',
@@ -8,22 +7,45 @@ st.set_page_config(
     layout='wide',
     initial_sidebar_state='auto'
 )
-# 세션 확인
-utils.init_session()
 # 페이지 UI 변경 사항
 utils.set_page_ui()
+# 페이지 추가 UI 변경 / columns
+st.markdown(
+    body="""
+    <style>
+    @media screen and (max-width: 640px) {
+        div[data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            gap: 10px !important;
+        }
+        div[data-testid="stColumn"] {
+            width: calc(33.333% - 10px) !important; /* 3열 기준 */
+            min-width: 0 !important;
+            flex: 1 1 0% !important;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 import api
-import time
-import pandas as pd
+
+# 페이지 세션 관리
+if 'item' not in st.session_state:
+    st.session_state.item = {
+        'item' : '',
+        'sort' : '',
+        'itemKey' : 0
+    }
 
 query_page : str|None = st.query_params.get("page", None)
-st.session_state.page['page'] = 'pages/9itemList.py'
 
 if query_page:
     current_page = query_page
-elif st.session_state.page['sort']:
-    current_page = st.session_state.page['sort']
+elif st.session_state.item['sort']:
+    current_page = st.session_state.item['sort']
 else:
     current_page = 'glasses'
 
@@ -31,20 +53,14 @@ if current_page == 'glasses':
     page = {'sort':'glasses'}
 elif current_page == 'sunglasses':
     page = {'sort':'sunglasses'}
-elif current_page == 'sporty':
-    page = {'category':'sporty'}
-elif current_page == 'new':
-    page = {'event':'new'}
-elif current_page == 'best':
-    page = {'event':'best'}
+elif current_page == 'goggles':
+    page = {'sort':'goggles'}
 else:
     page = {'sort':'glasses'}
 
-index : str = list(page.keys())[0]
-
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
-itemData = itemData[itemData[index] == page.get(index)]
+itemData = itemData[itemData['sort'] == page.get('sort')]
 
 sortedItems = itemData.sort_index()
 
@@ -59,14 +75,6 @@ st.divider()
 # siderbar 정의
 with st.sidebar:
     utils.set_sidebarLogo()
-    st.markdown(
-        """
-        <div style='text-align: center; padding: 1rem 0; color: #555;'>
-            <em>Office Eyewear<br>for Professionals</em>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
     utils.set_sidebar()
 
 if itemData.empty:
@@ -76,28 +84,25 @@ if itemData.empty:
 grouped_items = sortedItems.groupby('code')
 
 for code, group in grouped_items:
-    
     code_info = code_db.get(str(code))
     st.image(str(code_info['path']), width='stretch')
 
-    # 2. 아이템 3열 배치
-    # 한번만 Marker를 생성하기 위해 컨테이너로 감쌉니다.
     with st.container():
         st.html('<div class="mobile-grid-target" style="display:none;"></div>')
         for i, (idx, item) in enumerate(group.iterrows()):
             if i % 3 == 0:
                 cols = st.columns(3)
-            
             col = cols[i % 3]
             with col.container():
-                
                 # 이미지 표시
                 st.image(str(item['paths'][0]))
-    
+
+                model : str = item['name'].split('_')[0]
+                color : str = item['name'].split('_')[1]
+
                 # 정보 표시
-                st.markdown(body=f"<div style='font-size: 13px; font-weight: bold;'>{item['name']}</div>", unsafe_allow_html=True)
-                st.markdown(f"###### {item['price']:,}원")
-    
+                st.html(body=f"{model}<br>{color}")
+
                 # 상세보기 버튼
                 if st.button(
                     label='상세보기',
@@ -105,8 +110,8 @@ for code, group in grouped_items:
                     type='secondary',
                     width='stretch'
                 ):
-                    st.session_state.page['item'] = idx
-                    st.session_state.page['page'] = 'pages/7item.py'
+                    st.session_state.item['item'] = item['code']
+                    st.session_state.item['itemKey'] = i
                     st.switch_page(page="pages/7item.py")
 
 st.divider()
