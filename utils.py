@@ -218,6 +218,14 @@ class database:
             self.logo_side_base64 = ""
             print(f"사이드 로고 로딩 실패: {e}")
 
+        try:
+            with open('database/waiting.gif', "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                self.waiting_gif_base64 = f"data:image/gif;base64,{encoded_string}"
+        except Exception as e:
+            self.waiting_gif_base64 = ""
+            print(f"로딩 GIF 로딩 실패: {e}")
+
         # email 발송 keys
         try:
             self.emailAccess = {

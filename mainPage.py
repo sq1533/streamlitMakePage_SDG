@@ -246,8 +246,10 @@ sc_left, sc_right = st.columns([1, 2], gap="medium", vertical_alignment="center"
 
 with sc_left.container():
     img_url = str(showcase.get('path', ''))
+    gif_bg_url = utils.utilsDb().waiting_gif_base64
+    
     st.html(f'''
-        <div class="showcase-img-container">
+        <div class="showcase-img-container" style="background: url('{gif_bg_url}') center center no-repeat; background-size: cover; background-color: #F8F9FA;">
             <img src="{img_url}">
         </div>
     ''')

@@ -65,7 +65,7 @@ with buy.container(horizontal=True):
 
     st.link_button(
         label='카카오 쇼핑(준비중)',
-        url=f'https://store.kakao.com',
+        url=f"{itemInfo['kakao']}",
         type='secondary',
         width='stretch'
     )
