@@ -51,12 +51,16 @@ else:
 
 if current_page == 'glasses':
     page = {'sort':'glasses'}
+    filterOption = ['all', '티타늄 하금테', '티타늄 뿔테', '울템']
 elif current_page == 'sunglasses':
     page = {'sort':'sunglasses'}
+    filterOption = ['all', '무테', '하프', '뿔테']
 elif current_page == 'goggles':
     page = {'sort':'goggles'}
+    filterOption = ['all', '무테', '하프', '뿔테']
 else:
     page = {'sort':'glasses'}
+    filterOption = ['all', '티타늄 하금테', '티타늄 뿔테', '울템']
 
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
@@ -68,7 +72,16 @@ sortedItems = itemData.sort_index()
 code_db : dict = utils.utilsDb().firestore_code
 
 st.title(body=f'AMUREDO {current_page}')
-st.caption(body='Beyond the basics, comfort in every moment.')
+cap, fil = st.columns(spec=[4,1], gap='large', vertical_alignment='bottom')
+
+cap.caption(body='Beyond the basics, comfort in every moment.')
+filterValues = fil.selectbox(
+    label='필터',
+    options=filterOption,
+    index=0,
+    label_visibility='collapsed',
+    width=200
+)
 
 st.divider()
 
@@ -81,6 +94,9 @@ if itemData.empty:
     st.info(body='상품 준비중입니다.')
     st.stop()
 
+if filterValues != 'all':
+    sortedItems = sortedItems[sortedItems['category'] == filterValues]
+
 grouped_items = sortedItems.groupby('code')
 
 for code, group in grouped_items:
@@ -89,10 +105,12 @@ for code, group in grouped_items:
 
     with st.container():
         st.html('<div class="mobile-grid-target" style="display:none;"></div>')
+
         for i, (idx, item) in enumerate(group.iterrows()):
             if i % 3 == 0:
                 cols = st.columns(3)
             col = cols[i % 3]
+
             with col.container():
                 # 이미지 표시
                 st.image(str(item['paths'][0]))
