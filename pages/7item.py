@@ -51,21 +51,12 @@ if another.button('다른 색상', type='primary', width='stretch'):
     st.session_state.item['itemKey'] = (st.session_state.item['itemKey'] + 1) % len(filtered_item)
     st.rerun()
 
-price, buy = st.columns(spec=2, gap='small', vertical_alignment='bottom')
-
-price.markdown(body=f"### {itemInfo['price']:,}원")
-with buy.container(horizontal=True):
-    st.space(size='stretch')
+with st.container(horizontal=True):
+    st.markdown(body=f"### {itemInfo['price']:,}원")
+    st.space(size='stretch')    
     st.link_button(
         label='네이버 스토어 구매',
         url=f"{itemInfo['naver']}",
-        type='secondary',
-        width='stretch'
-    )
-
-    st.link_button(
-        label='카카오 쇼핑 구매',
-        url=f"{itemInfo['kakao']}",
         type='secondary',
         width='stretch'
     )

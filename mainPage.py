@@ -30,6 +30,90 @@ if 'vannerKey' not in st.session_state:
 vannerData : dict = utils.database().firestore_code
 vanner = list(vannerData.keys())
 
+showcaseKey : str = vanner[st.session_state.vannerKey]
+showcase : dict = vannerData.get(showcaseKey)
+
+st.html(
+    """
+    <style>
+    .showcase-img-container {
+        width: 100%;
+        aspect-ratio: 5 / 3;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    }
+    .showcase-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .showcase-title {
+        color: #0E3A5B;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .showcase-desc {
+        color: #555;
+        line-height: 1.6;
+        font-size: 1.05rem;
+        word-break: keep-all;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: center;
+    }
+    </style>
+    """
+)
+
+sc_left, sc_right = st.columns(spec=2, gap="medium", vertical_alignment="center")
+
+with sc_left.container():
+    img_url = str(showcase.get('path', ''))
+    gif_bg_url = utils.utilsDb().waiting_gif_base64
+    
+    st.html(f'''
+        <div class="showcase-img-container" style="background: url('{gif_bg_url}') center center no-repeat; background-size: cover; background-color: #F8F9FA;">
+            <img src="{img_url}">
+        </div>
+    ''')
+
+    with st.container(horizontal=True):
+        if st.button('◀ before', type='secondary', width=100):
+            st.session_state.vannerKey = (st.session_state.vannerKey - 1) % len(vanner)
+            st.rerun()
+
+        st.space(size='stretch')
+
+        if st.button('next ▶', type='secondary', width=100):
+            st.session_state.vannerKey = (st.session_state.vannerKey + 1) % len(vanner)
+            st.rerun()
+
+with sc_right:
+    sc_name = showcase.get('name', '대표 상품 이름')
+    sc_text = showcase.get('info', '이곳에 상품에 대한 상세한 설명이 들어갑니다.')
+
+    st.html(
+        body=f'''
+        <div style="padding: 20px 0;">
+            <div class="showcase-title">{sc_name}</div>
+            <div class="showcase-desc">{sc_text}</div>
+        </div>
+    ''')
+    with st.container(horizontal=True):
+        st.space(size='stretch')
+        if st.button('상세보기', type='primary', width='stretch'):
+            st.session_state.item['item'] = showcaseKey
+            st.session_state.item['itemKey'] = 0
+            st.switch_page(page='pages/7item.py')
+        st.space(size='stretch')
+
+st.divider()
+
 # 브랜드 카피라이트 및 철학
 brandStory, brandColor = st.columns(spec=[2,1], gap='small', vertical_alignment='top',width='stretch')
 
@@ -121,8 +205,10 @@ st.html(
         opacity: 0;
         animation: toastPopup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    .delay-1 { animation-delay: 0.5s; }
-    .delay-2 { animation-delay: 0.8s; }
+    .delay-1 { animation-delay: 1.5s; }
+    .delay-2 { animation-delay: 2.5s; }
+    .delay-3 { animation-delay: 3.5s; }
+    .delay-4 { animation-delay: 4.5s; }
     .feature-icon {
         font-size: 2em;
         margin-bottom: 10px;
@@ -162,7 +248,7 @@ with col1:
 with col2:
     st.html(
         """
-        <div class="feature-card delay-1">
+        <div class="feature-card delay-2">
             <div class="feature-icon">💎</div>
             <div class="feature-title">Reasonable Price</div>
             <div class="feature-desc">
@@ -177,7 +263,7 @@ col3, col4 = st.columns(2)
 with col3:
     st.html(
         """
-        <div class="feature-card delay-2">
+        <div class="feature-card delay-3">
             <div class="feature-icon">🍃</div>
             <div class="feature-title">Light Weight</div>
             <div class="feature-desc">
@@ -190,7 +276,7 @@ with col3:
 with col4:
     st.html(
         """
-        <div class="feature-card delay-2">
+        <div class="feature-card delay-4">
             <div class="feature-icon">✨</div>
             <div class="feature-title">Simple Design</div>
             <div class="feature-desc">
@@ -200,89 +286,46 @@ with col4:
         """
     )
 
-st.divider()
-
-showcaseKey : str = vanner[st.session_state.vannerKey]
-showcase : dict = vannerData.get(showcaseKey)
-
+# 오프라인 위치
 st.html(
-    """
+    body="""
     <style>
-    .showcase-img-container {
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
+    .offline-store-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #0E3A5B;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 18px 40px;
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
-    }
-    .showcase-img-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .showcase-title {
-        color: #0E3A5B;
+        font-size: 1.4rem;
         font-weight: 800;
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-        text-align: center;
+        box-shadow: 0 4px 10px rgba(14, 58, 91, 0.2);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin: 20px auto;
+        max-width: 400px;
+        width: 90%;
+        gap: 12px;
     }
-    .showcase-desc {
-        color: #555;
-        line-height: 1.6;
-        font-size: 1.05rem;
-        word-break: keep-all;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-align: center;
+    .offline-store-btn:hover {
+        background-color: #144f7a;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(14, 58, 91, 0.3);
+        color: #ffffff !important;
+    }
+    .offline-store-btn:active {
+        transform: translateY(0px);
+        box-shadow: 0 4px 10px rgba(14, 58, 91, 0.2);
     }
     </style>
+    <div style="display: flex; justify-content: center; width: 100%; margin: 30px 0;">
+        <a href="https://naver.me/FiPl0mEN" target="_blank" class="offline-store-btn">
+            🌍 오프라인 스토어
+        </a>
+    </div>
     """
 )
-
-sc_left, sc_right = st.columns([1, 2], gap="medium", vertical_alignment="center")
-
-with sc_left.container():
-    img_url = str(showcase.get('path', ''))
-    gif_bg_url = utils.utilsDb().waiting_gif_base64
-    
-    st.html(f'''
-        <div class="showcase-img-container" style="background: url('{gif_bg_url}') center center no-repeat; background-size: cover; background-color: #F8F9FA;">
-            <img src="{img_url}">
-        </div>
-    ''')
-
-    with st.container(horizontal=True):
-        if st.button('◀ before', type='secondary', width=100):
-            st.session_state.vannerKey = (st.session_state.vannerKey - 1) % len(vanner)
-            st.rerun()
-
-        st.space(size='stretch')
-
-        if st.button('next ▶', type='secondary', width=100):
-            st.session_state.vannerKey = (st.session_state.vannerKey + 1) % len(vanner)
-            st.rerun()
-
-with sc_right:
-    sc_name = showcase.get('name', '대표 상품 이름')
-    sc_text = showcase.get('info', '이곳에 상품에 대한 상세한 설명이 들어갑니다.')
-
-    st.html(
-        body=f'''
-        <div style="padding: 20px 0;">
-            <div class="showcase-title">{sc_name}</div>
-            <div class="showcase-desc">{sc_text}</div>
-        </div>
-    ''')
-    with st.container(horizontal=True):
-        st.space(size='stretch')
-        if st.button('상세보기', type='primary', width='stretch'):
-            st.session_state.item['item'] = showcaseKey
-            st.session_state.item['itemKey'] = 0
-            st.switch_page(page='pages/7item.py')
-        st.space(size='stretch')
 
 # siderbar 정의
 with st.sidebar:

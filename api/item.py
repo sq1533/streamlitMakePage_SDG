@@ -27,7 +27,6 @@ class items(utils.database):
                 'category',
                 'name',
                 'naver',
-                'kakao',
                 'color',
                 'event',
                 'price',
