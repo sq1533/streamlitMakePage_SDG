@@ -398,26 +398,25 @@ def set_sidebar():
     st.divider()
 
     if st.button(
-        label='Glasses',
-        type='secondary',
-        width='stretch'
-    ):
-        st.session_state.item['sort'] = 'glasses'
-        st.switch_page(page='pages/9itemList.py')
-    if st.button(
         label='Sunglasses',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.item['sort'] = 'sunglasses'
+        st.switch_page(page='pages/9itemList_sun.py')
+
+    if st.button(
+        label='Glasses',
+        type='secondary',
+        width='stretch'
+    ):
         st.switch_page(page='pages/9itemList.py')
+
     if st.button(
         label='Goggles',
         type='secondary',
         width='stretch'
     ):
-        st.session_state.item['sort'] = 'goggles'
-        st.switch_page(page='pages/9itemList.py')
+        st.switch_page(page='pages/9itemList_gog.py')
 
     st.divider()
 

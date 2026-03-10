@@ -18,7 +18,6 @@ import api
 if 'item' not in st.session_state:
     st.session_state.item = {
         'item' : '',
-        'sort' : '',
         'itemKey' : 0
     }
 

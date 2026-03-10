@@ -41,20 +41,20 @@ if 'item' not in st.session_state:
 
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
-itemData = itemData[itemData['sort'] == 'glasses']
+itemData = itemData[itemData['sort'] == 'sunglasses']
 
 sortedItems = itemData.sort_index()
 
 # Code 정보 가져오기
 code_db : dict = utils.utilsDb().firestore_code
 
-st.title(body='AMUREDO glasses')
+st.title(body=f'AMUREDO {current_page}')
 cap, fil = st.columns(spec=[4,1], gap='large', vertical_alignment='bottom')
 
 cap.caption(body='Beyond the basics, comfort in every moment.')
 filterValues = fil.selectbox(
     label='필터',
-    options=['all', '티타늄 하금테', '티타늄 뿔테', '울템'],
+    options=['all', '무테', '하프', '뿔테'],
     index=0,
     label_visibility='collapsed',
     width=200
@@ -78,7 +78,8 @@ grouped_items = sortedItems.groupby('code')
 
 for code, group in grouped_items:
     code_info = code_db.get(str(code))
-    st.image(str(code_info['path']), width='stretch')
+    if code_info != None:
+        st.image(str(code_info['path']), width='stretch')
 
     with st.container():
         st.html('<div class="mobile-grid-target" style="display:none;"></div>')
@@ -93,7 +94,7 @@ for code, group in grouped_items:
                 st.image(str(item['paths'][0]))
 
                 model : str = item['name'].split('_')[0]
-                color : str = item['color']
+                color : str = item['name'].split('_')[1]
 
                 # 정보 표시
                 st.html(body=f"{model}<br>{color}")

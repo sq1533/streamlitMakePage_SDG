@@ -19,7 +19,6 @@ utils.set_page_ui()
 if 'item' not in st.session_state:
     st.session_state.item = {
         'item' : '',
-        'sort' : '',
         'itemKey' : 0
     }
 
@@ -205,10 +204,10 @@ st.html(
         opacity: 0;
         animation: toastPopup 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    .delay-1 { animation-delay: 1.5s; }
-    .delay-2 { animation-delay: 2.5s; }
-    .delay-3 { animation-delay: 3.5s; }
-    .delay-4 { animation-delay: 4.5s; }
+    .delay-1 { animation-delay: 1s; }
+    .delay-2 { animation-delay: 2s; }
+    .delay-3 { animation-delay: 3s; }
+    .delay-4 { animation-delay: 4s; }
     .feature-icon {
         font-size: 2em;
         margin-bottom: 10px;
