@@ -41,14 +41,14 @@ if 'item' not in st.session_state:
 
 # 아이템 데이터 가져오기
 itemData = api.items.showItem()
-itemData = itemData[itemData['sort'] == 'sunglasses']
+itemData = itemData[itemData['sort'] == 'goggles']
 
 sortedItems = itemData.sort_index()
 
 # Code 정보 가져오기
 code_db : dict = utils.utilsDb().firestore_code
 
-st.title(body=f'AMUREDO {current_page}')
+st.title(body=f'AMUREDO goggles')
 cap, fil = st.columns(spec=[4,1], gap='large', vertical_alignment='bottom')
 
 cap.caption(body='Beyond the basics, comfort in every moment.')

@@ -20,6 +20,8 @@ if 'item' not in st.session_state:
         'item' : '',
         'itemKey' : 0
     }
+if 'selectedColor' not in st.session_state:
+    st.session_state.selectedColor = None
 
 # 파라미터 접근 확인
 if "item_id" in st.query_params:
@@ -29,14 +31,30 @@ if "item_id" in st.query_params:
 if st.session_state.item['item'] == '':
     st.switch_page(page='mainPage.py')
 
-# 페이지 시작
 # 데이터 불러오기
 allItem : DataFrame = api.items.showItem()
 itemCode : str = st.session_state.item['item']
 
 filtered_item = allItem[allItem['code'] == itemCode]
+
+colorOption = filtered_item['color'].tolist()
+
 itemInfo = filtered_item.iloc[st.session_state.item['itemKey']]
 
+with open("database/docs.html", "r", encoding="utf-8") as f:
+    catalog = f.read()
+
+
+# 컬러 옵션 변경
+def choose_color():
+    selected_color = st.session_state.selectedColor
+
+    color_list = filtered_item['color'].tolist()
+    itemIndex = color_list.index(selected_color)
+
+    st.session_state.item['itemKey'] = itemIndex
+
+# 페이지 시작
 with st.container(horizontal=True):
     st.markdown(body=f"#### :gray[amuredo > {itemInfo['sort']}]")
     st.space(size='stretch')
@@ -46,9 +64,15 @@ with st.container(horizontal=True):
 name, another = st.columns(spec=[4,1], gap='small', vertical_alignment='bottom')
 
 name.markdown(f"# {itemInfo['name']}")
-if another.button('다른 색상', type='primary', width='stretch'):
-    st.session_state.item['itemKey'] = (st.session_state.item['itemKey'] + 1) % len(filtered_item)
-    st.rerun()
+another.selectbox(
+    label='컬러',
+    options=colorOption,
+    key='selectedColor',
+    on_change=choose_color,
+    placeholder='다른 옵션',
+    label_visibility='collapsed',
+    width='stretch'
+)
 
 with st.container(horizontal=True):
     st.markdown(body=f"### {itemInfo['price']:,}원")
@@ -63,6 +87,7 @@ with st.container(horizontal=True):
 design, info = st.tabs(tabs=['design', 'information'])
 
 with design:
+    st.html(catalog)
     st.image(str(itemInfo['paths'][1]))
 
 with info:
