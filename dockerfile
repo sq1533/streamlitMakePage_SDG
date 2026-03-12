@@ -26,6 +26,9 @@ RUN find /usr/local/lib/python3.12/site-packages/streamlit -name "index.html" -e
 # Google Tag (gtag.js) 삽입: <head> 태그 바로 뒤에 추적 코드를 주입합니다.
 RUN find /usr/local/lib/python3.12/site-packages/streamlit -name "index.html" -exec sed -i 's|<head>|<head><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=AW-17793333010"></script><script>window.dataLayer=window.dataLayer\|\|[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-17793333010");</script>|g' {} +
 
+# 웹 페이지의 언어를 한국어(ko)로 명시하여 브라우저에서 영어로 인식하고 번역 팝업을 띄우는 것을 방지합니다.
+RUN find /usr/local/lib/python3.12/site-packages/streamlit -name "index.html" -exec sed -i 's|<html lang="en">|<html lang="ko">|g' {} +
+
 # 3. 사용자 권한 설정
 RUN useradd -ms /bin/bash appuser
 COPY --chown=appuser:appuser . .
